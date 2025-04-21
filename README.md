@@ -300,3 +300,8 @@ pheatmap(mat = FC_matrix,
      color = colorRampPalette(c("blue", "white", "red"))(100))
 dev.off()
 ```
+## Performance Regression for finding resistance features
+To be written
+
+## Chemical diversity
+To be written
