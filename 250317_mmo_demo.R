@@ -21,6 +21,8 @@ library('ggbeeswarm') # for beeswarm plot
 library('RColorBrewer') # for color palette
 library(viridis)
 library('vegan') # for diversity index
+library('ape') # for betadiv
+library('GUniFrac') # for betadiv
 
 ################################################
 setwd('/home/minsoo/software/mmo/250421_demo')
@@ -1070,6 +1072,34 @@ GetFunctionalHillNumberwithRaoQ <- function(mmo, normalization = 'None',q = 1){
   hill_df <- data.frame(group = groups, hill_number = functional_hill_number)
   return(hill_df)
 }
+GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None') {    
+  # Get compound distance and build tree for UniFrac
+  scaled_dissimilarity <- mmo$qemistree / max(mmo$qemistree)
+  compound_tree <- as.phylo(hclust(as.dist(scaled_dissimilarity), method = "average"))
+
+  # Get feature matrix of relative proportion
+  feature <- GetNormFeature(mmo, normalization)
+  metadata <- mmo$metadata
+  feature <- feature %>% filter(id %in% colnames(scaled_dissimilarity))
+  relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x)) 
+  rownames(relative_proportions) <- feature$id
+  relative_proportions <- relative_proportions[rownames(scaled_dissimilarity), ] #reorder
+  relative_proportions <- t(relative_proportions)
+  # Calculate Generalized UniFrac
+  if (method == 'Gen.Uni') {
+    guni <- GUniFrac(relative_proportions, compound_tree, alpha = c(0, 0.5, 1), verbose = TRUE)
+    beta_div <- guni$unifracs
+  } else if (method == 'bray') {
+    beta_div <- as.matrix(vegdist(relative_proportions, method = 'bray'))
+  } else if (method == 'jaccard') {
+    beta_div <- as.matrix(vegdist(relative_proportions, method = 'jaccard'))
+  } else {
+    stop("Invalid method. Please use 'Gen.Uni', 'bray' or 'jaccard'")
+  }
+
+
+  return(beta_div)
+}
 
 
 ########################################################################################
@@ -1233,28 +1263,20 @@ filter_feature <- FALSE
 feature_list <- GLSs # list of features to show in heatmap
 filter_group <- FALSE
 group_list <- c('con', 'sl1', 'sl2', 'sl3') # list of groups to show in heatmap
-summarize <- 'mean' #mean or fold_change
-control_group <- 'con' # if summarize is fold_change, control group should be defined
 normalization <- 'Z' #None, Log, Meancentered, Z
 distance <- 'cosine' #cosine or qemistree or combined
 
-
-
-# 12.1. Process data for heatmap
-# 12.1.1. Get summarized data (group mean or FC)
+# 7.1. Process data for heatmap
+# 7.1.1. Get summarized data (group mean or FC)
 if (filter_group){
   group_means <- GetGroupMeans(mmo, normalization = normalization, filter = TRUE, filter_groups = group_list)
 } else {
   group_means <- GetGroupMeans(mmo, normalization = normalization)
 }
-if (summarize == 'fold_change'){
-  fold_change <- GetLog2FoldChange(group_means, control_group = control_group)
-  heatmap_data <- fold_change
-} else if(summarize == 'mean'){ 
-  heatmap_data <- group_means
-}
+heatmap_data <- group_means
+
 head(heatmap_data)
-# 12.1.2. Filter features
+# 7.1.2. Filter features
 # Determine distance metric
 if (distance == 'qemistree'){
   distance_matrix <- mmo$qemistree
@@ -1264,7 +1286,6 @@ if (distance == 'qemistree'){
   distance_matrix <- mmo$qemistree * mmo$cos.dissim
 }
 heatmap_data <- heatmap_data %>% filter(id %in% rownames(distance_matrix)) # get features with fingerprints
-heatmap_data$con <- NULL # as we are looking at FC, all con are 0
 # make matrix for heatmap
 FC_matrix <- as.matrix(heatmap_data[,-1])
 rownames(FC_matrix) <- heatmap_data$id
@@ -1275,7 +1296,7 @@ dist_matrix <- as.dist(distance_matrix)
 
 
 if (filter_feature){
-  filter_list <- FLVs #GLSs
+  filter_list <- feature_list #GLSs
   filter_id <- FeatureToID(mmo, filter_list)
   filter_id <- filter_id[filter_id %in% rownames(distance_matrix)] # remove custom-annotated but not siriused features
   filter_distance <- mmo$qemistree[filter_id, filter_id]
@@ -1302,10 +1323,7 @@ if (filter_feature){
   }
 }
 
-
-
-
-# 12.2.1.2. Get annotation for Qemistree
+# 7.2.1.2. Get annotation for Qemistree
 #SIRIUS superclass and specific classes
 sirius_annot <- mmo$sirius_annot
 # Get NPC Annotations
@@ -1320,7 +1338,7 @@ sirius_annot_qemistry <- sirius_annot %>%
 rownames(sirius_annot_qemistry) <- sirius_annot_qemistry$id
 sirius_annot_qemistry$id <- NULL
 
-# 12.2.1.3. Set colors to show in heatmap
+# 7.2.1.3. Set colors to show in heatmap
 ann_colors = list(
     NPC_pathway = c('Alkaloids' = 'purple', 'Carbohydrates' = 'green', 'Polyketides' = 'yellow', 'Terpenoids' = 'orange', 
         'Amino acids and Peptides' = 'blue', 'Shikimates and Phenylpropanoids' = 'red', 'Fatty acids' = 'brown'),
@@ -1331,7 +1349,7 @@ ann_colors = list(
 ##### Specific colors for specific classes of interest
 ann_colors$NPC_class['Glucosinolates'] <- 'red'
 
-# 12.2.1.4. Plot
+# 7.2.1.4. Plot
 pdf("plots/test.pdf", width = 20, height = 40)
 pheatmap(mat = FC_matrix, 
      cluster_rows = TRUE, 
@@ -1351,3 +1369,77 @@ pheatmap(mat = FC_matrix,
      annotation_names_row = TRUE,
      color = colorRampPalette(c("blue", "white", "red"))(100))
 dev.off()
+
+########################################################################################
+# 8. Chemical Diversity
+#######################################################################################
+# 8.1. Alpha diversity
+# 8.1.1. unweighted Hill
+unweighted_q1 <- GetHillNumbers(mmo, q = 1)
+unweighted_q2 <- GetHillNumbers(mmo, q = 2)
+# 8.1.2. Functional Hill number without Rao's Q
+functional.hill.q1 <- GetFunctionalHillNumber(mmo, normalization = 'None', q = 1)
+functional.hill.q2 <- GetFunctionalHillNumber(mmo, normalization = 'None', q = 2)
+# 8.1.3. Functional Hill number with Rao's Q standardization
+functional.hill.q1.raoQ <- GetFunctionalHillNumberwithRaoQ(mmo, normalization = 'None', q = 1)
+functional.hill.q2.raoQ <- GetFunctionalHillNumberwithRaoQ(mmo, normalization = 'None', q = 2)
+#Plot
+ggplot(functional.hill.q1, aes(x = group, y = hill_number)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_beeswarm(size = 0.5) +
+  theme_classic() 
+ggsave('plots/diversity/functional_q1.png', width = 8,height = 8)
+
+# 8.2. Beta diversity
+# Generalized UniFrac distance using fingerprint distance. The alpha value can be adjusted
+feature <- mmo$zscore
+metadata <- mmo$metadata
+guni <- GetBetaDiversity(mmo, method = 'Gen.Uni', normalization = 'Log')
+guni.0 <- guni[,,'d_0'] # GUniFrac with alpha 0
+guni.05 <- guni[,,'d_0.5'] # GUniFrac with alpha 0.5
+guni.1 <- guni[,,'d_1'] # Weighted UniFrac
+
+# Perform NMDS
+nmds <- metaMDS(guni.1, k = 2, try = 50, trymax = 100)
+nmds_coords <- as.data.frame(scores(nmds))
+groups <- c()
+for (col in colnames(feature)[-c(1, 2)]) {
+  groups <- append(groups, metadata[metadata$sample == col, ]$group)
+}
+nmds_coords$group <- groups
+ggplot(nmds_coords, aes(x = NMDS1, y = NMDS2, color = group)) +
+      geom_point(size = 3) +
+      #geom_text_repel(aes(label = group), size = 3) +
+      theme_classic() +
+      stat_ellipse(level = 0.90) +
+      labs(x = "NMDS1", y = "NMDS2") +
+      theme(legend.position = "right")
+    
+ggsave(paste('plots/nmds.pdf'), height = 6, width = 6)
+
+########################################################################################
+# 9. Performance regression
+#######################################################################################
+# fetch pairwise comparisons from mmo$pairwise
+comparisons <- c('con_vs_sl1', 'con_vs_sl2', 'con_vs_sl3', 'con_vs_px1', 'con_vs_px2', 'con_vs_px3', 'con_vs_le1', 'con_vs_le2', 'con_vs_le3')
+# Define the DAMs
+sl.up <- Reduce(union, c(
+  DAMs_up$con_vs_sl1.up, 
+  DAMs_up$con_vs_sl2.up, 
+  DAMs_up$con_vs_sl3.up
+))
+sl.down <- Reduce(union, c(
+  DAMs_down$con_vs_sl1.down, 
+  DAMs_down$con_vs_sl2.down, 
+  DAMs_down$con_vs_sl3.down
+))
+
+# Fit LMM and find significant features
+sl.lmm <- GetPerformanceFeatureLMM(mmo, herbivore = 'Sl', groups = c('sl1', 'sl2', 'sl3'), DAM.list = list(sl.up = sl.up, sl.down = sl.down), comparisons)
+sl.lmm.sig <- sl.lmm %>% filter(p_value < 0.05)
+sl.lmm.sig.neg <- sl.lmm.sig %>% filter(effect.size < 0)
+# Plot the association between fold change and effect size
+PlotFoldchangeResistanceRegression(performance_regression = sl.lmm.sig, 
+  fold_change = 'con_vs_sl3_log2FC', 
+  color = c('sl.up' = '#ba3b3c', 'sl.down' = '#1a3f9e', 'else' = 'grey'), 
+  output_dir = 'plots/sl_lmm.png')
