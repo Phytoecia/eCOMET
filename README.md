@@ -75,7 +75,11 @@ siriused_features <- IDToFeature(mmo, siriused_ids)
 ### Annotated features by SIRIUS
 Some feature groups may deserve particular interest. For the demo file, glucosinolates and flavonoids are. We can briefly annotate those metabolites using annotation from sirius. 
 ```
-
+features <- mmo$sirius_annot
+# Get list of glucosinolated using sirius annotation
+GLSs <- features %>% filter(str_detect(features[[46]], "Glucosinolate")) %>% pull(feature)
+# Get list of flavonoids using sirius annotation
+FLVs <- features %>% filter(str_detect(features[[46]], "Flavonoid")) %>% pull(feature)
 ```
 
 ## 2. Summarise using PLS-DA
@@ -300,8 +304,83 @@ pheatmap(mat = FC_matrix,
      color = colorRampPalette(c("blue", "white", "red"))(100))
 dev.off()
 ```
-## Performance Regression for finding resistance features
-To be written
 
 ## Chemical diversity
-To be written
+The chemical diversity is one of the key parameters in ecological studies. MMO quantifies the chemical diversity idices using idea from `ChemoDiv` package. The fingerprint distances are treated as phylogenetic diversity as in measuring taxonomic diversity. Alpha diversity can be calculated as following.
+```
+# 8.1. Alpha diversity
+# 8.1.1. unweighted Hill
+unweighted_q1 <- GetHillNumbers(mmo, q = 1)
+unweighted_q2 <- GetHillNumbers(mmo, q = 2)
+# 8.1.2. Functional Hill number without Rao's Q
+functional.hill.q1 <- GetFunctionalHillNumber(mmo, normalization = 'None', q = 1)
+functional.hill.q2 <- GetFunctionalHillNumber(mmo, normalization = 'None', q = 2)
+# 8.1.3. Functional Hill number with Rao's Q standardization
+functional.hill.q1.raoQ <- GetFunctionalHillNumberwithRaoQ(mmo, normalization = 'None', q = 1)
+functional.hill.q2.raoQ <- GetFunctionalHillNumberwithRaoQ(mmo, normalization = 'None', q = 2)
+```
+Then can be plotted as 
+```
+ggplot(functional.hill.q1, aes(x = group, y = hill_number)) +
+  geom_boxplot(outlier.shape = NA) +
+  geom_beeswarm(size = 0.5) +
+  theme_classic() 
+```
+The beta diversity (pairwise sample-sample distance) can be calculated as following:
+```
+# Generalized UniFrac distance using fingerprint distance. The alpha value can be adjusted
+feature <- mmo$zscore
+metadata <- mmo$metadata
+guni <- GetBetaDiversity(mmo, method = 'Gen.Uni', normalization = 'Log')
+guni.0 <- guni[,,'d_0'] # GUniFrac with alpha 0
+guni.05 <- guni[,,'d_0.5'] # GUniFrac with alpha 0.5
+guni.1 <- guni[,,'d_1'] # Weighted UniFrac
+```
+To visualize the beta diversity, a NMDS plot can be used
+```
+
+# Perform NMDS
+nmds <- metaMDS(guni.1, k = 2, try = 50, trymax = 100)
+nmds_coords <- as.data.frame(scores(nmds))
+groups <- c()
+for (col in colnames(feature)[-c(1, 2)]) {
+  groups <- append(groups, metadata[metadata$sample == col, ]$group)
+}
+nmds_coords$group <- groups
+ggplot(nmds_coords, aes(x = NMDS1, y = NMDS2, color = group)) +
+      geom_point(size = 3) +
+      #geom_text_repel(aes(label = group), size = 3) +
+      theme_classic() +
+      stat_ellipse(level = 0.90) +
+      labs(x = "NMDS1", y = "NMDS2") +
+      theme(legend.position = "right")
+```
+
+
+## Performance Regression for finding resistance features
+We are interested in finding anti-herbivore resistive compounds from the plant metabolome and testing whether such compounds are upregulated by insect attack. To do so, we first fit linear mixed model to the amount of each feature and the herbivore performance fed on each plant sample (see metadata). The negative effect size of the model represents the resistive value of the feature. We then test whether resistive features are upregulated (log2FC > 1) by plotting the effect size of the LMM and the log2FC as scatter plot. In the demo file, resistive compounds (which have neative effect sizes) were upregulated, which implies plants produce resistive compounds properly in response to sl attack. The analysis can be done as follows:
+```
+# fetch pairwise comparisons from mmo$pairwise
+comparisons <- c('con_vs_sl1', 'con_vs_sl2', 'con_vs_sl3', 'con_vs_px1', 'con_vs_px2', 'con_vs_px3', 'con_vs_le1', 'con_vs_le2', 'con_vs_le3')
+# Define the DAMs
+sl.up <- Reduce(union, c(
+  DAMs_up$con_vs_sl1.up, 
+  DAMs_up$con_vs_sl2.up, 
+  DAMs_up$con_vs_sl3.up
+))
+sl.down <- Reduce(union, c(
+  DAMs_down$con_vs_sl1.down, 
+  DAMs_down$con_vs_sl2.down, 
+  DAMs_down$con_vs_sl3.down
+))
+
+# Fit LMM and find significant features
+sl.lmm <- GetPerformanceFeatureLMM(mmo, herbivore = 'Sl', groups = c('sl1', 'sl2', 'sl3'), DAM.list = list(sl.up = sl.up, sl.down = sl.down), comparisons)
+sl.lmm.sig <- sl.lmm %>% filter(p_value < 0.05)
+sl.lmm.sig.neg <- sl.lmm.sig %>% filter(effect.size < 0)
+# Plot the association between fold change and effect size
+PlotFoldchangeResistanceRegression(performance_regression = sl.lmm.sig, 
+  fold_change = 'con_vs_sl3_log2FC', 
+  color = c('sl.up' = '#ba3b3c', 'sl.down' = '#1a3f9e', 'else' = 'grey'), 
+  output_dir = 'plots/sl_lmm.png')
+```
