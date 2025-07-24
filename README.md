@@ -1,5 +1,6 @@
-# MMO
-mmo is desinged to get input from mzmine, sirius, and qemistry to perform downstream statistic analyses.
+# MetCE
+MetCE is a platform for processing LC-MS/MS data for chemical ecology. It gets input from MZMine and SIRIUS. The major toolboxes of MetCE are as follows:
+<img width="1921" height="1080" alt="Screenshot 2025-07-24 at 6 59 47 PM" src="https://github.com/user-attachments/assets/517b33f9-7b66-4067-bda8-a66ae0a1d99c" />
 
 
 ## 0. Input
@@ -9,6 +10,7 @@ Following input files would be imported. See '/raw_data' of demo files.
 3) Metadata of samples (`metadata.csv`)
 	Metadata should have three or more columns; the first three being sample, group, and mass. Additional information can be provided (see performance_regression part).
 4) (Optional) Custom annotation of features ('custom_DB_glucosinolates.csv')
+	The custom DB includes three columns: 
 5) (Optional) Pairwise fingerprint distance of features from PyQemistree (`fingerprint_distance.csv`)
 6) (Optional) Pairwise modified cosine distances of all spectra from MZMine 4 (`cossim_ms2_modified_cos.csv`)
 	
@@ -190,7 +192,6 @@ distance <- 'cosine' #cosine or qemistree or combined
 ```
 Then run following to generate heatmap (under writing...)
 ```
-
 
 # 12.1. Process data for heatmap
 # 12.1.1. Get summarized data (group mean or FC)
