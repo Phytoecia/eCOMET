@@ -236,7 +236,7 @@ dev.off()
 `CanopusAllLevelEnrichmentPlot(mmo, DAMs_up, pthr = 0.1, terms = 'all_terms', representation = 'greater', prefix = 'plots/canopus_enrichment')`
 The above code generates one pdf plot and two csv files. The csv files contains the raw data of the enrichment analysis.
 
-## 7. Qemistree and heatmap
+## 7. Chemical class enrichment analysis
 Biological questions ask which class of chemical compounds are enriched in a set of compounds of interest (e.g., DAMs from above). This is analogue to the Gene Ontology enrichment analysis performed in transcriptomics. In MMO, NPC and Classyfire terms annotated by Canopus of SIRIUS are used to perform chemical class enrichment analysis of given list of features. The enrichment score of each term is calculated to plot the number of each term and the significance.
 ```
 # 7.1. For a single set of features, a detailed enrichment plot can be generated
