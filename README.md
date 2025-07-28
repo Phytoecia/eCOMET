@@ -33,26 +33,27 @@ m2ds_dir <- 'raw_data/ms2deepscore.csv'
 ```
 First import the mzmine feature list and metadata to create a `mmo` object.
 
-`mmo <- GetMZmineFeature(mzmine_featuredir, metadatadir)`
+`mmo <- GetMZmineFeature(mzmine_featuredir, metadatadir)
+head(mmo$featre_data)`
 
 then add annotation generated from sirius to the object
 
-`mmo <- AddSiriusAnnot(mmo, canopus_structuredir, canopus_formuladir)`
+`mmo <- AddSiriusAnnot(mmo, canopus_structuredir, canopus_formuladir)
+head(mmo$sirius_annot)`
 
-then replace zero values for further statistics.
-
-`mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by half of the minimum value`
-
-then normalize using sample mass used for extraction
-
-`mmo <- MassNormalization(mmo) # Normalize peak area by sample mass in metadata`
-
-then generate various normalized through mean-centering, log, and z-score.
+then process the quantification data
 ```
+# Normalize data
+mmo <- ReplaceZero(mmo, method = 'one') # Replace 0 and NA values by 1
+mmo <- MassNormalization(mmo) # Normalize peak area by sample mass in metadata
 mmo <- MeancenterNormalization(mmo) # Add mean-centered area
 mmo <- LogNormalization(mmo) # Add log-transformed area
 mmo <- ZNormalization(mmo) # Add Zscore
 ```
+The chemical similarity tables are imported then transformed into distance matrix
+`# Import chemical distance data for chemical diversity analyses
+mmo <- AddChemDist(mmo, cos_dir = cos_dir, dreams_dir = dreams_dir, m2ds_dir = m2ds_dir) `
+
 Custom annotation can be added based on m/z and RT.
 `mmo <- AddCustomDB(mmo, )`
 Fingerprint distance and cosine distance can be added.
