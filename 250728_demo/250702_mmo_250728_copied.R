@@ -592,11 +592,9 @@ GenerateHeatmapInputs <- function(mmo, filter_feature = FALSE, feature_list = NU
     filter_list <- feature_list 
     filter_id <- FeatureToID(mmo, filter_list)
     filter_id <- filter_id[filter_id %in% rownames(distance_matrix)] # remove custom-annotated but not in the distance matrix
-    filter_distance <- mmo$qemistree[filter_id, filter_id]
+    filter_distance <- distance_matrix[filter_id, filter_id]
     heatmap_data <- heatmap_data %>% filter(id %in% filter_id)
 
-
-    heatmap_data$con <- NULL # as we are looking at FC, all con are 0
     # make matrix for heatmap
     FC_matrix <- as.matrix(heatmap_data[,-1])
     rownames(FC_matrix) <- heatmap_data$id
@@ -1427,11 +1425,19 @@ for (comp in comparisons){
 # 7. Heat Map
 #######################################################################################
 # 7.1. Generate inputs for heatmap
-HMinput <- GenerateHeatmapInputs(mmo, filter_feature = FALSE, feature_list = feature_list, 
+HMinput_total <- GenerateHeatmapInputs(mmo, filter_feature = FALSE, feature_list = feature_list, 
                                 filter_group = FALSE, group_list = group_list, 
                                 summarize = 'mean', control_group = 'ctrl', 
                                 normalization = 'Z', distance = 'dreams')
 summary(HMinput)
+
+HMinput_GLSs <- GenerateHeatmapInputs(mmo, filter_feature = TRUE, feature_list = GLSs, 
+                                filter_group = FALSE, group_list = group_list, 
+                                summarize = 'mean', control_group = 'ctrl', 
+                                normalization = 'Z', distance = 'dreams')
+
+HM_input <- HM_input_total
+
 # 7.2. Generate NPC-based annotation table for heatmap
 sirius_annot <- mmo$sirius_annot
 # Get NPC Annotations
@@ -1446,7 +1452,7 @@ sirius_annot_filtered <- sirius_annot %>%
   # select(id = 1, NPC_pathway = 30, NPC_class = 34) %>%
   select(id = 1, NPC_class = 36, NPC_superclass = 34, NPC_pathway = 32) %>%
   # select(id = 1, NPC_pathway = 30, NPC_superclass = 32) %>%
-  filter(id %in% rownames(distance_matrix)) # get features with fingerprints
+  filter(id %in% rownames(HMinput$dist_matrix)) # get features with fingerprints
 
 rownames(sirius_annot_filtered) <- sirius_annot_filtered$id
 sirius_annot_filtered$id <- NULL
