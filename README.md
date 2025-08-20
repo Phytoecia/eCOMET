@@ -107,6 +107,7 @@ Then plot PLS-DA
 PLSDAplot(mmo, color = custom_colors, outdir = 'plots/plsda/PLSDA_Z.pdf', normalization = 'Z')
 PLSDAplot(mmo, color = custom_colors, topk = 0, outdir = 'plots/plsda/PLSDA_Z_noLoadings.pdf', normalization = 'Z')
 ```
+[PLSDA_Z_noLoadings.pdf](https://github.com/user-attachments/files/21879444/PLSDA_Z_noLoadings.pdf)
 
 The `topk` parameter can be adjusted to plot loadings of top features on the plot. The `normalization` can be `None`, `Log`, `Meancentered`, and `Z`.
 If a subset of features are to be used for ploting, set `filter_feature = TRUE` then provide the list of features to the `feature_list`
@@ -151,12 +152,14 @@ Then can be plotted as following
 ggvenn(VennInput, stroke_size = 0.5, set_name_size = 4, show_percentage = FALSE) +
   theme(legend.position = "none") 
 ggsave("plots/Venn/Venn_Upreg.pdf", height = 5, width = 5)
+[Venn_Upreg.pdf](https://github.com/user-attachments/files/21879447/Venn_Upreg.pdf)
 
 # 4.2.2. Upset plot
 pdf("plots/Venn/Upset_Upreg.pdf", 7, 5)
 upset(fromList(VennInput), nsets=10, nintersects=20,order.by='freq', mainbar.y.label='Features in Set', line.size=1, point.size=4, shade.color='white', text.scale=1, show.numbers=FALSE)
 dev.off()
 ```
+[Upset_Upreg.pdf](https://github.com/user-attachments/files/21879450/Upset_Upreg.pdf)
 
 ## 5. Volcano plot
 The pairwise comparion can be visualized by a volcano plot. Following code generates volcano plots for all comparison made in section 3.
@@ -168,6 +171,9 @@ for (comp in comparisons){
   VolcanoPlot(mmo, comp = comp, topk = 10, outdir = paste('plots/volcano/volcano_', comp, '.pdf', sep = ''))
 }
 ```
+[volcano_ctrl_vs_sl1.pdf](https://github.com/user-attachments/files/21879451/volcano_ctrl_vs_sl1.pdf)
+
+
 ## 6. Heat Map
 A heatmap is a great way to visualize the whole metabolome. Typically the features are clustered by the distribution pattern but alternatively the chemical similarity between features can be visualized. For heatmap, required inputs can be generated from mmo as follows:
 ```
@@ -237,8 +243,6 @@ dev.off()
 
 
 
-`CanopusAllLevelEnrichmentPlot(mmo, DAMs_up, pthr = 0.1, terms = 'all_terms', representation = 'greater', prefix = 'plots/canopus_enrichment')`
-The above code generates one pdf plot and two csv files. The csv files contains the raw data of the enrichment analysis.
 
 ## 7. Chemical class enrichment analysis
 Biological questions ask which class of chemical compounds are enriched in a set of compounds of interest (e.g., DAMs from above). This is analogue to the Gene Ontology enrichment analysis performed in transcriptomics. In MMO, NPC and Classyfire terms annotated by Canopus of SIRIUS are used to perform chemical class enrichment analysis of given list of features. The enrichment score of each term is calculated to plot the number of each term and the significance.
@@ -260,6 +264,7 @@ CanopusLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'NPC_class', pthr = 0.1, p
 terms <- c('NPC', 'ClassyFire', 'all_terms')
 CanopusAllLevelEnrichmentPlot(mmo, DAMs_up, term_level = 'all_terms', pthr = 0.1, prefix = 'plots/enrichment/DAMs_up_all_terms', width = 8, height = 12)
 ```
+[DAMs_up_NPC_class.pdf .pdf](https://github.com/user-attachments/files/21879463/DAMs_up_NPC_class.pdf.pdf)
 
 ## 8. Regression with Metadata
 We are interested in finding anti-herbivore resistive compounds from the plant metabolome and testing whether such compounds are upregulated by insect attack. To do so, we first fit linear mixed model to the amount of each feature and the herbivore performance fed on each plant sample (see metadata). The negative effect size of the model represents the resistive value of the feature. We then test whether resistive features are upregulated (log2FC > 1) by plotting the effect size of the LMM and the log2FC as scatter plot. In the demo file, resistive compounds (which have neative effect sizes) were upregulated, which implies plants produce resistive compounds properly in response to sl attack. The analysis can be done as follows:
@@ -290,6 +295,7 @@ PlotFoldchangeResistanceRegression(sl.lm.sig, fold_change = 'ctrl_vs_sl1_log2FC'
                                    color = c('sl.up' = '#d42525ff', 'sl.down' = '#281e99ff'), 
                                    output_dir = 'plots/phenotype_regression/sl_lm_sig.pdf')
 ```
+[sl_lm_sig.pdf](https://github.com/user-attachments/files/21879466/sl_lm_sig.pdf)
 
 ## 9. Chemical Diversity Measures
 The chemical diversity is one of the key parameters in ecological studies. MMO quantifies the chemical diversity idices using idea from `ChemoDiv` package. The fingerprint distances are treated as phylogenetic diversity as in measuring taxonomic diversity. Alpha diversity can be calculated as following.
@@ -395,6 +401,13 @@ ggplot(group_distances, aes(x = group, y = distance)) +
       labs(x = "Group", y = "Beta Diversity")
 ggsave('plots/betadiv/group_dist.pdf', height = 6, width = 6)
 ```
+[dreams_q3_log.pdf](https://github.com/user-attachments/files/21879472/dreams_q3_log.pdf)
+
+[NDMS_guni05.pdf](https://github.com/user-attachments/files/21879474/NDMS_guni05.pdf)
+
+[group_dist.pdf](https://github.com/user-attachments/files/21879478/group_dist.pdf)
+
+
 
 ## 10. Exporting compounds of interest
 `ExportFeaturesToCSV(mmo, feature_list = DAMs_up$ctrl_vs_sl1.up, normalization = 'None', output_dir = 'output/sl1_up_features.csv')`
