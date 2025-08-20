@@ -1,5 +1,5 @@
-# MetCE
-MetCE is a platform for processing LC-MS/MS data for chemical ecology. It gets input from MZMine and SIRIUS. The major toolboxes of MetCE are as follows:
+# eCOMET
+eCOMET is a platform for processing LC-MS/MS data for chemical ecology. It gets input from MZMine and SIRIUS. The major toolboxes of eCOMET are as follows:
 <img width="1921" height="1080" alt="Screenshot 2025-07-24 at 6 59 47 PM" src="https://github.com/user-attachments/assets/517b33f9-7b66-4067-bda8-a66ae0a1d99c" />
 
 
