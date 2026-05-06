@@ -23,9 +23,9 @@ knitr::opts_chunk$set(
 library(ecomet)
 ```
 
-## The `mmo` object
+## The Mass-spectrometry Metabolomics Object (`mmo`)
 
-The `mmo` object is a central data structure in the **eCOMET** package.\
+The `mmo` is a central data structure in the **eCOMET** package.\
 It is created by the `GetMZmineFeature()` function and contains:
 
 -   **feature_data**: A data frame of metabolite features and their
@@ -49,7 +49,7 @@ It is created by the `GetMZmineFeature()` function and contains:
 
 ## Input file requirements
 
-The mendatory input files for creating an `mmo` object are:
+The mendatory input files for creating a `mmo` are:
 
 1.  **MZmine feature table**:
 
@@ -68,13 +68,13 @@ Refer [Inputs_MZMine](#Inputs_MZMine) below for details.
 
 ------------------------------------------------------------------------
 
-You can create an `mmo` object like this:
+You can create a `mmo` like this:
 
 mmo \<- GetMZmineFeature( mzmine_dir = "path/to/mzmine_feature.csv",
 metadata_dir = "path/to/metadata.csv", group_col = "treatment" )
 
 Here we load demo data that is downloaded when eCOMET is installed and
-create an mmo object
+create a `mmo`
 
 ```{r, eval=FALSE}
 
@@ -98,7 +98,7 @@ gls_db <- file.path(data_dir, "custom_DB_glucosinolates.csv")
 mmo <- GetMZmineFeature(mzmine_dir=demo_feature, metadata_dir = demo_metadata, group_col = 'group', sample_col = 'sample')
 ```
 
-Once created, you can use the `mmo` object for normalization,
+Once created, you can use the `mmo` for normalization,
 annotation, statistical analysis, and visualization throughout the
 package.
 
@@ -123,7 +123,7 @@ mmo <- ZNormalization(mmo) # Add Zscore
 
 ## Adding Sirius/CANOPUS annotations
 
-The results from SIRIUS/CANOPUS can be added to the `mmo` object as
+The results from SIRIUS/CANOPUS can be added to the `mmo` as
 **mmo\$sirius_annot** These are used for chemical class enrichment
 analysis and visualization. Two files are needed:
 
@@ -150,7 +150,7 @@ mmo$sirius_annot
 ## Adding chemical dissimilarity
 
 Chemical dissimilarity matrices describe pairwise structural
-relationships among features. Once added to the `mmo` object they are
+relationships among features. Once added to the `mmo` they are
 used by `GetBetaDiversity()`, `GetAlphaDiversity()` (weighted mode), and
 `HeatmapPlot()` via the `distance` argument.
 
@@ -158,7 +158,7 @@ used by `GetBetaDiversity()`, `GetAlphaDiversity()` (weighted mode), and
 
 `AddChemDist()` reads MZmine molecular networking output files for three
 supported similarity types and converts them to dissimilarity
-(`1 - similarity`) before storing them in the `mmo` object.
+(`1 - similarity`) before storing them in the `mmo`.
 
 ``` r
 mmo <- AddChemDist(mmo,
@@ -213,7 +213,7 @@ can be passed as the `distance` argument throughout the package.
 
 ## Adding custom annotations
 
-You can add your own custom compound annotations to the `mmo` object as
+You can add your own custom compound annotations to the `mmo` as
 **mmo\$custom_annot**. This is useful for adding known compound names or
 classes from other databases. The custom annotation file should be a CSV
 with three columns: 1. compound: Name of the compound 2. mz: m/z value
@@ -228,14 +228,14 @@ mmo <- AddCustomAnnot(
 )
 ```
 
-##Filtering MMO Objectes based on feature list or sample list
+##Filtering `mmo`s based on feature list or sample list
 
 You can provide either a list of species or features to filter the
-object. This will iterate over all sets of
+`mmo`. This will iterate over all sets of
 
 ```{r, eval=FALSE}
 
-#Create a new mmo object containing only control samples
+#Create a new mmo containing only control samples
 samples_ctrl <- mmo$metadata$sample[mmo$metadata$group == "ctrl"]
 
 mmo_ctrl <- filter_mmo(mmo,
@@ -248,7 +248,7 @@ mmo_ctrl <- filter_mmo(mmo,
 
 ```{r, eval=FALSE}
 
-#create a new mmo object only containing Flavonoid based on sirius annotations
+#create a new mmo only containing Flavonoid based on sirius annotations
 FLVs <- mmo$sirius_annot %>% 
   filter(grepl("Flavonoid", .data[['ClassyFire#most specific class']])
   ) %>% pull(id)
@@ -259,14 +259,14 @@ mmo_FLVs <- filter_mmo(mmo,
 ```
 
 ##Match and Filter an associated mgf file to based on the feature list
-in an MMO object.
+in a `mmo`.
 
 Once an dataset has been filtered you may want to update the associated
 .mgf file containing ms2 spectra prior to processing with Sirius, GNPS
 ect.
 
 1)  Match spectra present in an MGF against a feature list and update
-    the mmo\$feature_info
+    the mmo\$feature_info.
 
 ```{r, eval=FALSE}
 
@@ -276,9 +276,9 @@ mmo <- annotate_feature_info_ms2_from_mgf(mmo,
 mmo$feature_info
 ```
 
-2)  Given a feature list in an mmo object defined by mmo$feature_data$id
+2)  Given a feature list in a `mmo` defined by `mmo$feature_data$id`
     read through an associated mgf file and remove features not in the
-    list
+    list.
 
 ```{r, eval=FALSE}
 filter_mgf_to_mmo(mmo, 
