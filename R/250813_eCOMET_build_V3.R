@@ -1058,6 +1058,11 @@ ZNormalization <- function(mmo, imputed_data = FALSE) {
 }
 
 
+# DEPRECATED: superseded by AddChemSim().
+# AddChemDist() stores 1-similarity (dissimilarity) in .dissim slots.
+# AddChemSim() stores raw similarity in .sim slots and supports
+# sparse matrices for large datasets. Retained for backwards
+# compatibility until downstream functions are updated to .sim slots.
 #' Add chemical distance matrices to the \code{mmo}
 #'
 #' This function reads cosine, DREAMS, and MS2DeepScore molecular networking outputs from MZmine,
@@ -1123,6 +1128,108 @@ AddChemDist <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
   if (!is.null(cos_dir))    mmo <- add_dissim_matrix(mmo, cos_dir,    "cos.dissim")
   if (!is.null(dreams_dir)) mmo <- add_dissim_matrix(mmo, dreams_dir, "dreams.dissim")
   if (!is.null(m2ds_dir))   mmo <- add_dissim_matrix(mmo, m2ds_dir,   "m2ds.dissim")
+
+  if (is.null(cos_dir) && is.null(dreams_dir) && is.null(m2ds_dir)) {
+    stop("Please provide at least one valid directory.")
+  }
+
+  return(mmo)
+}
+
+
+#' Add chemical similarity matrices to the \code{mmo}
+#'
+#' This function reads cosine, DREAMS, and MS2DeepScore molecular networking outputs from MZmine
+#' and stores the raw pairwise \strong{similarity} matrices (values 0--1, higher = more similar)
+#' in the \code{mmo}. For datasets with more than 10,000 features a sparse \code{Matrix} is used
+#' to avoid allocating a full dense matrix; unobserved feature pairs carry implicit similarity 0
+#' (equivalent to dissimilarity 1, maximally different).
+#'
+#' @param mmo The \code{mmo}
+#' @param cos_dir Path to the cosine similarity CSV file from MZMine (molecular networking)
+#' @param dreams_dir Path to the DREAMS similarity CSV file from MZMine (molecular networking)
+#' @param m2ds_dir Path to the MS2DeepScore similarity CSV file from MZMine (molecular networking)
+#' @return The \code{mmo} with similarity matrices stored in \code{mmo$cos.sim},
+#'   \code{mmo$dreams.sim}, and/or \code{mmo$m2ds.sim}. Large datasets (n > 10,000)
+#'   use sparse \code{dgCMatrix} format; smaller datasets use a dense numeric matrix.
+#' @note Tree-based downstream functions (\code{GetFaithPD}, \code{FeatureDendrogram},
+#'   \code{GetBetaDiversity} with \code{method = "Gen.Uni"}) require a full n x n distance
+#'   matrix and will fail at large scale regardless of sparse storage. Use \code{filter_mmo()}
+#'   to reduce feature count before calling those functions.
+#' @export
+#' @examplesIf FALSE
+#' mmo <- AddChemSim(mmo,
+#'  cos_dir = "path/to/cosine_similarity.csv",
+#'  dreams_dir = "path/to/dreams_similarity.csv",
+#'  m2ds_dir = "path/to/ms2deepscore_similarity.csv"
+#' )
+AddChemSim <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL) {
+  .require_pkg("data.table")
+  add_sim_matrix <- function(mmo, sim_dir, slot_name) {
+    # Fast read
+    sim <- data.table::fread(sim_dir, col.names = c("cluster1", "cluster2", "metric", "similarity", "etc"))
+
+    # Ensure cluster IDs are clean characters
+    sim$cluster1 <- trimws(as.character(sim$cluster1))
+    sim$cluster2 <- trimws(as.character(sim$cluster2))
+
+    # Build mapping
+    clusters <- unique(c(sim$cluster1, sim$cluster2))
+    cluster_index <- stats::setNames(seq_along(clusters), clusters)
+
+    # Map clusters to integer indices
+    i <- cluster_index[sim$cluster1]
+    j <- cluster_index[sim$cluster2]
+
+    # Check for problems
+    if (anyNA(i) || anyNA(j)) {
+      bad <- unique(c(sim$cluster1[is.na(i)], sim$cluster2[is.na(j)]))
+      stop("Cluster IDs not found in mapping: ", paste(bad, collapse = ", "))
+    }
+
+    n <- length(clusters)
+
+    if (n > 10000L) {
+      message("Large dataset (n = ", n, " features): storing ", slot_name, " as sparse Matrix.")
+      message("Note: GetFaithPD, FeatureDendrogram, and GetBetaDiversity(method='Gen.Uni') ",
+              "require a full dense matrix and will fail at this scale. Use filter_mmo() first.")
+
+      # Include diagonal (self-similarity = 1) in the sparse triplets
+      diag_idx <- seq_len(n)
+      i_all   <- c(i, j, diag_idx)
+      j_all   <- c(j, i, diag_idx)
+      x_all   <- c(sim$similarity, sim$similarity, rep(1, n))
+
+      # Build sparse similarity matrix; implicit 0 = similarity 0 = dissimilarity 1
+      sim_mat <- Matrix::sparseMatrix(
+        i = i_all, j = j_all, x = x_all,
+        dims = c(n, n),
+        dimnames = list(clusters, clusters)
+      )
+    } else {
+      # Preallocate full dense matrix; 0 = no observed similarity, diagonal = self-similarity 1
+      sim_mat <- matrix(0, nrow = n, ncol = n)
+      diag(sim_mat) <- 1
+
+      # Fill similarities
+      sim_mat[cbind(i, j)] <- sim$similarity
+      sim_mat[cbind(j, i)] <- sim$similarity
+
+      # Add names
+      dimnames(sim_mat) <- list(clusters, clusters)
+
+      # Reduce memory footprint
+      mode(sim_mat) <- "single"
+    }
+
+    mmo[[slot_name]] <- sim_mat
+    message(slot_name, " added to mmo")
+    return(mmo)
+  }
+
+  if (!is.null(cos_dir))    mmo <- add_sim_matrix(mmo, cos_dir,    "cos.sim")
+  if (!is.null(dreams_dir)) mmo <- add_sim_matrix(mmo, dreams_dir, "dreams.sim")
+  if (!is.null(m2ds_dir))   mmo <- add_sim_matrix(mmo, m2ds_dir,   "m2ds.sim")
 
   if (is.null(cos_dir) && is.null(dreams_dir) && is.null(m2ds_dir)) {
     stop("Please provide at least one valid directory.")
