@@ -15,7 +15,9 @@ knitr::opts_chunk$set(
   warning = FALSE
 )
 ```
+
 # Install eCOMET (uncomment if not installed)
+
 ```{r setup}
 # Install eCOMET (uncomment if not installed)
 # install.packages("pak")

@@ -134,7 +134,7 @@ The `mmo` object can also be filtered and subsetted. This creates a new object a
 
 ```{r}
 #View the groups
-#unique(mmo$metadata$group)
+unique(mmo$metadata$group)
 
 mmo_subset <- filter_mmo(mmo,group_list = unique(mmo$metadata$group)[1])
 
@@ -403,8 +403,8 @@ cosmic_hist <- ggplot2::ggplot(
 cosmic_hist
 ```
 
-
 # Find the threshold for the top 10% of scores
+
 ```{r}
 quantile(x = Cosmic_Scores, probs = 0.9, na.rm = TRUE)
 ```
@@ -474,7 +474,7 @@ PCA is sensitive to differences in feature magnitude — in LC-MS data, peak are
 `PCAplot()` accepts a `normalization` argument that controls how the feature table is scaled before PCA is run. The main options are:
 
 | Option | What it does | When to use |
-|---|---|---|
+|------------------------|------------------------|------------------------|
 | `"Z"` | Z-score: mean = 0, SD = 1 per feature | Equal weight to all features; good for detecting subtle variation in rare compounds |
 | `"Log"` | Log10 transformation | Compresses dynamic range while preserving relative abundance differences |
 | `"PA"` | Presence/absence | Ignores abundance entirely; purely compositional |
@@ -512,7 +512,7 @@ mmo_pca <- PCAplot(mmo, color = custom_colors,
 mmo_pca$plot
 ```
 
-If samples from the same species cluster together in PCA space, that suggests species differ in their overall multivariate chemical profiles. However, PCA still depends on the observed feature matrix and does not account for structural relatedness among compounds that are not shared.
+If samples from the same species cluster together in PCA space, that suggests species differ in their overall multivariate chemical profiles. However, PCA still depends on the observed feature matrix and does not account for structural relatedness among unshared compounds.
 
 ## 5.2 Bray-Curtis hierarchical clustering
 
@@ -574,16 +574,17 @@ Now that we have a matrix describing relationships among compounds, we can recal
 
 Each method in `GetBetaDiversity()` treats feature abundance differently, and the levers available to you depend on which method you are using.
 
-- **Bray-Curtis (`method = "bray"`)**: Abundance is used directly in the dissimilarity formula. You control how much influence high-abundance features have through the `normalization` argument. `normalization = "None"` uses raw peak areas, `normalization = "Log"` compresses the dynamic range so that very abundant features have less outsized influence, and `normalization = "PA"` converts everything to presence/absence so abundance is ignored entirely.
+-   **Bray-Curtis (`method = "bray"`)**: Abundance is used directly in the dissimilarity formula. You control how much influence high-abundance features have through the `normalization` argument. `normalization = "None"` uses raw peak areas, `normalization = "Log"` compresses the dynamic range so that very abundant features have less outsized influence, and `normalization = "PA"` converts everything to presence/absence so abundance is ignored entirely.
 
-- **Jaccard (`method = "jaccard"`)**: Jaccard is a presence/absence measure by definition. The `normalization` argument is ignored — the function always uses the presence/absence table internally and will issue a warning if you supply anything else. This means Jaccard answers the question: do these two samples detect the same compounds at all, regardless of how much of each compound is present?
+-   **Jaccard (`method = "jaccard"`)**: Jaccard is a presence/absence measure by definition. The `normalization` argument is ignored — the function always uses the presence/absence table internally and will issue a warning if you supply anything else. This means Jaccard answers the question: do these two samples detect the same compounds at all, regardless of how much of each compound is present?
 
-- **CSCS (`method = "CSCS"`)**: Like Bray-Curtis, CSCS is sensitive to abundance by default and you control that sensitivity through `normalization`. The key difference from Bray-Curtis is that CSCS also uses the compound distance matrix, so structurally related features that are not identical can still contribute to similarity. `normalization = "None"` makes highly abundant features drive the CSCS score; `normalization = "PA"` makes it a purely structural comparison based on which chemical neighborhoods are represented.
+-   **CSCS (`method = "CSCS"`)**: Like Bray-Curtis, CSCS is sensitive to abundance by default and you control that sensitivity through `normalization`. The key difference from Bray-Curtis is that CSCS also uses the compound distance matrix, so structurally related features that are not identical can still contribute to similarity. `normalization = "None"` makes highly abundant features drive the CSCS score; `normalization = "PA"` makes it a purely structural comparison based on which chemical neighborhoods are represented.
 
-- **Generalized UniFrac (`method = "Gen.Uni"`)**: This method computes three distance matrices in a single pass, each with a different abundance-weighting level controlled by an internal `alpha` parameter. Rather than choosing one upfront, `GetBetaDiversity()` returns all three as a named list so you can compare or choose the most appropriate one:
-  - `d_0`: presence/absence only — equivalent to unweighted UniFrac. Use this when you want to know whether the same chemical branches are represented, regardless of how much of each compound is present.
-  - `d_0.5`: balanced weighting (recommended starting point). Moderates the influence of highly abundant features without ignoring abundance entirely.
-  - `d_1`: fully abundance-weighted. Dominant features drive the distance. Use this when peak intensity is a reliable biological signal and you want the most abundant compounds to have the most influence.
+-   **Generalized UniFrac (`method = "Gen.Uni"`)**: This method computes three distance matrices in a single pass, each with a different abundance-weighting level controlled by an internal `alpha` parameter. Rather than choosing one upfront, `GetBetaDiversity()` returns all three as a named list so you can compare or choose the most appropriate one:
+
+    -   `d_0`: presence/absence only — equivalent to unweighted UniFrac. Use this when you want to know whether the same chemical branches are represented, regardless of how much of each compound is present.
+    -   `d_0.5`: balanced weighting (recommended starting point). Moderates the influence of highly abundant features without ignoring abundance entirely.
+    -   `d_1`: fully abundance-weighted. Dominant features drive the distance. Use this when peak intensity is a reliable biological signal and you want the most abundant compounds to have the most influence.
 
 We present two structure-aware methods below:
 
@@ -650,13 +651,11 @@ NMDS <- NMDSplot(mmo, color= custom_colors,betadiv = beta_diversity_dreams_CSCS,
                  save_output = FALSE)
 ```
 
-
 ```{r}
 NMDS$plot
 ```
 
 In an NMDS plot, points that are closer together represent samples with more similar chemical profiles under the chosen distance metric. If samples from the same species cluster tightly and species separate from one another, that suggests consistent species-level differences in chemistry. Overlap among species indicates greater similarity or weaker taxonomic structure.
-
 
 We can also visualize beta diversity in a PCoA plot. Here we use Generalized UniFrac (d_1) to show a structure-aware ordination.
 
@@ -729,11 +728,9 @@ pcoa_comparison <- ggplot2::ggplot(
 pcoa_comparison
 ```
 
-
 # 8. structure-aware alpha diversity
 
 So far, our alpha diversity summaries have treated each feature as equally distinct. We now revisit alpha diversity using structure-aware information so that chemically similar compounds do not contribute as much unique diversity as chemically distant compounds. This gives a more functional view of chemical diversity within each sample or species.
-
 
 ```{r}
 
@@ -748,7 +745,9 @@ group_mean_functionalhill <- GetAlphaDiversity(
 )
 group_mean_functionalhill
 ```
+
 Compare the structure-aware ordination from a feature only
+
 ```{r}
 sample_hill_number <- ggplot2::ggplot(group_mean_functionalhill, ggplot2::aes(x = group, y = value)) +
   ggplot2::geom_boxplot(outlier.shape = NA) +
@@ -813,6 +812,7 @@ head(rarefied_functionalhill$summary)
 head(rarefied_functionalhill$raw)
 
 ```
+
 here we plot the functional richness accumulation curve
 
 ```{r}
@@ -831,7 +831,6 @@ functional_hill_compound_accumlation_curve <- ggplot(rarefied_functionalhill$sum
 functional_hill_compound_accumlation_curve
 ```
 
-
 Rarefying the structure-aware diversity estimates can help distinguish species that have both high chemical diversity and broad structural coverage from species whose diversity saturates quickly as more samples are added.
 
 # Key takeaways {#key-takeaways}
@@ -839,5 +838,3 @@ Rarefying the structure-aware diversity estimates can help distinguish species t
 This workflow begins with standard feature-based summaries and then extends them by introducing information about structural similarity among compounds. That progression is especially important in interspecific studies, where exact feature overlap is often low even when samples are chemically related at the pathway or structural-class level.
 
 In practice, it is often useful to compare both feature-based and structure-aware results side by side. When the two approaches agree, that strengthens the biological interpretation. When they differ, the discrepancy can reveal that species are producing different but related compounds.
-
-
