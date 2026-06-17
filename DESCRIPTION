@@ -42,7 +42,6 @@ Imports:
   data.table,
   fgsea,
   pairwiseAdonis,
-  ape,
   RColorBrewer,
   picante,
   colorspace,
@@ -55,7 +54,9 @@ Suggests:
     ggvenn,
     pls,
     pheatmap,
-    stringr
+    stringr,
+    igraph,
+    fastcluster
 Remotes:
     pmartinezarbizu/pairwiseAdonis/pairwiseAdonis
 URL: https://phytoecia.github.io/eCOMET/

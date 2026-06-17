@@ -4467,31 +4467,135 @@ GetFaithPD_derep <- function(feature, metadata, distance_matrix, threshold = 0){
 #' internally (\code{1 - sim}) before clustering, which requires materializing
 #' a full dense matrix; a size guard stops execution if n > 10,000 features.
 #'
+# sparse_single_phylo: builds a phylo tree from a sparse OR dense similarity
+# matrix using the MST = single-linkage equivalence. Avoids O(n^2)
+# densification — only explicit (non-zero) similarity edges are loaded into
+# igraph; absent entries are treated as maximally distant (distance = M).
+# Used by GetFaithPD and GetBetaDiversity when use_mst = TRUE or n > 10000.
+sparse_single_phylo <- function(S, M = 1) {
+  .require_pkg("igraph")
+  .require_pkg("ape")
+
+  S  <- methods::as(S, "TsparseMatrix")        # i, j, x triplets (0-based)
+  up <- S@i < S@j                               # upper triangle only; excludes diagonal
+  ii <- S@i[up] + 1L
+  jj <- S@j[up] + 1L
+  w  <- M - S@x[up]                            # convert similarity to distance
+  n  <- nrow(S)
+
+  g <- igraph::make_empty_graph(n = n, directed = FALSE)
+  g <- igraph::add_edges(g, as.vector(rbind(ii, jj)))
+  igraph::E(g)$weight <- w
+  mst  <- igraph::mst(g)                        # C backend; spanning forest if disconnected
+  el   <- igraph::as_edgelist(mst, names = FALSE)
+  ew   <- igraph::E(mst)$weight
+  o    <- order(ew)
+  el   <- el[o, , drop = FALSE]
+  ew   <- ew[o]
+
+  # union-find -> hclust(merge, height)
+  parent <- seq_len(n)
+  csize  <- rep(1L, n)
+  cid    <- -seq_len(n)          # singletons are negative in hclust convention
+
+  find <- function(x) {
+    while (parent[x] != x) { parent[x] <<- parent[parent[x]]; x <- parent[x] }
+    x
+  }
+
+  merge  <- matrix(0L, n - 1L, 2L)
+  height <- numeric(n - 1L)
+  k      <- 0L
+
+  link <- function(a, b, h) {
+    ra <- find(a); rb <- find(b)
+    k <<- k + 1L
+    merge[k, ] <<- c(cid[ra], cid[rb])
+    height[k]  <<- h
+    if (csize[ra] < csize[rb]) { tmp <- ra; ra <- rb; rb <- tmp }
+    parent[rb] <<- ra
+    csize[ra]  <<- csize[ra] + csize[rb]
+    cid[ra]    <<- k
+  }
+
+  for (e in seq_len(nrow(el)))
+    if (find(el[e, 1L]) != find(el[e, 2L])) link(el[e, 1L], el[e, 2L], ew[e])
+
+  # join any disconnected components at height M
+  roots <- unique(vapply(seq_len(n), find, integer(1L)))
+  for (r in roots[-1L]) link(roots[1L], r, M)
+
+  # iterative depth-first leaf order (avoids stack overflow on caterpillar trees)
+  m  <- nrow(merge)
+  res <- integer(n); ri <- 0L
+  st  <- integer(2L * m + 2L); sp <- 1L; st[1L] <- m
+  while (sp >= 1L) {
+    nd <- st[sp]; sp <- sp - 1L
+    if (nd < 0L) { ri <- ri + 1L; res[ri] <- -nd }
+    else { st[sp + 1L] <- merge[nd, 2L]; st[sp + 2L] <- merge[nd, 1L]; sp <- sp + 2L }
+  }
+
+  labs <- if (!is.null(colnames(S))) colnames(S) else as.character(seq_len(n))
+  hc   <- structure(
+    list(merge = merge, height = height, order = res, labels = labs,
+         method = "single", dist.method = "M - similarity"),
+    class = "hclust"
+  )
+  ape::as.phylo(hc)
+}
+
+
 #' @param feature Feature table with columns: id, feature, then sample columns
 #' @param metadata Metadata table with sample and group columns
 #' @param sim_matrix Feature similarity matrix (dense or sparse dgCMatrix)
 #' @param threshold Numeric; detection threshold for presence (default: 0)
+#' @param use_mst Logical; if TRUE, always use MST/single-linkage tree (works
+#'   on sparse matrices of any size). If FALSE (default), average-linkage is
+#'   used for n <= 10,000 and MST is used automatically (with a warning) for
+#'   larger matrices. Use fastcluster package for faster average-linkage if
+#'   installed.
 #' @export
 #' @return A data frame with sample, group, PD, SR, and value columns.
-GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0) {
-  n <- nrow(sim_matrix)
-  if (n > 10000L) {
-    stop(
-      "GetFaithPD requires a full n x n distance matrix for hclust (n = ", n, "). ",
-      "Use filter_mmo() to reduce feature count below 10,000 first.",
-      call. = FALSE
-    )
-  }
+GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0, use_mst = FALSE) {
   .require_pkg("picante")
   .require_pkg("ape")
+  n <- nrow(sim_matrix)
+
+  # ------------------------------------------------------------------
+  # Tree building: average-linkage for small n, MST for large n or on request
+  # ------------------------------------------------------------------
+  if (!use_mst && n <= 10000L) {
+    # Dense average linkage (UPGMA). fastcluster is a C-backend drop-in
+    # that is ~10x faster than stats::hclust on the same dist object.
+    dist_mat <- as.dist(1 - as.matrix(sim_matrix))
+    hc <- if (requireNamespace("fastcluster", quietly = TRUE)) {
+      fastcluster::hclust(dist_mat, method = "average")
+    } else {
+      stats::hclust(dist_mat, method = "average")
+    }
+    tree <- ape::as.phylo(hc)
+  } else {
+    if (n > 10000L && !use_mst) {
+      warning(
+        "GetFaithPD: n = ", n, " features exceeds 10,000. Switching to MST/single-linkage ",
+        "tree to avoid O(n^2) densification. Results will differ from the average-linkage ",
+        "_derep version. Set use_mst = TRUE to opt in explicitly, or use filter_mmo() ",
+        "and keep use_mst = FALSE to stay on average-linkage.",
+        call. = FALSE
+      )
+    } else {
+      message("GetFaithPD: building MST/single-linkage tree (use_mst = TRUE). ",
+              "Results differ from average-linkage _derep version.")
+    }
+    tree <- sparse_single_phylo(sim_matrix, M = 1)
+  }
+
   ids <- feature$id
   x <- as.matrix(feature[, -(1:2), drop = FALSE])
   # Faith PD uses presence/absence; threshold defines "present"
   x <- ifelse(!is.na(x) & x > threshold, 1, 0)
   feature_t <- t(x)
   colnames(feature_t) <- ids
-  # Convert similarity to distance for hclust (densification unavoidable for tree-building)
-  tree <- ape::as.phylo(hclust(as.dist(1 - as.matrix(sim_matrix)), method = 'average'))
   pd_result <- picante::pd(feature_t, tree)
   pd_result$sample <- rownames(pd_result)
   pd_result$group <- metadata$group[match(pd_result$sample, metadata$sample)]
@@ -4924,7 +5028,8 @@ GetAlphaDiversity <- function(
     pool_method = c("sum", "mean"),
     n_perm = 200,
     ci = 0.95,
-    seed = NULL
+    seed = NULL,
+    use_mst = FALSE
 ) {
   output <- match.arg(output)
   pool_method <- match.arg(pool_method)
@@ -4989,7 +5094,8 @@ GetAlphaDiversity <- function(
         feature = feature_local,
         metadata = metadata_local,
         sim_matrix = distance_local,
-        threshold = threshold
+        threshold = threshold,
+        use_mst = use_mst
       )
     } else {
       stop("mode should be 'weighted', 'unweighted', 'richness', or 'faith'")
@@ -5540,7 +5646,7 @@ GetBetaDiversity_derep <- function(mmo, method = 'Gen.Uni', normalization = 'Non
 #'
 #' @inheritParams GetBetaDiversity_derep
 #' @export
-GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = NULL, filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, scale_dissim = TRUE){
+GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = NULL, filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, scale_dissim = TRUE, use_mst = FALSE){
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
   }
@@ -5554,21 +5660,33 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
     scaled_similarity <- if (scale_dissim) sim_mat / max(sim_mat) else sim_mat
   }
 
-  # Build tree only for Gen.Uni; requires full dense distance matrix
+  # Build tree only for Gen.Uni
   if (method == 'Gen.Uni') {
     n_feat <- nrow(sim_mat)
-    if (n_feat > 10000L) {
-      stop(
-        "GetBetaDiversity(method='Gen.Uni') requires a full n x n distance ",
-        "matrix for hclust (n = ", n_feat, "). ",
-        "Use filter_mmo() to reduce feature count below 10,000 first.",
-        call. = FALSE
-      )
+    if (!use_mst && n_feat <= 10000L) {
+      # Dense average linkage (UPGMA); fastcluster is a C-backend drop-in
+      dist_s <- as.dist(1 - as.matrix(scaled_similarity))
+      hc_s <- if (requireNamespace("fastcluster", quietly = TRUE)) {
+        fastcluster::hclust(dist_s, method = "average")
+      } else {
+        stats::hclust(dist_s, method = "average")
+      }
+      compound_tree <- ape::as.phylo(hc_s)
+    } else {
+      if (n_feat > 10000L && !use_mst) {
+        warning(
+          "GetBetaDiversity(Gen.Uni): n = ", n_feat, " features exceeds 10,000. ",
+          "Switching to MST/single-linkage tree to avoid O(n^2) densification. ",
+          "Results will differ from average-linkage. Set use_mst = TRUE to opt in ",
+          "explicitly, or use filter_mmo() to stay on average-linkage.",
+          call. = FALSE
+        )
+      } else {
+        message("GetBetaDiversity(Gen.Uni): building MST/single-linkage tree (use_mst = TRUE). ",
+                "Results differ from average-linkage _derep version.")
+      }
+      compound_tree <- sparse_single_phylo(scaled_similarity, M = 1)
     }
-    # Convert similarity to distance for hclust (unavoidable densification, size-guarded above)
-    compound_tree <- ape::as.phylo(
-      hclust(as.dist(1 - as.matrix(scaled_similarity)), method = "average")
-    )
   }
 
   # Get feature matrix
