@@ -1192,9 +1192,16 @@ AddChemSim <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL) 
     n <- length(clusters)
 
     if (n > 10000L) {
-      message("Large dataset (n = ", n, " features): storing ", slot_name, " as sparse Matrix.")
-      message("Note: GetFaithPD, FeatureDendrogram, and GetBetaDiversity(method='Gen.Uni') ",
-              "require a full dense matrix and will fail at this scale. Use filter_mmo() first.")
+      message(
+        "Large dataset (n = ", n, " features): similarity matrix stored in sparse format to save memory.\n",
+        slot_name, " added to mmo\n\n",
+        "Tree-based functions at this scale:\n",
+        "  - GetFaithPD and GetBetaDiversity(method='Gen.Uni') will automatically use\n",
+        "    minimum spanning tree (single-linkage) instead of average-linkage clustering.\n",
+        "    Results are valid but may differ from smaller datasets.\n",
+        "  - FeatureDendrogram requires a dense matrix and will not run at this scale.\n",
+        "    Use filter_mmo() to subset features first."
+      )
 
       # Include diagonal (self-similarity = 1) in the sparse triplets
       diag_idx <- seq_len(n)
@@ -4646,15 +4653,14 @@ GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0, use_mst = F
   } else {
     if (n > 10000L && !use_mst) {
       warning(
-        "GetFaithPD: n = ", n, " features exceeds 10,000. Switching to MST/single-linkage ",
-        "tree to avoid O(n^2) densification. Results will differ from the average-linkage ",
-        "_derep version. Set use_mst = TRUE to opt in explicitly, or use filter_mmo() ",
-        "and keep use_mst = FALSE to stay on average-linkage.",
+        "GetFaithPD: n = ", n, " features is too large for average-linkage clustering.\n",
+        "Automatically switching to minimum spanning tree (single-linkage). ",
+        "Results are valid but may differ from smaller datasets.\n",
+        "To avoid this: use filter_mmo() to reduce feature count below 10,000.",
         call. = FALSE
       )
     } else {
-      message("GetFaithPD: building MST/single-linkage tree (use_mst = TRUE). ",
-              "Results differ from average-linkage _derep version.")
+      message("GetFaithPD: using minimum spanning tree (single-linkage) tree (use_mst = TRUE).")
     }
     tree <- sparse_single_phylo(sim_matrix, M = 1)
   }
@@ -5744,15 +5750,15 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
     } else {
       if (n_feat > 10000L && !use_mst) {
         warning(
-          "GetBetaDiversity(Gen.Uni): n = ", n_feat, " features exceeds 10,000. ",
-          "Switching to MST/single-linkage tree to avoid O(n^2) densification. ",
-          "Results will differ from average-linkage. Set use_mst = TRUE to opt in ",
-          "explicitly, or use filter_mmo() to stay on average-linkage.",
+          "GetBetaDiversity(Gen.Uni): n = ", n_feat, " features is too large for ",
+          "average-linkage clustering.\n",
+          "Automatically switching to minimum spanning tree (single-linkage). ",
+          "Results are valid but may differ from smaller datasets.\n",
+          "To avoid this: use filter_mmo() to reduce feature count below 10,000.",
           call. = FALSE
         )
       } else {
-        message("GetBetaDiversity(Gen.Uni): building MST/single-linkage tree (use_mst = TRUE). ",
-                "Results differ from average-linkage _derep version.")
+        message("GetBetaDiversity(Gen.Uni): using minimum spanning tree (single-linkage) tree (use_mst = TRUE).")
       }
       compound_tree <- sparse_single_phylo(scaled_similarity, M = 1)
     }
@@ -6352,9 +6358,9 @@ FeatureDendrogram <- function(
   n_feat <- nrow(mat)
   if (n_feat > 10000L) {
     stop(
-      "FeatureDendrogram requires a full n x n distance matrix for hclust ",
-      "(n = ", n_feat, "). Use filter_mmo() to reduce feature count below ",
-      "10,000 first, then call FeatureDendrogram().",
+      "FeatureDendrogram requires a dense distance matrix and cannot run at this scale ",
+      "(n = ", n_feat, " features).\n",
+      "Use filter_mmo() to reduce the feature count below 10,000, then call FeatureDendrogram().",
       call. = FALSE
     )
   }

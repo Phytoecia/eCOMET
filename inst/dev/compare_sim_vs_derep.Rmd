@@ -439,28 +439,5 @@ for (i in seq_len(nrow(summary_df))) {
 cat(strrep("-", 106), "\n")
 cat(sprintf("PASS: %d / %d\n", sum(summary_df$passed), nrow(summary_df)))
 
-# Bar chart of max |delta| per comparison
-ggplot(summary_df, aes(
-    x    = reorder(comparison, max_diff),
-    y    = max_diff,
-    fill = status)) +
-  geom_col() +
-  geom_hline(yintercept = PASS_TOL, linetype = "dashed",
-             color = "gray30", linewidth = 0.7) +
-  annotate("text", x = 0.6, y = PASS_TOL * 1.5,
-           label = paste("tolerance =", PASS_TOL),
-           hjust = 0, size = 3.2, color = "gray30") +
-  scale_fill_manual(values = c("PASS" = "#27ae60", "FAIL" = "#e74c3c")) +
-  scale_y_log10() +
-  coord_flip() +
-  labs(
-    title = "Max absolute difference: _derep vs similarity-based",
-    subtitle = "Dashed line = pass/fail threshold (1e-6). Log scale.",
-    x = NULL, y = "Max |delta|  (log scale)", fill = NULL
-  ) +
-  theme_minimal(base_size = 10) +
-  theme(
-    plot.title    = element_text(face = "bold"),
-    legend.position = "top"
-  )
+
 ```
