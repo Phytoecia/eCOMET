@@ -34,9 +34,9 @@ In this tutorial, we demonstrate how to use the **eCOMET** package for analyzing
 
 **What is a treatment-based study?**
 
--   In a treatment-based study, we compare metabolite profiles between different treatment groups (e.g., control vs. treated).
--   The main goal is to identify **differentially accumulated metabolites (DAMs)** — compounds whose abundance changes significantly in response to a treatment.
--   Common downstream analyses include volcano plots, heatmaps, and chemical class enrichment to understand *what types* of metabolites respond to treatment.
+- In a treatment-based study, we compare metabolite profiles between different treatment groups (e.g., control vs. treated).
+- The main goal is to identify **differentially accumulated metabolites (DAMs)** — compounds whose abundance changes significantly in response to a treatment.
+- Common downstream analyses include volcano plots, heatmaps, and chemical class enrichment to understand *what types* of metabolites respond to treatment.
 
 **Tutorial dataset**
 
@@ -86,9 +86,9 @@ To create an `mmo` object, you need at minimum:
 
 Optionally, you can later add:
 
--   SIRIUS/CANOPUS annotations for chemical classification.
--   Chemical dissimilarity scores (DreaMS, cosine, MS2DeepScore, etc.).
--   Custom compound database annotations.
+- SIRIUS/CANOPUS annotations for chemical classification.
+- Chemical dissimilarity scores (DreaMS, cosine, MS2DeepScore, etc.).
+- Custom compound database annotations.
 
 ## 2.1 Initialize the `mmo` object
 
@@ -133,8 +133,8 @@ Before statistical analysis, we apply several preprocessing steps. Each step add
 
 Mass spectrometry data often contains zeros (undetected features). These need to be handled before log transformation or fold-change calculations. `ReplaceZero()` adds an imputed version of the feature table (`mmo$imputed_feature_data`).
 
--   `method = 'one'`: Replace 0 and NA values with 1 (simple, conservative).
--   `method = 'half_min'`: Replace with half the minimum non-zero value per feature.
+- `method = 'one'`: Replace 0 and NA values with 1 (simple, conservative).
+- `method = 'half_min'`: Replace with half the minimum non-zero value per feature.
 
 ```{r, eval=FALSE}
 mmo <- ReplaceZero(mmo, method = 'one')
@@ -207,9 +207,9 @@ hist(mmo$sirius_annot$`NPC#pathway Probability`,
 
 There is typically a long tail of low-confidence predictions. We can filter these using `filter_canopus_annotations()`:
 
--   `pathway_level`: which classification levels to filter (e.g., `"NPC#pathway"`, `"All"`, `"All_NPC"`)
--   `threshold`: minimum probability to retain (values below are set to NA)
--   `suffix`: label for the filtered result
+- `pathway_level`: which classification levels to filter (e.g., `"NPC#pathway"`, `"All"`, `"All_NPC"`)
+- `threshold`: minimum probability to retain (values below are set to NA)
+- `suffix`: label for the filtered result
 
 > **How to choose a threshold?** There is no universal threshold. The [SIRIUS documentation](https://v6.docs.sirius-ms.io/methods-background/#CANOPUS) recommends using context-dependent thresholds. For statistical analyses, you can sum probabilities to get expected counts rather than applying a hard cutoff.
 
@@ -300,10 +300,10 @@ A **PCA (Principal Component Analysis)** plot visualizes the overall distributio
 
 **Key options:**
 
--   `normalization`: which normalization to use (`"None"`, `"Log"`, `"Meancentered"`, `"Z"`).
--   `label`: whether to label individual sample points.
--   `filter_id` / `id_list`: restrict analysis to specific features.
--   `save_output`: set to `FALSE` to return the plot object without saving files.
+- `normalization`: which normalization to use (`"None"`, `"Log"`, `"Meancentered"`, `"Z"`).
+- `label`: whether to label individual sample points.
+- `filter_id` / `id_list`: restrict analysis to specific features.
+- `save_output`: set to `FALSE` to return the plot object without saving files.
 
 ```{r, eval=FALSE}
 # Define group colors
@@ -366,8 +366,8 @@ A central goal of treatment-based studies is to find **differentially accumulate
 
 `PairwiseComp()` performs a pairwise t-test between two groups and computes:
 
--   **log2 fold change** — magnitude of change (log2(group2_mean / group1_mean)).
--   **adjusted p-value** — significance after BH correction.
+- **log2 fold change** — magnitude of change (log2(group2_mean / group1_mean)).
+- **adjusted p-value** — significance after BH correction.
 
 > **Convention:** The first group (`group1`) is the reference/control. Positive log2FC means the feature is *higher* in `group2` (treatment).
 
@@ -381,8 +381,8 @@ mmo <- PairwiseComp(mmo, group1 = 'ctrl', group2 = 'le1')
 
 `GetDAMs()` extracts DAMs from all comparisons based on fold-change and p-value cutoffs.
 
--   `fc_cutoff = 0.5849625` corresponds to log2(1.5) — a 1.5-fold change.
--   `pval_cutoff = 0.1` is used here to capture more DAMs in this small demo dataset.
+- `fc_cutoff = 0.5849625` corresponds to log2(1.5) — a 1.5-fold change.
+- `pval_cutoff = 0.1` is used here to capture more DAMs in this small demo dataset.
 
 ```{r, eval=FALSE}
 DAMs <- GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.1)

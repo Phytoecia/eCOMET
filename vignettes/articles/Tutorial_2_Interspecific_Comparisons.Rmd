@@ -28,15 +28,15 @@ To address this, the second half of the tutorial introduces structure-aware appr
 
 This tutorial is organized into the following sections:
 
--   [1. Load input data and build the MMO object](#1-load-input-data-and-build-the-mmo-object)
--   [2. Inspect the core data tables](#2-inspect-the-core-data-tables)
--   [3. Compare feature richness across samples and species](#3-compare-feature-richness-across-samples-and-species)
--   [4. Add SIRIUS annotations and inspect class composition](#4-add-sirius-annotations-and-inspect-class-composition)
--   [5. Compare samples with feature-based multivariate methods](#5-compare-samples-with-feature-based-multivariate-methods)
--   [6. Add structural relationships among features](#6-add-structural-relationships-among-features)
--   [7. Recalculate beta diversity using chemical distances](#7-recalculate-beta-diversity-using-chemical-distances)
--   [8. Revisit alpha diversity with structure-aware metrics](#8-revisit-alpha-diversity-with-structure-aware-metrics)
--   [Key takeaways](#key-takeaways)
+- [1. Load input data and build the MMO object](#1-load-input-data-and-build-the-mmo-object)
+- [2. Inspect the core data tables](#2-inspect-the-core-data-tables)
+- [3. Compare feature richness across samples and species](#3-compare-feature-richness-across-samples-and-species)
+- [4. Add SIRIUS annotations and inspect class composition](#4-add-sirius-annotations-and-inspect-class-composition)
+- [5. Compare samples with feature-based multivariate methods](#5-compare-samples-with-feature-based-multivariate-methods)
+- [6. Add structural relationships among features](#6-add-structural-relationships-among-features)
+- [7. Recalculate beta diversity using chemical distances](#7-recalculate-beta-diversity-using-chemical-distances)
+- [8. Revisit alpha diversity with structure-aware metrics](#8-revisit-alpha-diversity-with-structure-aware-metrics)
+- [Key takeaways](#key-takeaways)
 
 The package can be installed or updated as needed using Pak:
 
@@ -351,9 +351,9 @@ sirius_hist
 
 There is typically a long tail of low-confidence predictions. We can filter these using `filter_canopus_annotations()`:
 
--   `pathway_level`: which classification levels to filter (e.g., `"NPC#pathway"`, `"All"`, `"All_NPC"`)
--   `threshold`: minimum probability to retain (values below are set to NA)
--   `suffix`: label for the filtered result
+- `pathway_level`: which classification levels to filter (e.g., `"NPC#pathway"`, `"All"`, `"All_NPC"`)
+- `threshold`: minimum probability to retain (values below are set to NA)
+- `suffix`: label for the filtered result
 
 > **How to choose a threshold?** There is no universal threshold. The [SIRIUS documentation](https://v6.docs.sirius-ms.io/methods-background/#CANOPUS) recommends using context-dependent thresholds. For statistical analyses, you can sum probabilities to get expected counts rather than applying a hard cutoff.
 
@@ -474,7 +474,7 @@ PCA is sensitive to differences in feature magnitude — in LC-MS data, peak are
 `PCAplot()` accepts a `normalization` argument that controls how the feature table is scaled before PCA is run. The main options are:
 
 | Option | What it does | When to use |
-|------------------------|------------------------|------------------------|
+|----|----|----|
 | `"Z"` | Z-score: mean = 0, SD = 1 per feature | Equal weight to all features; good for detecting subtle variation in rare compounds |
 | `"Log"` | Log10 transformation | Compresses dynamic range while preserving relative abundance differences |
 | `"PA"` | Presence/absence | Ignores abundance entirely; purely compositional |
@@ -558,13 +558,13 @@ Feature-overlap metrics become limited when most compounds are unique to one spe
 We introduce feature-based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.
 
 ```{r}
-# Add DreaMS similarity
-mmo <- AddChemSim(mmo, dreams_dir = demo_dreams)
+# Add Dreams distance
+mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 
-mmo$dreams.sim[1:10,1:10]
+mmo$dreams.dissim[1:10,1:10]
 ```
 
-This matrix stores pairwise chemical similarity among features (0–1, higher = more similar). Downstream functions convert to distance internally as needed. Once added, later analyses can distinguish between features that are unrelated and features that are distinct but still structurally similar.
+This matrix stores pairwise chemical dissimilarity among features. Once this information is available, later analyses can distinguish between features that are unrelated and features that are distinct but still structurally similar.
 
 # 7. Recalculate beta diversity using chemical distances
 
@@ -574,17 +574,17 @@ Now that we have a matrix describing relationships among compounds, we can recal
 
 Each method in `GetBetaDiversity()` treats feature abundance differently, and the levers available to you depend on which method you are using.
 
--   **Bray-Curtis (`method = "bray"`)**: Abundance is used directly in the dissimilarity formula. You control how much influence high-abundance features have through the `normalization` argument. `normalization = "None"` uses raw peak areas, `normalization = "Log"` compresses the dynamic range so that very abundant features have less outsized influence, and `normalization = "PA"` converts everything to presence/absence so abundance is ignored entirely.
+- **Bray-Curtis (`method = "bray"`)**: Abundance is used directly in the dissimilarity formula. You control how much influence high-abundance features have through the `normalization` argument. `normalization = "None"` uses raw peak areas, `normalization = "Log"` compresses the dynamic range so that very abundant features have less outsized influence, and `normalization = "PA"` converts everything to presence/absence so abundance is ignored entirely.
 
--   **Jaccard (`method = "jaccard"`)**: Jaccard is a presence/absence measure by definition. The `normalization` argument is ignored — the function always uses the presence/absence table internally and will issue a warning if you supply anything else. This means Jaccard answers the question: do these two samples detect the same compounds at all, regardless of how much of each compound is present?
+- **Jaccard (`method = "jaccard"`)**: Jaccard is a presence/absence measure by definition. The `normalization` argument is ignored — the function always uses the presence/absence table internally and will issue a warning if you supply anything else. This means Jaccard answers the question: do these two samples detect the same compounds at all, regardless of how much of each compound is present?
 
--   **CSCS (`method = "CSCS"`)**: Like Bray-Curtis, CSCS is sensitive to abundance by default and you control that sensitivity through `normalization`. The key difference from Bray-Curtis is that CSCS also uses the compound distance matrix, so structurally related features that are not identical can still contribute to similarity. `normalization = "None"` makes highly abundant features drive the CSCS score; `normalization = "PA"` makes it a purely structural comparison based on which chemical neighborhoods are represented.
+- **CSCS (`method = "CSCS"`)**: Like Bray-Curtis, CSCS is sensitive to abundance by default and you control that sensitivity through `normalization`. The key difference from Bray-Curtis is that CSCS also uses the compound distance matrix, so structurally related features that are not identical can still contribute to similarity. `normalization = "None"` makes highly abundant features drive the CSCS score; `normalization = "PA"` makes it a purely structural comparison based on which chemical neighborhoods are represented.
 
--   **Generalized UniFrac (`method = "Gen.Uni"`)**: This method computes three distance matrices in a single pass, each with a different abundance-weighting level controlled by an internal `alpha` parameter. Rather than choosing one upfront, `GetBetaDiversity()` returns all three as a named list so you can compare or choose the most appropriate one:
+- **Generalized UniFrac (`method = "Gen.Uni"`)**: This method computes three distance matrices in a single pass, each with a different abundance-weighting level controlled by an internal `alpha` parameter. Rather than choosing one upfront, `GetBetaDiversity()` returns all three as a named list so you can compare or choose the most appropriate one:
 
-    -   `d_0`: presence/absence only — equivalent to unweighted UniFrac. Use this when you want to know whether the same chemical branches are represented, regardless of how much of each compound is present.
-    -   `d_0.5`: balanced weighting (recommended starting point). Moderates the influence of highly abundant features without ignoring abundance entirely.
-    -   `d_1`: fully abundance-weighted. Dominant features drive the distance. Use this when peak intensity is a reliable biological signal and you want the most abundant compounds to have the most influence.
+  - `d_0`: presence/absence only — equivalent to unweighted UniFrac. Use this when you want to know whether the same chemical branches are represented, regardless of how much of each compound is present.
+  - `d_0.5`: balanced weighting (recommended starting point). Moderates the influence of highly abundant features without ignoring abundance entirely.
+  - `d_1`: fully abundance-weighted. Dominant features drive the distance. Use this when peak intensity is a reliable biological signal and you want the most abundant compounds to have the most influence.
 
 We present two structure-aware methods below:
 

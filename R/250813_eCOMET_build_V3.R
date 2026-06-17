@@ -4487,7 +4487,8 @@ sparse_single_phylo <- function(S, M = 1) {
   g <- igraph::add_edges(g, as.vector(rbind(ii, jj)))
   igraph::E(g)$weight <- w
   mst  <- igraph::mst(g)                        # C backend; spanning forest if disconnected
-  el   <- igraph::as_edgelist(mst, names = FALSE)
+  # as_edgelist returns double indices; coerce once so parent[] stays integer throughout
+  el   <- matrix(as.integer(igraph::as_edgelist(mst, names = FALSE)), ncol = 2L)
   ew   <- igraph::E(mst)$weight
   o    <- order(ew)
   el   <- el[o, , drop = FALSE]
