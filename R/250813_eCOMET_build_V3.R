@@ -53,19 +53,19 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
 
   mmo <- list()
 
-  # MZmine table (feature-level columns + per-sample area columns)
-  data <- read.csv(
+  # MZmine table: fread is 5-50x faster than read.csv on large files
+  data <- data.table::fread(
     mzmine_dir,
-    check.names = FALSE,
-    stringsAsFactors = FALSE,
-    na.strings = c("", "NA")
+    check.names  = FALSE,
+    na.strings   = c("", "NA"),
+    data.table   = FALSE
   )
 
-  metadata <- read.csv(
+  metadata <- data.table::fread(
     metadata_dir,
-    check.names = FALSE,
-    stringsAsFactors = FALSE,
-    na.strings = c("", "NA")
+    check.names  = FALSE,
+    na.strings   = c("", "NA"),
+    data.table   = FALSE
   )
   # Check if group_col and sample_col are provided and exist in the metadata file
   if (missing(group_col) || !(group_col %in% names(metadata))) {
@@ -177,11 +177,10 @@ GetMZmineFeature <- function(mzmine_dir, metadata_dir, group_col, sample_col,
   samples <- samples[keep_idx]
   samples_core <- samples_core[keep_idx]
 
-  # --- coerce area columns to numeric (remove commas) ---
-  data[area_columns] <- lapply(
-    data[area_columns],
-    function(x) as.numeric(gsub(",", "", x))
-  )
+  # --- coerce area columns to numeric (handle rare comma-formatted exports) ---
+  data[area_columns] <- lapply(data[area_columns], function(x) {
+    if (is.character(x)) as.numeric(gsub(",", "", x)) else as.numeric(x)
+  })
 
   # --- build feature abundance table (mmo$feature_data) ---
   if (!("id" %in% names(data))) {
@@ -832,22 +831,26 @@ ReplaceZero <- function(mmo, method = c("one", "half_min")) {
     sapply(num_df, function(x) as.numeric(as.character(x)))
   )
 
-  new_mat <- t(apply(num_mat, 1, function(row) {
-
-    if (method == "one") {
-      row[is.na(row) | row == 0] <- 1
-      return(row)
+  if (method == "one") {
+    new_mat <- num_mat
+    new_mat[is.na(new_mat) | new_mat == 0] <- 1L
+  } else {
+    # half_min: replace 0/NA with half the per-feature minimum positive value
+    pos_mat <- num_mat
+    pos_mat[is.na(pos_mat) | pos_mat <= 0] <- NA_real_
+    row_mins <- apply(pos_mat, 1, min, na.rm = TRUE)
+    if (any(is.infinite(row_mins))) {
+      bad <- which(is.infinite(row_mins))
+      stop("half_min replacement failed: feature(s) at row(s) ",
+           paste(bad, collapse = ", "), " have no non-zero values.", call. = FALSE)
     }
-
-    # method == "half_min"
-    pos <- row[row > 0 & !is.na(row)]
-    if (length(pos) == 0) {
-      stop("half_min replacement failed: at least one feature has no non-zero values.")
-    }
-
-    row[is.na(row) | row == 0] <- min(pos) / 2
-    row
-  }))
+    half_mins  <- row_mins / 2
+    replace_at <- is.na(num_mat) | num_mat == 0
+    new_mat    <- num_mat
+    # broadcast per-row half_min to full matrix, then apply mask
+    new_mat[replace_at] <- matrix(half_mins, nrow = nrow(num_mat),
+                                  ncol = ncol(num_mat))[replace_at]
+  }
 
   num_df_out <- as.data.frame(new_mat, stringsAsFactors = FALSE)
   names(num_df_out) <- names(num_df)
@@ -925,16 +928,18 @@ FeaturePresence <- function(mmo, threshold = 1) {
 #' @examplesIf FALSE
 #' mmo <- MassNormalization(mmo)
 MassNormalization <- function(mmo){
-  normalized_df <- mmo$feature_data
-  metadata <- mmo$metadata
-  mean_mass <- mean(mmo$metadata$mass)
-  for (sample_col in colnames(mmo$feature_data)[-c(1,2)]) {
-    sample_metadata <- metadata[metadata$sample == sample_col, ]
-    mass <- sample_metadata$mass
-    normalized_df[[sample_col]] <- as.numeric(mmo$feature_data[[sample_col]])*mean_mass/mass
-  }
-  mmo$feature_data <- normalized_df
-  print("Peak area are normalized by sample mass")
+  metadata  <- mmo$metadata
+  mean_mass <- mean(metadata$mass)
+
+  id_cols   <- mmo$feature_data[, 1:2, drop = FALSE]
+  mat       <- as.matrix(mmo$feature_data[, -(1:2), drop = FALSE])
+
+  # Match sample order in the matrix to metadata$mass in one vectorised step
+  mass_vec  <- metadata$mass[match(colnames(mat), metadata$sample)]
+  mat       <- sweep(mat, 2, mean_mass / mass_vec, `*`)
+
+  mmo$feature_data <- cbind(id_cols, as.data.frame(mat, check.names = FALSE))
+  message("Peak area normalised by sample mass.")
   return(mmo)
 }
 
@@ -997,9 +1002,8 @@ MeancenterNormalization <- function(mmo, imputed_data = FALSE){
     )
   }
 
-  mean_centered_data <- t(apply(feature_data_only, 1, function(x) {
-    x - mean(x, na.rm = TRUE)
-  }))
+  mat <- as.matrix(feature_data_only)
+  mean_centered_data <- sweep(mat, 1, rowMeans(mat, na.rm = TRUE), `-`)
 
   mean_centered_df <- cbind(feature_ids, mean_centered_data)
   mmo$meancentered <- mean_centered_df
@@ -1042,13 +1046,11 @@ ZNormalization <- function(mmo, imputed_data = FALSE) {
     )
   }
 
-  zscore_mat <- t(apply(feature_data_only, 1, function(x) {
-    s <- sd(x, na.rm = TRUE)
-    if (is.na(s) || s == 0) {
-      return(rep(NA_real_, length(x)))
-    }
-    (x - mean(x, na.rm = TRUE)) / s
-  }))
+  mat        <- as.matrix(feature_data_only)
+  row_means  <- rowMeans(mat, na.rm = TRUE)
+  mat_c      <- sweep(mat, 1, row_means, `-`)
+  zscore_mat <- sweep(mat_c, 1, row_sd, `/`)
+  zscore_mat[is.na(row_sd) | row_sd == 0, ] <- NA_real_
 
   zscore_df <- cbind(feature_ids, zscore_mat)
   colnames(zscore_df) <- colnames(mmo$feature_data)
@@ -1966,12 +1968,12 @@ filter_mmo <- function(mmo,
         min_val <- min(positive_vals)
         threshold <- min_val
         message(sprintf("Removing empty features based on min_val = %g", min_val))
-        nonempty_idx <- apply(num_mat, 1, function(x) any(x > threshold, na.rm = TRUE))
+        nonempty_idx <- rowSums(num_mat > threshold, na.rm = TRUE) > 0
       }
     } else {
       threshold <- empty_threshold
       message(sprintf("Removing empty features using user threshold = %g", threshold))
-      nonempty_idx <- apply(num_mat, 1, function(x) any(x > threshold, na.rm = TRUE))
+      nonempty_idx <- rowSums(num_mat > threshold, na.rm = TRUE) > 0
     }
 
     auto_features <- auto_features[nonempty_idx]
@@ -2343,36 +2345,28 @@ IDToFeature <- function(mmo, feature_ids) {
 #'  filter_group = TRUE, group_list = c("Control", "Treatment1")
 #' ) # if Glucosinolates is a vector of feature names
 GetGroupMeans <- function(mmo, normalization = 'None', filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL) {
-  if (filter_id||filter_group){
+  if (filter_id || filter_group) {
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
   }
   feature_data <- GetNormFeature(mmo, normalization = normalization)
-  metadata <- mmo$metadata
+  metadata     <- mmo$metadata
 
-  # Melt the feature data to long format
-  long_feature_data <- feature_data |>
-    tidyr::pivot_longer(
-      cols = -c(.data$id, .data$feature),                 # all columns except id and feature
-      names_to = "sample",                    # old column names go here
-      values_to = "feature_value"             # values go here
-    )
+  # Extract numeric matrix (features x samples) — avoids 49M-row pivot_longer
+  mat      <- as.matrix(feature_data[, -(1:2), drop = FALSE])
+  id_col   <- feature_data$id
+  groups   <- levels(as.factor(metadata$group))
 
-  colnames(long_feature_data) <- c('id', 'feature', 'sample', 'feature_value')
+  means_list <- lapply(groups, function(g) {
+    samps <- metadata$sample[metadata$group == g]
+    samps <- intersect(samps, colnames(mat))
+    if (length(samps) == 0L) return(rep(NA_real_, nrow(mat)))
+    rowMeans(mat[, samps, drop = FALSE], na.rm = TRUE)
+  })
+  names(means_list) <- groups
 
-  # Merge with metadata to get group information
-  merged_data <- merge(long_feature_data, metadata[, c('sample', 'group')], by = 'sample')
-  # if (filter_group == TRUE){
-  #   merged_data <- merged_data |> filter(.data$group %in% group_list)
-  # }
-  # Calculate group means
-  group_means <- merged_data |>
-    dplyr::group_by(.data$group, .data$id) |>
-    dplyr::summarise(mean_value = mean(.data$feature_value, na.rm = TRUE), .groups = "drop") |>
-    tidyr::pivot_wider(
-      names_from = .data$group,
-      values_from = .data$mean_value
-    )
-  return(group_means)
+  result <- data.frame(id = id_col, as.data.frame(means_list, check.names = FALSE),
+                       stringsAsFactors = FALSE, check.names = FALSE)
+  return(result)
 }
 
 #' Calculate log2 fold change for a given control group
@@ -2570,37 +2564,34 @@ PairwiseComp <- function(mmo, group1, group2, correction = 'BH'){
   #Get sample names
   group1_samples <- metadata |> dplyr::filter(.data$group == group1) |> dplyr::pull(sample)
   group2_samples <- metadata |> dplyr::filter(.data$group == group2) |> dplyr::pull(sample)
-  #Get data from the samples
-  group1_data <- feature |> dplyr::select(.data$id, .data$feature, all_of(group1_samples))
-  group2_data <- feature |> dplyr::select(.data$id, .data$feature, all_of(group2_samples))
-  #Make empty column
-  log2FC <- numeric(nrow(feature))
-  pval <- numeric(nrow(feature))
-  #Pairwise comparison
-  for (i in 1:nrow(feature)){
-    group1_value <- as.numeric(group1_data[i, -c(1,2)])
-    group2_value <- as.numeric(group2_data[i, -c(1,2)])
+  # Extract numeric matrices (features x samples) — avoids 82K-iteration loop
+  g1_mat <- as.matrix(feature[, group1_samples, drop = FALSE])
+  g2_mat <- as.matrix(feature[, group2_samples, drop = FALSE])
 
-    group1_mean <- mean(group1_value, na.rm = TRUE)
-    group2_mean <- mean(group2_value, na.rm = TRUE)
-    log2FC[i] <- log2(group2_mean/group1_mean)
+  m1 <- rowMeans(g1_mat, na.rm = TRUE)
+  m2 <- rowMeans(g2_mat, na.rm = TRUE)
+  n1 <- rowSums(!is.na(g1_mat))
+  n2 <- rowSums(!is.na(g2_mat))
 
-    pval[i] <- tryCatch(
-      expr = {
-        p <- t.test(group1_value, group2_value, na.rm = TRUE)$p.value
-        p
-      },
-      error = function(e)
-      {
-        return(1)
-      }
-    )
-
-    # ttest <- t.test(group1_value, group2_value, na.rm = TRUE)
-
-    # pval[i] <- ttest$p.value
+  # Per-row variance without a loop: sweep subtracts row means from each row
+  row_var <- function(mat, n) {
+    mc <- sweep(mat, 1L, rowMeans(mat, na.rm = TRUE), `-`)
+    rowSums(mc^2L, na.rm = TRUE) / pmax(n - 1L, 1L)
   }
-  padj <- p.adjust(pval, method = correction)
+  v1 <- row_var(g1_mat, n1)
+  v2 <- row_var(g2_mat, n2)
+
+  # Vectorised Welch t-test
+  se     <- sqrt(v1 / n1 + v2 / n2)
+  t_stat <- (m1 - m2) / se
+  # Welch-Satterthwaite degrees of freedom
+  df     <- (v1/n1 + v2/n2)^2 /
+    ((v1/n1)^2 / pmax(n1 - 1L, 1L) + (v2/n2)^2 / pmax(n2 - 1L, 1L))
+  pval   <- 2 * pt(-abs(t_stat), df = pmax(df, 1))
+  pval[!is.finite(t_stat)] <- 1   # constant features get p = 1
+
+  log2FC <- log2(m2 / m1)
+  padj   <- p.adjust(pval, method = correction)
   #Store in results
   results <- data.frame(
     log2FC= log2FC,
@@ -3714,40 +3705,77 @@ FeaturePhenotypeCorrelation <- function(mmo, feature_id, phenotype, groups, mode
 #' @return A list of the plot and the raw data
 #' @export
 ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'lm', normalization = 'None'){
-  # Load feature and metadata
-  feature <- GetNormFeature(mmo, normalization)
+  feature  <- GetNormFeature(mmo, normalization)
   metadata <- mmo$metadata
-  # Generate df for analysis
+
   if (missing(groups)) {
     groups <- unique(metadata$group)
     message("'groups' is not provided, using all groups")
   }
-  phenotype_df <- data.frame(sample = metadata$sample, group = metadata$group, phenotype = metadata[,phenotype]) |> filter(.data$group %in% groups)
-  corr_res <- data.frame(feature = character(), coefficient = numeric(), p_value = numeric(), stringsAsFactors = FALSE)
-  for (i in 1:nrow(feature)){
-    feature_id <- feature$id[i]
-    feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
-    combined_df <- merge(phenotype_df, feature_df, by='sample')
-    if (model == 'lmm'){
-      fit <- lme4::lmer(combined_df$phenotype ~ combined_df$feature_value + (1|combined_df$group))
-      p_value <- summary(fit)$coefficients[2, 5]
-      coefficient <- lme4::fixef(fit)[2]
-    } else if (model == 'lm'){
-      fit <- lm(combined_df$phenotype ~ combined_df$feature_value)
-      coefficient <- summary(fit)$coefficients[2]
-      p_value <- summary(fit)$coefficients[2, 4]
-    } else if (model %in% c('pearson', 'spearman', 'kendall')){
-      correlation <- cor.test(combined_df$phenotype, combined_df$feature_value, method = model)
-      p_value <- correlation[[3]]
-      coefficient <- correlation[[4]]
+  phenotype_df <- data.frame(
+    sample   = metadata$sample,
+    group    = metadata$group,
+    phenotype = metadata[, phenotype]
+  ) |> filter(.data$group %in% groups)
+
+  # Align feature matrix columns to phenotype samples
+  samp_order <- intersect(colnames(feature)[-(1:2)], phenotype_df$sample)
+  feat_mat   <- as.matrix(feature[, samp_order, drop = FALSE])
+  y          <- phenotype_df$phenotype[match(samp_order, phenotype_df$sample)]
+  n_feat     <- nrow(feat_mat)
+  n          <- length(y)
+
+  # Pre-allocate result vectors (avoids O(n^2) rbind accumulation)
+  coeff_vec <- numeric(n_feat)
+  pval_vec  <- numeric(n_feat)
+
+  if (model %in% c('pearson', 'lm', 'spearman')) {
+    # Vectorised correlation across all features at once
+    X <- if (model == 'spearman') {
+      t(apply(feat_mat, 1L, rank, na.last = "keep"))
     } else {
-      stop("Invalid model type. Please use 'lmm', 'lm', 'pearson', 'spearman' or 'kendall'")
+      feat_mat
     }
-    corr_res <- rbind(corr_res, data.frame(
-      feature = feature_id, coefficient = coefficient, p_value = p_value))
+    y_use <- if (model == 'spearman') rank(y, na.last = "keep") else y
+
+    y_c    <- y_use - mean(y_use, na.rm = TRUE)
+    X_c    <- sweep(X, 1L, rowMeans(X, na.rm = TRUE), `-`)
+    n_obs  <- rowSums(!is.na(X))
+    cov_xy <- as.numeric(X_c %*% y_c) / pmax(n_obs - 1L, 1L)
+    sd_x   <- sqrt(rowSums(X_c^2L, na.rm = TRUE) / pmax(n_obs - 1L, 1L))
+    sd_y   <- sd(y_use, na.rm = TRUE)
+    r      <- cov_xy / (sd_x * sd_y)
+    r[!is.finite(r)] <- 0
+
+    coeff_vec <- if (model == 'lm') r * sd_y / pmax(sd_x, .Machine$double.eps) else r
+    t_stat    <- r * sqrt(pmax(n - 2L, 1L) / pmax(1 - r^2, .Machine$double.eps))
+    pval_vec  <- 2 * pt(-abs(t_stat), df = pmax(n - 2L, 1L))
+
+  } else if (model %in% c('lmm', 'kendall')) {
+    # Per-feature loop with pre-allocated vectors (no rbind)
+    for (i in seq_len(n_feat)) {
+      combined_df <- data.frame(
+        sample        = samp_order,
+        phenotype     = y,
+        feature_value = feat_mat[i, ],
+        group         = phenotype_df$group[match(samp_order, phenotype_df$sample)]
+      )
+      if (model == 'lmm') {
+        fit           <- lme4::lmer(phenotype ~ feature_value + (1|group), data = combined_df)
+        pval_vec[i]   <- summary(fit)$coefficients[2, 5]
+        coeff_vec[i]  <- lme4::fixef(fit)[2]
+      } else {
+        res           <- cor.test(combined_df$phenotype, combined_df$feature_value, method = 'kendall')
+        pval_vec[i]   <- res[[3]]
+        coeff_vec[i]  <- res[[4]]
+      }
+    }
+  } else {
+    stop("Invalid model type. Use 'lmm', 'lm', 'pearson', 'spearman', or 'kendall'.")
   }
-  return (corr_res)
-  print(paste0(normalization, '-normalized feature data screened using ', model))
+
+  data.frame(feature = feature$id, coefficient = coeff_vec, p_value = pval_vec,
+             stringsAsFactors = FALSE)
 }
 
 
@@ -3764,40 +3792,50 @@ ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'l
 #' @return A data frame containing regression results for each feature, including effect size, p-value, and fold change columns for specified comparisons.
 #'
 GetPerformanceFeatureRegression <- function(mmo, phenotype, groups, DAM.list, comparisons, normalization = 'None'){
-  feature <- GetNormFeature(mmo, normalization)
-  metadata <- mmo$metadata
+  feature     <- GetNormFeature(mmo, normalization)
+  metadata    <- mmo$metadata
+  phenotype.df <- data.frame(
+    sample = metadata$sample, group = metadata$group,
+    performance = metadata[, phenotype]
+  ) |> filter(.data$group %in% groups)
 
-  # phenotype.sample <- metadata |> filter(group %in% groups) |> pull(sample)
-  # phenotype.area <- feature |> dplyr::select(id, feature, all_of(phenotype.sample))
+  # Align feature matrix to phenotype samples
+  samp_order <- intersect(colnames(feature)[-(1:2)], phenotype.df$sample)
+  feat_mat   <- as.matrix(feature[, samp_order, drop = FALSE])
+  y          <- phenotype.df$performance[match(samp_order, phenotype.df$sample)]
+  n_feat     <- nrow(feat_mat)
+  n          <- length(y)
 
-  performance.linreg <- data.frame(pval = double(), effect.size = double())
-  phenotype.df <- data.frame(sample = metadata$sample, group = metadata$group, performance = metadata[,phenotype]) |> filter(.data$group %in% groups)
+  # Vectorised simple linear regression via Pearson correlation
+  y_c      <- y - mean(y, na.rm = TRUE)
+  X_c      <- sweep(feat_mat, 1L, rowMeans(feat_mat, na.rm = TRUE), `-`)
+  n_obs    <- rowSums(!is.na(feat_mat))
+  cov_xy   <- as.numeric(X_c %*% y_c) / pmax(n_obs - 1L, 1L)
+  var_x    <- rowSums(X_c^2L, na.rm = TRUE) / pmax(n_obs - 1L, 1L)
+  eff_size <- cov_xy / pmax(var_x, .Machine$double.eps)   # lm slope = cov/var_x
+  r        <- cov_xy / (sqrt(var_x) * sd(y, na.rm = TRUE))
+  t_stat   <- r * sqrt(pmax(n - 2L, 1L) / pmax(1 - r^2, .Machine$double.eps))
+  p_value  <- 2 * pt(-abs(t_stat), df = pmax(n - 2L, 1L))
+  p_value[!is.finite(t_stat)] <- 1
 
-  regression_results <- data.frame(feature = character(), effect.size = numeric(), p_value = numeric(), is.Spec = logical(), stringsAsFactors = FALSE)
-  for (i in 1:nrow(feature)) {
-    feature_id <- feature$id[i]
-    feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
-    combined_df <- merge(phenotype.df, feature_df, by='sample')
-
-    fit <- lm(combined_df$performance ~ combined_df$feature_value)
-    effect.size <- coef(fit)[2]
-    p_value <- summary(fit)$coefficients[2, 4]
-    tag <- "else"
-    for (list_name in names(DAM.list)) {
-      if (feature_id %in% DAM.list[[list_name]]) {
-        tag <- list_name
-      }
-    }
-    #is.Spec <- feature_name %in% target
-
-    regression_results <- rbind(regression_results, data.frame(
-      feature = feature_id, effect.size = effect.size, p_value = p_value, tag = tag
-    ))
+  # DAM tags — vectorial lookup across all lists
+  tags <- rep("else", n_feat)
+  for (list_name in names(DAM.list)) {
+    hits <- which(feature$id %in% DAM.list[[list_name]])
+    tags[hits] <- list_name
   }
-  # Add FC columns to regression_results
+
+  regression_results <- data.frame(
+    feature     = feature$id,
+    effect.size = eff_size,
+    p_value     = p_value,
+    tag         = tags,
+    stringsAsFactors = FALSE
+  )
   for (comparison in comparisons) {
     fc_column <- paste(comparison, "log2FC", sep = "_")
-    regression_results[[fc_column]] <- mmo$pairwise[[fc_column]][match(regression_results$feature, mmo$pairwise$feature)]
+    regression_results[[fc_column]] <- mmo$pairwise[[fc_column]][
+      match(regression_results$feature, mmo$pairwise$feature)]
   }
   return(regression_results)
 }
@@ -3815,51 +3853,51 @@ GetPerformanceFeatureRegression <- function(mmo, phenotype, groups, DAM.list, co
 #' @return A data frame containing regression results for each feature, including effect size, p-value, and fold change columns for specified comparisons.
 #' @export
 GetPerformanceFeatureLMM <- function(mmo, phenotype, groups, DAM.list, comparisons, normalization = 'Z'){
-  feature <- GetNormFeature(mmo, normalization)
-  # if (normalization == 'None'){
-  #   feature <- mmo$feature_data
-  # } else if (normalization == 'Log'){
-  #   feature <- mmo$log
-  # } else if (normalization == 'Meancentered'){
-  #   feature <- mmo$meancentered
-  # } else if (normalization == 'Z'){
-  #   feature <- mmo$zscore
-  # }
-  metadata <- mmo$metadata
+  feature      <- GetNormFeature(mmo, normalization)
+  metadata     <- mmo$metadata
+  phenotype.df <- data.frame(
+    sample = metadata$sample, group = metadata$group,
+    performance = metadata[, phenotype]
+  ) |> filter(.data$group %in% groups)
 
-  # get phenotype performance data
-  phenotype.df <- data.frame(sample = metadata$sample, group = metadata$group, performance = metadata[,phenotype]) |> filter(.data$group %in% groups)
-  #create an empty dataframe to store regression results
-  regression_results <- data.frame(feature = character(), effect.size = numeric(), p_value = numeric(), is.Spec = logical(), stringsAsFactors = FALSE)
-  # iterate regression analysis
-  for (i in 1:nrow(feature)) {
-    # for each feature, generate phenotype performance X feature value data
-    feature_id <- feature$id[i]
-    feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
-    combined_df <- merge(phenotype.df, feature_df, by='sample')
+  samp_order <- intersect(colnames(feature)[-(1:2)], phenotype.df$sample)
+  feat_mat   <- as.matrix(feature[, samp_order, drop = FALSE])
+  n_feat     <- nrow(feat_mat)
 
-    # linear mixed model
-    lmm_fit <- lme4::lmer(performance ~ feature_value + (1|group), data = combined_df)
-    fixed_effects <- lme4::fixef(lmm_fit)
-    effect.size <- fixed_effects[2]
-    p_value <- summary(lmm_fit)$coefficients[2, 5]
+  # Pre-allocate result vectors (avoids O(n^2) rbind accumulation)
+  eff_size_vec <- numeric(n_feat)
+  p_value_vec  <- numeric(n_feat)
 
-    #tag using DAM.list
-    tag <- "else"
-    for (list_name in names(DAM.list)) {
-      if (feature_id %in% DAM.list[[list_name]]) {
-        tag <- list_name
-      }
-    }
+  grp_col <- phenotype.df$group[match(samp_order, phenotype.df$sample)]
+  y_col   <- phenotype.df$performance[match(samp_order, phenotype.df$sample)]
 
-    regression_results <- rbind(regression_results, data.frame(
-      feature = feature_id, effect.size = effect.size, p_value = p_value, tag = tag
-    ))
+  for (i in seq_len(n_feat)) {
+    combined_df     <- data.frame(performance  = y_col,
+                                  feature_value = feat_mat[i, ],
+                                  group         = grp_col)
+    lmm_fit          <- lme4::lmer(performance ~ feature_value + (1|group), data = combined_df)
+    eff_size_vec[i]  <- lme4::fixef(lmm_fit)[2]
+    p_value_vec[i]   <- summary(lmm_fit)$coefficients[2, 5]
   }
-  # Add FC columns to regression_results
+
+  # DAM tags — vectorial lookup
+  tags <- rep("else", n_feat)
+  for (list_name in names(DAM.list)) {
+    hits        <- which(feature$id %in% DAM.list[[list_name]])
+    tags[hits]  <- list_name
+  }
+
+  regression_results <- data.frame(
+    feature     = feature$id,
+    effect.size = eff_size_vec,
+    p_value     = p_value_vec,
+    tag         = tags,
+    stringsAsFactors = FALSE
+  )
   for (comparison in comparisons) {
     fc_column <- paste(comparison, "log2FC", sep = "_")
-    regression_results[[fc_column]] <- mmo$pairwise[[fc_column]][match(regression_results$feature, mmo$pairwise$feature)]
+    regression_results[[fc_column]] <- mmo$pairwise[[fc_column]][
+      match(regression_results$feature, mmo$pairwise$feature)]
   }
   return(regression_results)
 }
@@ -3878,39 +3916,69 @@ GetPerformanceFeatureLMM <- function(mmo, phenotype, groups, DAM.list, compariso
 #' @return A data frame containing correlation results for each feature, including effect size (correlation coefficient), p-value, and fold change columns for specified comparisons.
 #' @export
 GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, comparisons, cor_method = 'pearson', normalization = 'None'){
-  feature <- GetNormFeature(mmo, normalization)
-  metadata <- mmo$metadata
+  feature      <- GetNormFeature(mmo, normalization)
+  metadata     <- mmo$metadata
+  phenotype.df <- data.frame(
+    sample = metadata$sample, group = metadata$group,
+    performance = metadata[, phenotype]
+  ) |> filter(.data$group %in% groups)
 
-  # phenotype.sample <- metadata |> filter(group %in% groups) |> pull(sample)
-  # phenotype.area <- feature |> dplyr::select(id, feature, all_of(phenotype.sample))
+  samp_order <- intersect(colnames(feature)[-(1:2)], phenotype.df$sample)
+  feat_mat   <- as.matrix(feature[, samp_order, drop = FALSE])
+  y          <- phenotype.df$performance[match(samp_order, phenotype.df$sample)]
+  n_feat     <- nrow(feat_mat)
+  n          <- length(y)
 
-  performance.linreg <- data.frame(pval = double(), effect.size = double())
-  phenotype.df <- data.frame(sample = metadata$sample, group = metadata$group, performance = metadata[,phenotype]) |> filter(.data$group %in% groups)
+  # Pre-allocate result vectors
+  eff_size_vec <- numeric(n_feat)
+  p_value_vec  <- numeric(n_feat)
 
-  regression_results <- data.frame(feature = character(), effect.size = numeric(), p_value = numeric(), is.Spec = logical(), stringsAsFactors = FALSE)
-  for (i in 1:nrow(feature)) {
-    feature_id <- feature$id[i]
-    feature_df <- data.frame(sample = colnames(feature[,-(1:2)]), feature_value = as.numeric(feature[i, -(1:2)]))
-    combined_df <- merge(phenotype.df, feature_df, by='sample')
-    cor <- cor.test(combined_df$performance, combined_df$feature_value, method = cor_method)
-    pval <- cor[[3]]
-    cor <- cor[[4]]
-    tag <- "else"
-    for (list_name in names(DAM.list)) {
-      if (feature_id %in% DAM.list[[list_name]]) {
-        tag <- list_name
-      }
+  if (cor_method %in% c('pearson', 'spearman')) {
+    X <- if (cor_method == 'spearman') {
+      t(apply(feat_mat, 1L, rank, na.last = "keep"))
+    } else {
+      feat_mat
     }
-    #is.Spec <- feature_name %in% target
-
-    regression_results <- rbind(regression_results, data.frame(
-      feature = feature_id, effect.size = cor, p_value = pval, tag = tag
-    ))
+    y_use  <- if (cor_method == 'spearman') rank(y, na.last = "keep") else y
+    y_c    <- y_use - mean(y_use, na.rm = TRUE)
+    X_c    <- sweep(X, 1L, rowMeans(X, na.rm = TRUE), `-`)
+    n_obs  <- rowSums(!is.na(X))
+    cov_xy <- as.numeric(X_c %*% y_c) / pmax(n_obs - 1L, 1L)
+    sd_x   <- sqrt(rowSums(X_c^2L, na.rm = TRUE) / pmax(n_obs - 1L, 1L))
+    sd_y   <- sd(y_use, na.rm = TRUE)
+    r      <- cov_xy / (sd_x * sd_y)
+    r[!is.finite(r)] <- 0
+    t_stat       <- r * sqrt(pmax(n - 2L, 1L) / pmax(1 - r^2, .Machine$double.eps))
+    eff_size_vec <- r
+    p_value_vec  <- 2 * pt(-abs(t_stat), df = pmax(n - 2L, 1L))
+    p_value_vec[!is.finite(t_stat)] <- 1
+  } else {
+    # kendall: pre-allocated loop (no rbind)
+    for (i in seq_len(n_feat)) {
+      res             <- cor.test(y, feat_mat[i, ], method = 'kendall')
+      eff_size_vec[i] <- res[[4]]
+      p_value_vec[i]  <- res[[3]]
+    }
   }
-  # Add FC columns to regression_results
+
+  # DAM tags — vectorial lookup
+  tags <- rep("else", n_feat)
+  for (list_name in names(DAM.list)) {
+    hits       <- which(feature$id %in% DAM.list[[list_name]])
+    tags[hits] <- list_name
+  }
+
+  regression_results <- data.frame(
+    feature     = feature$id,
+    effect.size = eff_size_vec,
+    p_value     = p_value_vec,
+    tag         = tags,
+    stringsAsFactors = FALSE
+  )
   for (comparison in comparisons) {
     fc_column <- paste(comparison, "log2FC", sep = "_")
-    regression_results[[fc_column]] <- mmo$pairwise[[fc_column]][match(regression_results$feature, mmo$pairwise$feature)]
+    regression_results[[fc_column]] <- mmo$pairwise[[fc_column]][
+      match(regression_results$feature, mmo$pairwise$feature)]
   }
   return(regression_results)
 }
