@@ -558,13 +558,13 @@ Feature-overlap metrics become limited when most compounds are unique to one spe
 We introduce feature-based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.
 
 ```{r}
-# Add Dreams distance
-mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
+# Add DreaMS similarity
+mmo <- AddChemSim(mmo, dreams_dir = demo_dreams)
 
-mmo$dreams.dissim[1:10,1:10]
+mmo$dreams.sim[1:10,1:10]
 ```
 
-This matrix stores pairwise chemical dissimilarity among features. Once this information is available, later analyses can distinguish between features that are unrelated and features that are distinct but still structurally similar.
+This matrix stores pairwise chemical similarity among features (0–1, higher = more similar). Downstream functions convert to distance internally as needed. Once added, later analyses can distinguish between features that are unrelated and features that are distinct but still structurally similar.
 
 # 7. Recalculate beta diversity using chemical distances
 

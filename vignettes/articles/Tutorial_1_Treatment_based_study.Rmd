@@ -283,11 +283,11 @@ GLSs
 
 ## 4.6 Add chemical distance matrix
 
-Chemical similarity scores (e.g., from DreaMS) can be used for chemically-informed heatmap clustering and diversity analyses.
+Chemical similarity scores (e.g., from DreaMS) can be used for chemically-informed heatmap clustering and diversity analyses. Similarities are stored as-is (0–1, higher = more similar); downstream functions convert to distance internally.
 
 ```{r, eval=FALSE}
-mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
-mmo$dreams.dissim[1:10, 1:10]
+mmo <- AddChemSim(mmo, dreams_dir = demo_dreams)
+mmo$dreams.sim[1:10, 1:10]
 ```
 
 ------------------------------------------------------------------------
@@ -657,7 +657,7 @@ This tutorial covered the complete eCOMET workflow for treatment-based metabolom
 | 1 | `system.file()` | Locate tutorial data |
 | 2 | `GetMZmineFeature()` | Create mmo object |
 | 3 | `ReplaceZero()`, `MassNormalization(mmo)`, `ZNormalization(mmo)`, `LogNormalization(mmo)`, `MeancenterNormalization()` | Preprocessing |
-| 4 | `AddSiriusAnnot()`, `AddCustomAnnot()`, `AddChemDist()` | Annotations |
+| 4 | `AddSiriusAnnot()`, `AddCustomAnnot()`, `AddChemSim()` | Annotations |
 | 5 | `PCAplot()`, `PLSDAplot()` | Dimensionality reduction |
 | 6 | `PairwiseComp()`, `GetDAMs()` | Differential accumulation |
 | 7 | `VolcanoPlot()`, Venn/UpSet | DAM visualization |

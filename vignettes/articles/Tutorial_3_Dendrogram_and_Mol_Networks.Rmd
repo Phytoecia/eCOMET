@@ -4,6 +4,14 @@ authors: "Dale L. Forrister & Min-Soo Choi"
 output: html_document
 ---
 
+> **Note:** This tutorial has not yet been updated to the new similarity-based
+> storage approach introduced in eCOMET 1.1. It currently uses `AddChemDist()`
+> (which stores dissimilarity matrices in `.dissim` slots) and the corresponding
+> `FeatureDendrogram()`, `ExportCytoscape()`, and `ExportITOL()` functions.
+> These functions will be updated in a future release to use `AddChemSim()` and
+> `.sim` slots. In the meantime, `AddChemDist()` remains fully functional for
+> the workflows shown here.
+
 # Overview
 
 This tutorial covers how to use `eCOMET` to build and visualize structural relationships among detected metabolite features. The two main outputs are a **compound dendrogram** — a hierarchical tree grouping features by chemical similarity — and a **molecular network** suitable for export to Cytoscape or iTOL.

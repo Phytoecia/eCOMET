@@ -6563,6 +6563,10 @@ PlotFeatureDendrogram <- function(
 }
 
 
+# NOTE: ExportITOL has not yet been updated to the similarity-based storage
+# approach (.sim slots / GetSimMat). It currently uses GetDistanceMat() and
+# .dissim slots. Call AddChemDist() before using this function until it is
+# updated in a future release.
 #' ExportITOL
 #'
 #' Export a feature dendrogram and companion annotation files for visualisation
@@ -6795,6 +6799,10 @@ ExportITOL <- function(
 #' ExportCytoscape(mmo, distance = "dreams",
 #'                 outprefix = "output/network_k5",
 #'                 sim_threshold = 0.6, top_k = 5)
+# NOTE: ExportCytoscape has not yet been updated to the similarity-based
+# storage approach (.sim slots / GetSimMat). It currently uses GetDistanceMat()
+# and .dissim slots. Call AddChemDist() before using this function until it is
+# updated in a future release.
 ExportCytoscape <- function(
     mmo,
     distance      = "dreams",
