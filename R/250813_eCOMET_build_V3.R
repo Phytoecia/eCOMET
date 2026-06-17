@@ -2999,7 +2999,11 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
 #'     annotation_names_row = TRUE,
 #'     labels_row = heatmap_inputs$row_label,
 #'     )
-GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
+# DEPRECATED: superseded by GenerateHeatmapInputs().
+# GenerateHeatmapInputs_derep() uses GetDistanceMat() (.dissim slots).
+# GenerateHeatmapInputs() uses GetSimMat() (.sim slots) and converts
+# similarity to distance (1-S) when building the dist object for clustering.
+GenerateHeatmapInputs_derep <- function(mmo, filter_id = FALSE, id_list = NULL,
                                 filter_group = FALSE, group_list = NULL,
                                 summarize = 'mean', control_group = 'ctrl',
                                 normalization = 'None', distance = NULL) {
@@ -3029,6 +3033,54 @@ GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
     # Reorder the rows of distance_matrix to match the order of FC_matrix_
     distance_matrix <- distance_matrix[rownames(FC_matrix), rownames(FC_matrix)]
     dist_matrix <- as.dist(distance_matrix)
+  } else{
+    dist_matrix <- NULL
+  }
+
+  row_label <- rownames(FC_matrix)
+  return(list(FC_matrix = FC_matrix, dist_matrix = dist_matrix, row_label = row_label, heatmap_data = heatmap_data))
+}
+
+
+#' GenerateHeatmapInputs (similarity-based)
+#'
+#' Identical to \code{GenerateHeatmapInputs_derep()} but retrieves feature
+#' similarity matrices via \code{GetSimMat()} (.sim slots) and converts to
+#' distance (\code{1 - S}) when building the \code{dist} object for heatmap
+#' row clustering.
+#'
+#' @inheritParams GenerateHeatmapInputs_derep
+#' @export
+GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
+                                  filter_group = FALSE, group_list = NULL,
+                                  summarize = 'mean', control_group = 'ctrl',
+                                  normalization = 'None', distance = NULL) {
+  if (filter_id||filter_group){
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+  }
+  # 12.1.1. Get summarized data (group mean or FC)
+  group_means <- GetGroupMeans(mmo, normalization = normalization)
+  if (summarize == 'fold_change'){
+    fold_change <- GetLog2FoldChange(group_means, control_group = control_group)
+    heatmap_data <- fold_change
+    heatmap_data[[control_group]] <- NULL
+  } else if(summarize == 'mean'){
+    heatmap_data <- group_means
+  }
+  # 12.1.2. Filter features; use similarity matrix from .sim slot
+  if (!is.null(distance)){
+    sim_matrix <- GetSimMat(mmo, distance = distance)
+    heatmap_data <- heatmap_data |> filter(.data$id %in% rownames(sim_matrix))
+  }
+
+  # make matrix for heatmap
+  FC_matrix <- as.matrix(heatmap_data[,-1])
+  rownames(FC_matrix) <- heatmap_data$id
+  if (!is.null(distance)){
+    # Reorder similarity matrix to match FC_matrix row order
+    sim_matrix <- sim_matrix[rownames(FC_matrix), rownames(FC_matrix)]
+    # Convert similarity to distance (1 - S) for heatmap clustering
+    dist_matrix <- as.dist(1 - as.matrix(sim_matrix))
   } else{
     dist_matrix <- NULL
   }
@@ -4141,6 +4193,10 @@ GetRichness <- function(
 }
 
 
+# DEPRECATED: superseded by GetFunctionalHillNumber().
+# GetFunctionalHillNumber_derep() takes a dissimilarity matrix (D) and computes
+# Rao Q as p'Dp. GetFunctionalHillNumber() takes a similarity matrix (S) and
+# uses the algebraically equivalent p'Dp = 1 - p'Sp (valid when sum(p) = 1).
 #' GetFunctionalHillNumber
 #'
 #' This function calculates the functional Hill number for a given \code{mmo}, normalization method, and distance metric.
@@ -4156,7 +4212,7 @@ GetRichness <- function(
 #' @param scale_dissim Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)
 #' @export
 #' @return A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
-GetFunctionalHillNumber <- function(
+GetFunctionalHillNumber_derep <- function(
     feature,
     metadata,
     distance_matrix,
@@ -4210,6 +4266,98 @@ GetFunctionalHillNumber <- function(
     DPq <- scaled_dissimilarity %*% Pq
     vals <- colSums(Pq*DPq)
     functional_hill_number <- vals^(1/(1-q))
+  }
+  sample_names <- colnames(relative_proportions)
+  names(functional_hill_number) <- sample_names
+  # Get the group information
+  groups <- metadata$group[match(sample_names, metadata$sample)]
+  hill_df <- data.frame(
+    sample = sample_names,
+    group = groups,
+    hill_number = as.numeric(functional_hill_number),
+    value = as.numeric(functional_hill_number),
+    stringsAsFactors = FALSE
+  )
+  return(hill_df)
+}
+
+
+#' GetFunctionalHillNumber (similarity-based)
+#'
+#' Calculates the functional Hill number using a pairwise feature \strong{similarity}
+#' matrix (values 0--1, higher = more similar) from \code{GetSimMat()}.
+#' Algebraically equivalent to \code{GetFunctionalHillNumber_derep()} but avoids
+#' ever constructing the full dense distance matrix, making it safe for sparse
+#' large-dataset similarity matrices. Key identity used: \eqn{p'Dp = 1 - p'Sp}
+#' (exact when \eqn{\sum p_i = 1} and \eqn{D = 1 - S}).
+#'
+#' @param feature Feature table with columns: id, feature, then sample columns
+#' @param metadata Metadata table with sample and group columns
+#' @param sim_matrix Feature similarity matrix (dense or sparse dgCMatrix)
+#' @param q The order of the Hill number (default: 1)
+#' @param threshold Numeric; detection threshold for presence (default: 0)
+#' @param scale_dissim Kept for interface compatibility; max(sim)=1 so scaling
+#'   is a no-op, but passing FALSE still skips it
+#' @export
+#' @return A data frame with sample, group, hill_number, and value columns.
+GetFunctionalHillNumber <- function(
+    feature,
+    metadata,
+    sim_matrix,
+    q = 1,
+    threshold = 0,
+    scale_dissim = TRUE
+) {
+  # Treat values <= threshold (or NA) as absent
+  feature_thr <- feature
+  x_thr <- as.matrix(feature_thr[, -(1:2), drop = FALSE])
+  x_thr[is.na(x_thr) | x_thr <= threshold] <- 0
+  feature_thr[, -(1:2)] <- x_thr
+
+  # Scale similarity to [0,1]; max(sim)=1 (diagonal=self-similarity), so trivial
+  if (scale_dissim) {
+    scaled_similarity <- sim_matrix / max(sim_matrix)
+  } else {
+    scaled_similarity <- sim_matrix
+  }
+
+  # Calculate relative proportions and align to similarity matrix row order
+  q.feature <- feature_thr |> filter(.data$id %in% colnames(scaled_similarity))
+  relative_proportions <- apply(q.feature[, -(1:2)], 2, function(x) {
+    s <- sum(x, na.rm = TRUE)
+    if (s <= 0) rep(0, length(x)) else x / s
+  })
+  # apply() drops dimensions when there is only 1 column (e.g. pooled rarefaction);
+  # restore as a named matrix so colnames() is never NULL downstream.
+  if (is.null(dim(relative_proportions))) {
+    nm <- colnames(q.feature[, -(1:2), drop = FALSE])
+    relative_proportions <- matrix(relative_proportions, ncol = 1,
+                                   dimnames = list(names(relative_proportions), nm))
+  }
+  rownames(relative_proportions) <- q.feature$id
+  relative_proportions <- relative_proportions[rownames(scaled_similarity), , drop = FALSE]
+
+  # Rao Q via similarity: p'Dp = 1 - p'Sp (exact identity when sum(p)=1, D=1-S).
+  # No as.matrix() call here — sparse S passes directly into %*% without densification.
+  SP   <- scaled_similarity %*% relative_proportions
+  raoQ <- 1 - colSums(relative_proportions * SP)
+
+  # Calculate Hill numbers
+  functional_hill_number <- c()
+  if (q == 1) {
+    mask <- relative_proportions > 0
+    Plog <- ifelse(mask, relative_proportions / raoQ * log(relative_proportions / raoQ), 0)
+    # Dp = 1 - Sp  (valid because sum(p) = 1, so J%*%p = 1)
+    DP   <- 1 - SP
+    vals <- 2 * colSums(Plog * DP)
+    functional_hill_number <- exp(-vals)
+  } else {
+    Pq  <- (relative_proportions / raoQ)^q
+    SPq <- scaled_similarity %*% Pq
+    # Dpq = colSums(Pq)*1 - Spq  (general: Pq does not sum to 1, so J%*%Pq != 1)
+    DPq <- sweep(SPq, 2, colSums(Pq), function(sp, cs) cs - sp)
+    vals <- colSums(Pq * DPq)
+    functional_hill_number <- vals^(1 / (1 - q))
   }
   sample_names <- colnames(relative_proportions)
   names(functional_hill_number) <- sample_names
@@ -4290,7 +4438,10 @@ GetHillNumbers <- function(
 #' @param threshold Numeric; detection threshold for presence (default: 0)
 #' @export
 #' @return A data frame containing the Faith's phylogenetic diversity for each group in the metadata, with columns for group and PD.
-GetFaithPD <- function(feature, metadata, distance_matrix, threshold = 0){
+# DEPRECATED: superseded by GetFaithPD().
+# GetFaithPD_derep() takes a dissimilarity matrix; GetFaithPD() takes a
+# similarity matrix and adds a size guard before the unavoidable densification.
+GetFaithPD_derep <- function(feature, metadata, distance_matrix, threshold = 0){
   .require_pkg("picante")
   .require_pkg("ape")
   ids <- feature$id
@@ -4300,6 +4451,47 @@ GetFaithPD <- function(feature, metadata, distance_matrix, threshold = 0){
   feature_t <- t(x)
   colnames(feature_t) <- ids
   tree <- ape::as.phylo(hclust(as.dist(distance_matrix), method = 'average'))
+  pd_result <- picante::pd(feature_t, tree)
+  pd_result$sample <- rownames(pd_result)
+  pd_result$group <- metadata$group[match(pd_result$sample, metadata$sample)]
+  pd_result$value <- pd_result$PD
+  rownames(pd_result) <- NULL
+  return(pd_result)
+}
+
+
+#' GetFaithPD (similarity-based)
+#'
+#' Calculates Faith's phylogenetic diversity using a pairwise feature
+#' \strong{similarity} matrix from \code{GetSimMat()}. Converts to distance
+#' internally (\code{1 - sim}) before clustering, which requires materializing
+#' a full dense matrix; a size guard stops execution if n > 10,000 features.
+#'
+#' @param feature Feature table with columns: id, feature, then sample columns
+#' @param metadata Metadata table with sample and group columns
+#' @param sim_matrix Feature similarity matrix (dense or sparse dgCMatrix)
+#' @param threshold Numeric; detection threshold for presence (default: 0)
+#' @export
+#' @return A data frame with sample, group, PD, SR, and value columns.
+GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0) {
+  n <- nrow(sim_matrix)
+  if (n > 10000L) {
+    stop(
+      "GetFaithPD requires a full n x n distance matrix for hclust (n = ", n, "). ",
+      "Use filter_mmo() to reduce feature count below 10,000 first.",
+      call. = FALSE
+    )
+  }
+  .require_pkg("picante")
+  .require_pkg("ape")
+  ids <- feature$id
+  x <- as.matrix(feature[, -(1:2), drop = FALSE])
+  # Faith PD uses presence/absence; threshold defines "present"
+  x <- ifelse(!is.na(x) & x > threshold, 1, 0)
+  feature_t <- t(x)
+  colnames(feature_t) <- ids
+  # Convert similarity to distance for hclust (densification unavoidable for tree-building)
+  tree <- ape::as.phylo(hclust(as.dist(1 - as.matrix(sim_matrix)), method = 'average'))
   pd_result <- picante::pd(feature_t, tree)
   pd_result$sample <- rownames(pd_result)
   pd_result$group <- metadata$group[match(pd_result$sample, metadata$sample)]
@@ -4364,7 +4556,10 @@ GetFaithPD <- function(feature, metadata, distance_matrix, threshold = 0){
 #'   - summary: group-level rarefaction summary (mean, lwr, upr, n_perm_eff)
 #'   - raw: permutation-level values for each group and n_samples
 #' @export
-GetAlphaDiversity <- function(
+# DEPRECATED: superseded by GetAlphaDiversity().
+# GetAlphaDiversity_derep() uses GetDistanceMat() (.dissim slots, dissimilarity math).
+# GetAlphaDiversity() uses GetSimMat() (.sim slots, similarity math).
+GetAlphaDiversity_derep <- function(
     mmo,
     q = 1,
     normalization = "None",
@@ -4418,7 +4613,7 @@ GetAlphaDiversity <- function(
       if (is.null(distance_local)) {
         stop("Distance matrix required for weighted mode.")
       }
-      GetFunctionalHillNumber(
+      GetFunctionalHillNumber_derep(
         feature = feature_local,
         metadata = metadata_local,
         distance_matrix = distance_local,
@@ -4442,7 +4637,7 @@ GetAlphaDiversity <- function(
       if (is.null(distance_local)) {
         stop("Distance matrix required for faith mode.")
       }
-      GetFaithPD(
+      GetFaithPD_derep(
         feature = feature_local,
         metadata = metadata_local,
         distance_matrix = distance_local,
@@ -4702,6 +4897,355 @@ GetAlphaDiversity <- function(
   stop("Unhandled output mode.")
 }
 
+
+#' GetAlphaDiversity (similarity-based)
+#'
+#' Identical to \code{GetAlphaDiversity_derep()} but uses \code{GetSimMat()}
+#' to retrieve similarity matrices from \code{.sim} slots (created by
+#' \code{AddChemSim()}) and passes them to the similarity-aware inner
+#' functions (\code{GetFunctionalHillNumber()}, \code{GetFaithPD()}).
+#'
+#' @inheritParams GetAlphaDiversity_derep
+#' @export
+GetAlphaDiversity <- function(
+    mmo,
+    q = 1,
+    normalization = "None",
+    mode = "richness",
+    distance = "dreams",
+    threshold = 0,
+    filter_id = FALSE,
+    id_list = NULL,
+    filter_group = FALSE,
+    group_list = NULL,
+    output = c("sample_level", "group_average", "group_cumulative", "rarefied_sample"),
+    group_col = "group",
+    sample_col = "sample",
+    pool_method = c("sum", "mean"),
+    n_perm = 200,
+    ci = 0.95,
+    seed = NULL
+) {
+  output <- match.arg(output)
+  pool_method <- match.arg(pool_method)
+
+  # -----------------------------
+  # 0) Optional filtering
+  # -----------------------------
+  if (filter_id || filter_group) {
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list,
+                      sample_col = sample_col, group_col = group_col)
+  }
+
+  # -----------------------------
+  # 1) Metric engine (returns per-sample)
+  # -----------------------------
+  feature_all <- GetNormFeature(mmo, normalization = normalization)
+  metadata_all <- mmo$metadata
+
+  sample_cols_all <- colnames(feature_all)[-c(1, 2)]
+
+  distance_matrix_all <- NULL
+  if (mode %in% c("weighted", "faith")) {
+    distance_matrix_all <- GetSimMat(mmo, distance = distance)  # similarity .sim slots
+    keep_ids <- intersect(feature_all$id, rownames(distance_matrix_all))
+    if (length(keep_ids) < 2) {
+      stop("Need at least 2 overlapping features between feature data and distance matrix.")
+    }
+    feature_all <- feature_all[feature_all$id %in% keep_ids, , drop = FALSE]
+    distance_matrix_all <- distance_matrix_all[keep_ids, keep_ids, drop = FALSE]
+  }
+
+  metric_engine <- function(feature_local, metadata_local, distance_local = NULL) {
+    if (mode == "weighted") {
+      if (is.null(distance_local)) {
+        stop("Distance matrix required for weighted mode.")
+      }
+      GetFunctionalHillNumber(
+        feature = feature_local,
+        metadata = metadata_local,
+        sim_matrix = distance_local,
+        q = q,
+        threshold = threshold
+      )
+    } else if (mode == "unweighted") {
+      GetHillNumbers(
+        feature = feature_local,
+        metadata = metadata_local,
+        q = q,
+        threshold = threshold
+      )
+    } else if (mode == "richness") {
+      GetRichness(
+        feature_data = feature_local,
+        metadata = metadata_local,
+        threshold = threshold
+      )
+    } else if (mode == "faith") {
+      if (is.null(distance_local)) {
+        stop("Distance matrix required for faith mode.")
+      }
+      GetFaithPD(
+        feature = feature_local,
+        metadata = metadata_local,
+        sim_matrix = distance_local,
+        threshold = threshold
+      )
+    } else {
+      stop("mode should be 'weighted', 'unweighted', 'richness', or 'faith'")
+    }
+  }
+
+  # -----------------------------
+  # 2) Standardize output to (sample, group, value)
+  # -----------------------------
+  to_sample_group_value <- function(df, mmo_ref) {
+    if (!is.data.frame(df) || nrow(df) < 1) stop("Metric function returned empty output.")
+    if (!("sample" %in% names(df))) {
+      stop("Metric output must include a 'sample' column.")
+    }
+    if (!("group" %in% names(df))) {
+      md <- mmo_ref$metadata
+      if (is.null(md) || !(sample_col %in% names(md)) || !(group_col %in% names(md))) {
+        stop("Metric output lacks 'group' and cannot map it from mmo$metadata.")
+      }
+      df$group <- md[[group_col]][match(df$sample, md[[sample_col]])]
+    }
+
+    if ("richness" %in% names(df)) {
+      value <- df$richness
+    } else if ("value" %in% names(df)) {
+      value <- df$value
+    } else if ("alpha" %in% names(df)) {
+      value <- df$alpha
+    } else {
+      stop("Metric output must include a numeric column named 'value' (or 'alpha'/'richness').")
+    }
+
+    data.frame(
+      sample = as.character(df$sample),
+      group  = as.character(df$group),
+      value  = as.numeric(value),
+      stringsAsFactors = FALSE
+    )
+  }
+
+  # -----------------------------
+  # 3) Pool feature columns helper
+  # -----------------------------
+  pool_feature_columns <- function(
+      feature_in,
+      metadata_in,
+      samples = NULL,
+      by_group = TRUE,
+      pool_method = "sum"
+  ) {
+    sample_cols <- colnames(feature_in)[-c(1, 2)]
+    x <- as.matrix(feature_in[, sample_cols, drop = FALSE])
+
+    if (by_group) {
+      groups <- unique(metadata_in[[group_col]])
+      pooled <- matrix(NA_real_, nrow = nrow(x), ncol = length(groups))
+      colnames(pooled) <- groups
+
+      for (i in seq_along(groups)) {
+        g <- groups[i]
+        cols_g <- metadata_in[[sample_col]][metadata_in[[group_col]] == g]
+        if (pool_method == "sum") {
+          pooled[, i] <- rowSums(x[, cols_g, drop = FALSE], na.rm = TRUE)
+        } else {
+          pooled[, i] <- rowMeans(x[, cols_g, drop = FALSE], na.rm = TRUE)
+        }
+      }
+
+      pooled_feature <- data.frame(
+        feature_in[, c("id", "feature"), drop = FALSE],
+        as.data.frame(pooled, check.names = FALSE),
+        check.names = FALSE
+      )
+      pooled_metadata <- data.frame(sample = groups, group = groups, stringsAsFactors = FALSE)
+    } else {
+      if (is.null(samples) || length(samples) < 1) {
+        stop("samples must be provided when by_group = FALSE.")
+      }
+      vals <- if (pool_method == "sum") {
+        rowSums(x[, samples, drop = FALSE], na.rm = TRUE)
+      } else {
+        rowMeans(x[, samples, drop = FALSE], na.rm = TRUE)
+      }
+      pooled_feature <- data.frame(
+        feature_in[, c("id", "feature"), drop = FALSE],
+        pool = vals,
+        check.names = FALSE
+      )
+      pooled_metadata <- data.frame(sample = "pool", group = "pool", stringsAsFactors = FALSE)
+    }
+
+    list(feature = pooled_feature, metadata = pooled_metadata)
+  }
+
+  # -----------------------------
+  # Output 1) sample_level
+  # -----------------------------
+  if (output == "sample_level") {
+    df <- metric_engine(feature_all, metadata_all, distance_matrix_all)
+    return(to_sample_group_value(df, mmo))
+  }
+
+  # -----------------------------
+  # Output 2) group_average
+  # -----------------------------
+  if (output == "group_average") {
+    df <- metric_engine(feature_all, metadata_all, distance_matrix_all)
+    sgv <- to_sample_group_value(df, mmo)
+
+    alpha <- (1 - ci) / 2
+    probs <- c(alpha, 1 - alpha)
+
+    out <- sgv |>
+      dplyr::group_by(.data$group) |>
+      dplyr::summarise(
+        mean = mean(.data$value, na.rm = TRUE),
+        sd   = stats::sd(.data$value, na.rm = TRUE),
+        n    = sum(!is.na(.data$value)),
+        se   = .data$sd / sqrt(.data$n),
+        lwr  = stats::quantile(.data$value, probs = probs[1], na.rm = TRUE),
+        upr  = stats::quantile(.data$value, probs = probs[2], na.rm = TRUE),
+        .groups = "drop"
+      )
+    return(as.data.frame(out))
+  }
+
+  # -----------------------------
+  # Output 3) group_cumulative (pool within group, then compute metric)
+  # -----------------------------
+  if (output == "group_cumulative") {
+    pooled_obj <- pool_feature_columns(
+      feature_in = feature_all,
+      metadata_in = metadata_all,
+      by_group = TRUE,
+      pool_method = pool_method
+    )
+    df <- metric_engine(pooled_obj$feature, pooled_obj$metadata, distance_matrix_all)
+    sgv <- to_sample_group_value(df, mmo)
+
+    # here sample names are the group labels (because pooling renames sample columns to groups)
+    out <- data.frame(
+      group = sgv$sample,
+      value = sgv$value,
+      stringsAsFactors = FALSE
+    )
+    return(out)
+  }
+
+  # -----------------------------
+  # Output 4) rarefied_sample (curve up to max_k; sample-based)
+  # -----------------------------
+  if (output == "rarefied_sample") {
+
+    if (!is.null(seed)) set.seed(seed)
+
+    md <- metadata_all
+    fd <- feature_all
+
+    sample_cols <- sample_cols_all
+    if (length(sample_cols) < 2) {
+      stop("Need at least 2 aligned samples for rarefaction.")
+    }
+
+    group_map <- as.character(md$group[match(sample_cols, md$sample)])
+    group_map[is.na(group_map) | group_map == ""] <- "ungrouped"
+    groups <- unique(group_map)
+    group_sizes <- table(group_map)
+    single_sample_groups <- names(group_sizes)[group_sizes == 1]
+    if (length(single_sample_groups) > 0) {
+      warning(
+        "rarefied_sample: group(s) with only 1 sample detected: ",
+        paste(single_sample_groups, collapse = ", "),
+        ". These groups will return only n_samples = 1 with n_perm_eff = 1.",
+        call. = FALSE
+      )
+    }
+
+    alpha <- (1 - ci) / 2
+    probs <- c(alpha, 1 - alpha)
+
+    # helper: maximum unique subsets for a given level k
+    max_unique_subsets <- function(ng, k) {
+      out <- suppressWarnings(choose(ng, k))
+      if (!is.finite(out)) return(Inf)
+      as.numeric(out)
+    }
+
+    res <- lapply(groups, function(g) {
+
+      samp_g <- sample_cols[group_map == g]
+      ng <- length(samp_g)
+      k_vals <- seq_len(ng)
+      mean_vals <- numeric(length(k_vals))
+      lwr_vals <- numeric(length(k_vals))
+      upr_vals <- numeric(length(k_vals))
+      n_eff_vals <- integer(length(k_vals))
+      raw_rows <- vector("list", length(k_vals))
+
+      for (k in k_vals) {
+        n_perm_eff_k <- min(n_perm, max_unique_subsets(ng, k))
+        n_eff_vals[k] <- as.integer(n_perm_eff_k)
+
+        vals_k <- numeric(n_eff_vals[k])
+        for (p in seq_len(n_eff_vals[k])) {
+          pick <- sample(samp_g, size = k, replace = FALSE)
+          pooled_obj <- pool_feature_columns(
+            feature_in = fd,
+            metadata_in = md,
+            samples = pick,
+            by_group = FALSE,
+            pool_method = pool_method
+          )
+          df_pool <- metric_engine(feature_local = pooled_obj$feature,
+                                   metadata_local = pooled_obj$metadata,
+                                   distance_local = distance_matrix_all)
+          sgv_pool <- to_sample_group_value(df_pool, mmo)
+          vals_k[p] <- sgv_pool$value[1]
+        }
+
+        raw_rows[[k]] <- data.frame(
+          group = g,
+          n_samples = k,
+          perm_id = seq_len(n_eff_vals[k]),
+          value = vals_k,
+          stringsAsFactors = FALSE
+        )
+
+        mean_vals[k] <- mean(vals_k, na.rm = TRUE)
+        lwr_vals[k]  <- stats::quantile(vals_k, probs = probs[1], na.rm = TRUE)
+        upr_vals[k]  <- stats::quantile(vals_k, probs = probs[2], na.rm = TRUE)
+      }
+
+      list(
+        summary = data.frame(
+          group = g,
+          n_samples = k_vals,
+          mean = mean_vals,
+          lwr  = lwr_vals,
+          upr  = upr_vals,
+          n_perm_eff = n_eff_vals,
+          stringsAsFactors = FALSE
+        ),
+        raw = do.call(rbind, raw_rows)
+      )
+    })
+
+    out_summary <- do.call(rbind, lapply(res, function(x) x$summary))
+    out_raw <- do.call(rbind, lapply(res, function(x) x$raw))
+    rownames(out_summary) <- NULL
+    rownames(out_raw) <- NULL
+    return(list(summary = out_summary, raw = out_raw))
+  }
+
+  stop("Unhandled output mode.")
+}
+
 #' RarefactionAUC
 #'
 #' This function calculates the rarefaction AUC for a given rarefied richness table
@@ -4883,7 +5427,12 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'bray',
 #'  normalization = 'Z', filter_id = TRUE, id_list = Glucosinolates,
 #'  filter_group = TRUE, group_list = c('Control', 'Treatment1'))
-GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = NULL, filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, scale_dissim = TRUE){
+# DEPRECATED: superseded by GetBetaDiversity().
+# GetBetaDiversity_derep() uses GetDistanceMat() (.dissim slots).
+# GetBetaDiversity() uses GetSimMat() (.sim slots) with similarity-aware math:
+#   CSCS uses S directly (no 1-D conversion); Gen.Uni converts S->D only
+#   inside hclust (size-guarded for n > 10,000).
+GetBetaDiversity_derep <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = NULL, filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, scale_dissim = TRUE){
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
   }
@@ -4945,6 +5494,127 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   } else if (method == 'CSCS') {
     CSS <- 1 - scaled_dissimilarity  # already computed above
     if(!all(diag(CSS) == 1)) print("Warning Diag not equal to 1")
+    q.feature <- GetNormFeature(mmo, normalization = normalization) |> filter(.data$id %in% colnames(CSS))
+    q.feature <- q.feature[match(colnames(CSS), q.feature$id), ]
+    q.mat <- as.matrix(q.feature[, -(1:2), drop = FALSE])
+    rownames(q.mat) <- q.feature$id
+    relative_proportions <- sweep(q.mat, 2, colSums(q.mat), "/")
+    if (!identical(rownames(relative_proportions), rownames(CSS))) {
+      stop("Feature alignment failed: rownames(relative_proportions) != rownames(CSS)")
+    }
+    if (!identical(rownames(relative_proportions), colnames(CSS))) {
+      stop("Feature alignment failed: rownames(relative_proportions) != colnames(CSS)")
+    }
+    CSCS_all <- t(relative_proportions) %*% CSS %*% relative_proportions
+    sample_names <- colnames(relative_proportions)
+    n_samples <- length(sample_names)
+    CSCS_matrix <- matrix(NA, nrow = n_samples, ncol = n_samples)
+    rownames(CSCS_matrix) <- sample_names
+    colnames(CSCS_matrix) <- sample_names
+    for (i in 1:n_samples) {
+      for (j in 1:n_samples) {
+        CSCS_matrix[i,j] <- CSCS_all[i, j] / max(CSCS_all[i, i], CSCS_all[j, j])
+      }
+    }
+    beta_div <- 1 - CSCS_matrix
+  } else {
+    stop("Invalid method. Please use 'Gen.Uni', 'bray', 'jaccard', or 'CSCS'")
+  }
+
+  return(beta_div)
+}
+
+
+#' GetBetaDiversity (similarity-based)
+#'
+#' Identical to \code{GetBetaDiversity_derep()} but retrieves pairwise
+#' \strong{similarity} matrices via \code{GetSimMat()} (.sim slots).
+#' Key differences from the _derep version:
+#' \itemize{
+#'   \item CSCS: uses the similarity matrix directly as CSS (no \code{1 - D}
+#'         conversion needed), because \code{CSS = S} when similarities are stored.
+#'   \item Gen.Uni: converts \code{S -> D} internally (\code{1 - S}) only for
+#'         the \code{hclust()} call; guarded by a size check (n > 10,000 errors).
+#'   \item bray / jaccard: unchanged (no distance matrix used).
+#' }
+#'
+#' @inheritParams GetBetaDiversity_derep
+#' @export
+GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = NULL, filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, scale_dissim = TRUE){
+  if (filter_id||filter_group){
+    mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
+  }
+
+  # Methods that require a compound similarity matrix
+  distance_methods <- c('Gen.Uni', 'CSCS')
+
+  if (method %in% distance_methods) {
+    if (is.null(distance)) stop(paste("method =", method, "requires a 'distance' argument."))
+    sim_mat <- GetSimMat(mmo, distance = distance)
+    scaled_similarity <- if (scale_dissim) sim_mat / max(sim_mat) else sim_mat
+  }
+
+  # Build tree only for Gen.Uni; requires full dense distance matrix
+  if (method == 'Gen.Uni') {
+    n_feat <- nrow(sim_mat)
+    if (n_feat > 10000L) {
+      stop(
+        "GetBetaDiversity(method='Gen.Uni') requires a full n x n distance ",
+        "matrix for hclust (n = ", n_feat, "). ",
+        "Use filter_mmo() to reduce feature count below 10,000 first.",
+        call. = FALSE
+      )
+    }
+    # Convert similarity to distance for hclust (unavoidable densification, size-guarded above)
+    compound_tree <- ape::as.phylo(
+      hclust(as.dist(1 - as.matrix(scaled_similarity)), method = "average")
+    )
+  }
+
+  # Get feature matrix
+  metadata <- mmo$metadata
+  feature <- GetNormFeature(mmo, normalization)
+
+  if (method %in% distance_methods) {
+    feature <- feature |> filter(.data$id %in% colnames(scaled_similarity))
+    relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
+    rownames(relative_proportions) <- feature$id
+    relative_proportions <- relative_proportions[rownames(scaled_similarity), ]
+    relative_proportions <- t(relative_proportions)
+  }
+
+  if (method == 'Gen.Uni') {
+    guni <- GUniFrac::GUniFrac(relative_proportions, compound_tree, alpha = c(0, 0.5, 1), verbose = TRUE)
+    beta_div <- list(
+      d_0   = guni$unifracs[, , "d_0"],
+      d_0.5 = guni$unifracs[, , "d_0.5"],
+      d_1   = guni$unifracs[, , "d_1"]
+    )
+    message(
+      "Gen.Uni returned three distance matrices with different abundance-weighting levels:\n",
+      "  d_0   : presence/absence only (unweighted)\n",
+      "  d_0.5 : balanced weighting\n",
+      "  d_1   : fully abundance-weighted\n",
+      "Access one with e.g. result[[\"d_0.5\"]] before passing to NMDSplot() or PCoAplot()."
+    )
+  } else if (method == 'bray') {
+    relative_proportions <- apply(feature[, -(1:2)], 2, function(x) x / sum(x))
+    beta_div <- as.matrix(vegan::vegdist(t(relative_proportions), method = 'bray'))
+  } else if (method == 'jaccard') {
+    if (normalization != 'PA') {
+      warning(
+        "Jaccard dissimilarity requires presence/absence data. ",
+        "The 'normalization' argument ('", normalization, "') is ignored; ",
+        "'PA' is always used. To silence this warning, pass normalization = 'PA'.",
+        call. = FALSE
+      )
+    }
+    feature <- GetNormFeature(mmo, normalization = 'PA')
+    beta_div <- as.matrix(vegan::vegdist(t(feature[, -(1:2)]), method = 'jaccard'))
+  } else if (method == 'CSCS') {
+    # With similarity storage, CSS = scaled_similarity directly (no 1-D conversion)
+    CSS <- scaled_similarity
+    if (!all(diag(as.matrix(CSS)) == 1)) print("Warning Diag not equal to 1")
     q.feature <- GetNormFeature(mmo, normalization = normalization) |> filter(.data$id %in% colnames(CSS))
     q.feature <- q.feature[match(colnames(CSS), q.feature$id), ]
     q.mat <- as.matrix(q.feature[, -(1:2), drop = FALSE])
@@ -5332,7 +6002,11 @@ HCplot <- function(
 #' tree <- FeatureDendrogram(mmo, distance = "dreams")
 #' tree_iin <- FeatureDendrogram(mmo, distance = "dreams",
 #'                               ion_identity = "ion_identity_network")
-FeatureDendrogram <- function(
+# DEPRECATED: superseded by FeatureDendrogram().
+# FeatureDendrogram_derep() uses GetDistanceMat() (.dissim slots, passes
+# distances directly to hclust). FeatureDendrogram() uses GetSimMat()
+# (.sim slots), adds a size guard, and converts S->D (1-S) for hclust.
+FeatureDendrogram_derep <- function(
     mmo,
     distance          = "dreams",
     features          = NULL,
@@ -5443,6 +6117,151 @@ FeatureDendrogram <- function(
     dendrogram = dend,
     phylo      = phy,
     dist_used  = mat,
+    tip_map    = tip_map
+  ))
+}
+
+
+#' FeatureDendrogram (similarity-based)
+#'
+#' Identical to \code{FeatureDendrogram_derep()} but retrieves the feature
+#' \strong{similarity} matrix via \code{GetSimMat()} (.sim slots) and
+#' converts to distance (\code{1 - S}) only inside \code{hclust()}.
+#' Adds a size guard: stops with a clear message if n > 10,000 features,
+#' because \code{as.dist()} on an n x n matrix is infeasible at that scale.
+#' Ion identity constraints are expressed as high similarity
+#' (\code{1 - within_group_dist}) rather than low distance.
+#'
+#' @inheritParams FeatureDendrogram_derep
+#' @export
+FeatureDendrogram <- function(
+    mmo,
+    distance          = "dreams",
+    features          = NULL,
+    method            = "average",
+    ion_identity      = c("none", "correlation", "ion_identity_network"),
+    corr_col          = "feature_group",
+    iin_col           = "ion_identities:iin_id",
+    within_group_dist = 0.01,
+    save_newick       = FALSE,
+    outprefix         = "feature_tree"
+) {
+  .require_pkg("ape")
+  ion_identity <- match.arg(ion_identity)
+
+  # ------------------------------------------------------------------
+  # 1. Retrieve similarity matrix and validate
+  # ------------------------------------------------------------------
+  mat <- GetSimMat(mmo, distance)
+
+  if (!is.matrix(mat) && !inherits(mat, "Matrix"))
+    stop("Similarity matrix '", distance, "' must be a matrix.", call. = FALSE)
+  if (is.null(rownames(mat)) || is.null(colnames(mat)))
+    stop("Similarity matrix must have row and column names (feature IDs).", call. = FALSE)
+  if (!identical(rownames(mat), colnames(mat)))
+    stop("Similarity matrix row names and column names must be identical and in the same order.", call. = FALSE)
+
+  # Size guard: hclust requires a full dense n x n distance matrix
+  n_feat <- nrow(mat)
+  if (n_feat > 10000L) {
+    stop(
+      "FeatureDendrogram requires a full n x n distance matrix for hclust ",
+      "(n = ", n_feat, "). Use filter_mmo() to reduce feature count below ",
+      "10,000 first, then call FeatureDendrogram().",
+      call. = FALSE
+    )
+  }
+
+  # Densify if sparse (safe here — size guard passed)
+  mat <- as.matrix(mat)
+
+  if (any(mat < 0 | mat > 1, na.rm = TRUE))
+    stop("Similarity matrix contains values outside [0, 1].", call. = FALSE)
+
+  # ------------------------------------------------------------------
+  # 2. Optional feature subsetting
+  # ------------------------------------------------------------------
+  if (!is.null(features)) {
+    keep <- intersect(as.character(features), rownames(mat))
+    if (length(keep) < 2)
+      stop("Fewer than 2 features remain after subsetting. Check your 'features' vector.", call. = FALSE)
+    mat <- mat[keep, keep, drop = FALSE]
+  }
+
+  diag(mat) <- 1  # self-similarity = 1
+
+  # ------------------------------------------------------------------
+  # 3. Ion identity / correlation constraints
+  # ------------------------------------------------------------------
+  tip_ids <- rownames(mat)
+  tip_map <- NULL
+
+  if (ion_identity != "none") {
+    if (is.null(mmo$feature_info) || !is.data.frame(mmo$feature_info))
+      stop("mmo$feature_info is required when ion_identity != 'none'.", call. = FALSE)
+    if (!"id" %in% names(mmo$feature_info))
+      stop("mmo$feature_info must contain an 'id' column.", call. = FALSE)
+
+    fi  <- mmo$feature_info
+    fi$id <- as.character(fi$id)
+    idx <- match(tip_ids, fi$id)
+
+    if (anyNA(idx)) {
+      bad <- tip_ids[is.na(idx)]
+      stop("Some feature IDs in the similarity matrix are missing from mmo$feature_info$id:\n",
+           paste(head(bad, 10), collapse = "\n"), call. = FALSE)
+    }
+
+    if (ion_identity == "correlation") {
+      if (!corr_col %in% names(fi))
+        stop("mmo$feature_info is missing column '", corr_col, "' (corr_col).", call. = FALSE)
+      grp      <- as.character(fi[[corr_col]][idx])
+      grp_type <- "correlation"
+    } else {
+      if (!iin_col %in% names(fi))
+        stop("mmo$feature_info is missing column '", iin_col, "' (iin_col).", call. = FALSE)
+      grp      <- as.character(fi[[iin_col]][idx])
+      grp_type <- "ion_identity_network"
+    }
+
+    grp[is.na(grp) | grp == "" | grp == "NA"] <- NA
+    tip_map <- data.frame(id = tip_ids, group_type = grp_type, group_id = grp,
+                          stringsAsFactors = FALSE)
+
+    groups <- sort(unique(grp[!is.na(grp)]))
+    n_constrained <- 0L
+    for (g in groups) {
+      ii <- which(grp == g)
+      if (length(ii) >= 2) {
+        # Force high similarity (= low distance) for ions in the same group
+        mat[ii, ii] <- 1 - within_group_dist
+        n_constrained <- n_constrained + length(ii)
+      }
+    }
+    diag(mat) <- 1  # restore self-similarity after constraint
+    message(sprintf("Ion identity constraint applied: %d groups, %d features affected.",
+                    length(groups), n_constrained))
+  }
+
+  # ------------------------------------------------------------------
+  # 4. Build the tree (convert similarity to distance for hclust)
+  # ------------------------------------------------------------------
+  dist_mat <- 1 - mat  # S -> D; densification already done above
+  hc   <- stats::hclust(stats::as.dist(dist_mat), method = method)
+  dend <- stats::as.dendrogram(hc)
+  phy  <- ape::as.phylo(hc)
+
+  if (isTRUE(save_newick)) {
+    ape::write.tree(phy, file = paste0(outprefix, ".nwk"))
+    message("Newick tree written to ", outprefix, ".nwk")
+  }
+
+  return(list(
+    hclust     = hc,
+    dendrogram = dend,
+    phylo      = phy,
+    dist_used  = dist_mat,  # distance matrix used for clustering (1 - sim)
+    sim_used   = mat,       # original similarity matrix
     tip_map    = tip_map
   ))
 }
