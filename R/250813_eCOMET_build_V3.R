@@ -1239,6 +1239,11 @@ AddChemSim <- function(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL) 
 }
 
 
+# DEPRECATED: superseded by AddCustomSim().
+# AddCustomDist() expects dissimilarity values (0 = identical, 1 = maximally
+# different) and stores them in .dissim slots. AddCustomSim() expects
+# similarity values (1 = identical, 0 = maximally different) and stores
+# them in .sim slots. Retained until downstream functions are updated.
 #' Add a custom feature distance matrix to the \code{mmo}
 #'
 #' Stores any user-supplied pairwise feature distance matrix in the \code{mmo}
@@ -1307,6 +1312,83 @@ AddCustomDist <- function(mmo, dist_matrix, name) {
   slot_name <- paste0(name, ".dissim")
   mmo[[slot_name]] <- dist_matrix
   message(slot_name, " added to mmo (", nrow(dist_matrix), " x ", ncol(dist_matrix), " features)")
+  return(mmo)
+}
+
+
+#' Add a custom feature similarity matrix to the \code{mmo}
+#'
+#' Stores any user-supplied pairwise feature similarity matrix in the \code{mmo}
+#' so it can be used by \code{GetBetaDiversity()}, \code{GetAlphaDiversity()},
+#' and \code{HeatmapPlot()} via the \code{distance} argument. Accepts either
+#' a dense numeric matrix or a sparse \code{dgCMatrix} (from the Matrix package).
+#'
+#' @details
+#' \strong{Required matrix format:}
+#' \itemize{
+#'   \item A square numeric matrix (or sparse \code{dgCMatrix}) with equal row
+#'         and column names.
+#'   \item Row and column names must be feature IDs matching the \code{id} column
+#'         in \code{mmo$feature_data}.
+#'   \item Values must be \strong{similarities} in the range \code{[0, 1]},
+#'         where 1 means identical and 0 means maximally different.
+#'   \item The diagonal should be 1 (a feature is identical to itself).
+#'   \item The matrix should be symmetric (\code{sim[i,j] == sim[j,i]}).
+#'   \item Features not present in \code{mmo$feature_data} are retained but
+#'         silently ignored during analysis.
+#' }
+#'
+#' @param mmo The \code{mmo}
+#' @param sim_matrix A square numeric matrix or sparse Matrix of pairwise feature
+#'   similarities (see Details for format requirements).
+#' @param name A short string used to identify this matrix in downstream
+#'   functions (e.g. \code{"tanimoto"}, \code{"npc"}). Stored as
+#'   \code{mmo$<name>.sim} and referenced via \code{distance = "<name>"}.
+#'   Must not conflict with built-in names: \code{"dreams"}, \code{"cosine"},
+#'   \code{"m2ds"}.
+#' @return The \code{mmo} with the similarity matrix stored in
+#'   \code{mmo$<name>.sim}.
+#' @export
+#' @examplesIf FALSE
+#' # tanimoto_sim is a feature x feature similarity matrix from an external tool
+#' mmo <- AddCustomSim(mmo, sim_matrix = tanimoto_sim, name = "tanimoto")
+#' # Now use it anywhere a distance argument is accepted:
+#' beta <- GetBetaDiversity(mmo, method = "CSCS", distance = "tanimoto")
+#' alpha <- GetAlphaDiversity(mmo, mode = "weighted", distance = "tanimoto")
+AddCustomSim <- function(mmo, sim_matrix, name) {
+  if (!is.matrix(sim_matrix) && !inherits(sim_matrix, "Matrix")) {
+    stop("sim_matrix must be a numeric matrix or sparse Matrix (e.g. dgCMatrix).",
+         call. = FALSE)
+  }
+  if (is.matrix(sim_matrix) && !is.numeric(sim_matrix)) {
+    stop("sim_matrix must contain numeric values.", call. = FALSE)
+  }
+  if (nrow(sim_matrix) != ncol(sim_matrix)) {
+    stop("sim_matrix must be square (nrow == ncol).", call. = FALSE)
+  }
+  if (is.null(rownames(sim_matrix)) || is.null(colnames(sim_matrix))) {
+    stop(
+      "sim_matrix must have row and column names matching feature IDs ",
+      "in mmo$feature_data$id.",
+      call. = FALSE
+    )
+  }
+  if (!identical(rownames(sim_matrix), colnames(sim_matrix))) {
+    stop(
+      "sim_matrix row names and column names must be identical ",
+      "(same features, same order).",
+      call. = FALSE
+    )
+  }
+  reserved <- c("dreams", "cosine", "m2ds")
+  if (name %in% reserved) {
+    warning("'", name, "' is a reserved name used by AddChemSim(). ",
+            "This will overwrite the existing matrix.", call. = FALSE)
+  }
+  slot_name <- paste0(name, ".sim")
+  mmo[[slot_name]] <- sim_matrix
+  message(slot_name, " added to mmo (",
+          nrow(sim_matrix), " x ", ncol(sim_matrix), " features)")
   return(mmo)
 }
 
@@ -2116,6 +2198,10 @@ GetNormFeature <- function(mmo, normalization){
 }
 
 
+# DEPRECATED: superseded by GetSimMat().
+# GetDistanceMat() looks up .dissim slots (created by AddChemDist() /
+# AddCustomDist()). GetSimMat() looks up .sim slots (created by AddChemSim()
+# / AddCustomSim()). Retained until all downstream callers are updated.
 #' Get the distance matrix from the \code{mmo} based on the specified distance metric
 #'
 #' Retrieve a feature distance matrix from the \code{mmo}
@@ -2144,6 +2230,39 @@ GetDistanceMat <- function(mmo, distance = 'dreams'){
     )
   }
   return(distance_matrix)
+}
+
+
+#' Retrieve a feature similarity matrix from the \code{mmo}
+#'
+#' Looks up a similarity matrix stored in the \code{mmo} by name. Works with
+#' the three built-in matrices added by \code{AddChemSim()} as well as any
+#' custom matrix added via \code{AddCustomSim()}. Returns the matrix as-is
+#' (dense numeric or sparse dgCMatrix); downstream functions are responsible
+#' for converting to distance when needed.
+#'
+#' @param mmo The \code{mmo}
+#' @param distance Name of the similarity matrix to retrieve. Built-in options
+#'   are \code{'dreams'}, \code{'cosine'}, and \code{'m2ds'}. Any name passed
+#'   to \code{AddCustomSim(mmo, name = ...)} is also valid.
+#' @return The similarity matrix (numeric matrix or sparse dgCMatrix with
+#'   feature ID row/col names).
+#' @export
+#' @examplesIf FALSE
+#' sim_matrix <- GetSimMat(mmo, distance = 'dreams')
+#' sim_matrix <- GetSimMat(mmo, distance = 'tanimoto')  # custom
+GetSimMat <- function(mmo, distance = 'dreams') {
+  slot_name <- paste0(distance, ".sim")
+  sim_matrix <- mmo[[slot_name]]
+  if (is.null(sim_matrix)) {
+    stop(
+      "No similarity matrix found for '", distance,
+      "' (looked for mmo$", slot_name, "). ",
+      "Use AddChemSim() for built-in types or AddCustomSim() for custom matrices.",
+      call. = FALSE
+    )
+  }
+  return(sim_matrix)
 }
 
 #' Convert feature names to IDs in the \code{mmo}
