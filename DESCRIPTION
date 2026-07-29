@@ -22,6 +22,7 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
+  Matrix,
   dplyr,
   tidyr,
   purrr,
@@ -41,7 +42,6 @@ Imports:
   data.table,
   fgsea,
   pairwiseAdonis,
-  ape,
   RColorBrewer,
   picante,
   colorspace,
@@ -54,7 +54,9 @@ Suggests:
     ggvenn,
     pls,
     pheatmap,
-    stringr
+    stringr,
+    igraph,
+    fastcluster
 Remotes:
     pmartinezarbizu/pairwiseAdonis/pairwiseAdonis
 URL: https://phytoecia.github.io/eCOMET/

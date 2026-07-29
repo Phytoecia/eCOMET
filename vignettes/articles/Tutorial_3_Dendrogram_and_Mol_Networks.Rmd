@@ -4,6 +4,20 @@ authors: "Dale L. Forrister & Min-Soo Choi"
 output: html_document
 ---
 
+> **Note:** This tutorial has not yet been moved to the similarity-based storage
+> introduced in eCOMET 1.1, so it uses `AddChemDist()`, which stores
+> dissimilarity matrices in `.dissim` slots. The functions shown here read that
+> slot: `ExportCytoscape()` and `ExportITOL()` have not been converted yet, and
+> `FeatureDendrogram_derep()` is the preserved dissimilarity-based version of
+> `FeatureDendrogram()`.
+>
+> If you have already built a similarity matrix with `AddChemSim()`, use
+> `FeatureDendrogram()` instead — it takes the `.sim` slot and is otherwise
+> identical. Do not mix the two: `AddChemDist()` alone will not satisfy
+> `FeatureDendrogram()`, and `AddChemSim()` alone will not satisfy
+> `ExportCytoscape()` or `ExportITOL()`. All of these will read one slot in a
+> future release.
+
 # Overview
 
 This tutorial covers how to use `eCOMET` to build and visualize structural relationships among detected metabolite features. The two main outputs are a **compound dendrogram** — a hierarchical tree grouping features by chemical similarity — and a **molecular network** suitable for export to Cytoscape or iTOL.
@@ -152,10 +166,10 @@ A compound dendrogram groups features by their pairwise chemical similarity. Fea
 
 ## 3.1 Build the dendrogram
 
-`FeatureDendrogram()` takes the `mmo` object and the name of a stored distance matrix. Here we use the DreaMS dissimilarity matrix added in section 1. No filtering is applied so the tree includes all features that have an entry in the distance matrix.
+`FeatureDendrogram_derep()` takes the `mmo` object and the name of a stored distance matrix. Here we use the DreaMS dissimilarity matrix added in section 1. No filtering is applied so the tree includes all features that have an entry in the distance matrix.
 
 ```{r, eval = FALSE}
-tree_dreams <- FeatureDendrogram(
+tree_dreams <- FeatureDendrogram_derep(
   mmo,
   distance = "dreams",
   method   = "average"   # UPGMA — sensible default for spectral similarity trees
@@ -195,7 +209,7 @@ terpenoid_ids <- mmo$sirius_annot |>
   filter(grepl("Terpenoid", `NPC#pathway`)) |>
   pull(id)
 
-tree_terp <- FeatureDendrogram(
+tree_terp <- FeatureDendrogram_derep(
   mmo,
   distance = "dreams",
   features = terpenoid_ids
@@ -224,7 +238,7 @@ PlotFeatureDendrogram(
 And to export the tree topology for use in iTOL or FigTree:
 
 ```{r, eval = FALSE}
-tree_dreams <- FeatureDendrogram(
+tree_dreams <- FeatureDendrogram_derep(
   mmo,
   distance    = "dreams",
   save_newick = TRUE,
@@ -264,7 +278,7 @@ The IIN-constrained dendrogram addresses this directly: pairs of features within
 ## 4.3 Build the IIN-constrained dendrogram
 
 ```{r, eval = FALSE}
-tree_iin <- FeatureDendrogram(
+tree_iin <- FeatureDendrogram_derep(
   mmo,
   distance     = "dreams",
   method       = "average",
@@ -297,7 +311,7 @@ The rectangles mark the span of each adduct group on the tip axis. When the cons
 MZmine also assigns a `feature_group` to features that co-elute and show correlated abundance across samples, regardless of whether their m/z differences match known adducts. This is a broader grouping than IIN — in this dataset **2,283 features** fall into **740 correlation groups**. Correlation groups capture the same compound across different charge states or neutral losses that IIN might miss, but they can also group unrelated features that happen to co-vary.
 
 ```{r, eval = FALSE}
-tree_corr <- FeatureDendrogram(
+tree_corr <- FeatureDendrogram_derep(
   mmo,
   distance     = "dreams",
   method       = "average",

@@ -1,0 +1,443 @@
+---
+title: "Similarity-based vs _derep Function Comparison"
+subtitle: "Numerical verification that new .sim slot math produces equivalent results to original .dissim math"
+date: "`r Sys.Date()`"
+output:
+  html_notebook:
+    toc: true
+    toc_float: true
+    theme: flatly
+    code_folding: hide
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo    = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.width  = 6,
+  fig.height = 5
+)
+```
+
+## Background
+
+This notebook verifies that the new similarity-based functions (`.sim` slots,
+`GetSimMat()`) produce numerically equivalent results to the original `_derep`
+functions (`.dissim` slots, `GetDistanceMat()`), using the Tutorial 1
+Arabidopsis demo dataset.
+
+**Mathematical basis:** For normalized similarity $S \in [0,1]$, dissimilarity
+$D = 1 - S$. The new functions rewrite all matrix operations in terms of $S$
+directly, avoiding `as.matrix()` densification on large sparse matrices. The
+identities used are:
+
+- $p'Dp = 1 - p'Sp$ (Rao Q, $p$ a probability vector)
+- $Dp = 1 - Sp$ (when $\sum p = 1$)
+- $DP_q = \text{colSums}(P_q) - S P_q$ (general vector $P_q$)
+- CSS (CSCS) $= S$ directly (was $1 - D$)
+
+**Functions compared:**
+
+| `_derep` | new | math changes |
+|---|---|---|
+| `GetFunctionalHillNumber_derep` | `GetFunctionalHillNumber` | Rao Q, Dp, DPq reformulated |
+| `GetFaithPD_derep` | `GetFaithPD` | S→D for hclust; fastcluster C backend |
+| `GetAlphaDiversity_derep` | `GetAlphaDiversity` | delegates to above |
+| `GetBetaDiversity_derep` | `GetBetaDiversity` | CSCS = S directly; Gen.Uni S→D |
+| `GenerateHeatmapInputs_derep` | `GenerateHeatmapInputs` | `as.dist(1-S)` for clustering |
+
+> **Tree-based functions note:** `GetFaithPD` and `GetBetaDiversity(Gen.Uni)`
+> both use **average-linkage** hclust on this small demo dataset (`use_mst =
+> FALSE`, n < 10,000). Since $D = 1 - S$ the trees are identical, so outputs
+> should match. If `use_mst = TRUE` (single-linkage for large n), results will
+> intentionally differ.
+
+---
+
+## Setup
+
+```{r load-pkg}
+# Load from local source (run from package root) or installed package
+if (requireNamespace("devtools", quietly = TRUE) && file.exists("DESCRIPTION")) {
+  devtools::load_all(quiet = TRUE)
+} else {
+  library(ecomet)
+}
+library(ggplot2)
+library(dplyr)
+```
+
+```{r build-mmo}
+data_dir <- system.file("extdata/tutorials/treatment_based", package = "ecomet")
+stopifnot(nzchar(data_dir))
+
+mmo <- GetMZmineFeature(
+  mzmine_dir   = file.path(data_dir, "feature_table_demo.csv"),
+  metadata_dir = file.path(data_dir, "metadata_demo.csv"),
+  group_col    = "group",
+  sample_col   = "sample"
+)
+mmo <- LogNormalization(mmo)
+
+demo_dreams <- file.path(data_dir, "dreams_sim_demo.csv")
+mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)   # -> mmo$dreams.dissim
+mmo <- AddChemSim(mmo,  dreams_dir = demo_dreams)   # -> mmo$dreams.sim
+
+cat("Features:", nrow(mmo$feature_data),
+    " | Samples:", nrow(mmo$metadata), "\n")
+cat("dreams.dissim range: [", round(min(mmo$dreams.dissim), 4), ",",
+    round(max(mmo$dreams.dissim), 4), "]\n")
+cat("dreams.sim range:    [", round(min(mmo$dreams.sim),    4), ",",
+    round(max(mmo$dreams.sim),    4), "]\n")
+```
+
+```{r align-matrices}
+feature  <- GetNormFeature(mmo, "Log")
+metadata <- mmo$metadata
+dist_mat <- GetDistanceMat(mmo, "dreams")
+sim_mat  <- GetSimMat(mmo,      "dreams")
+
+keep_ids <- intersect(feature$id, rownames(dist_mat))
+feat_sub <- feature[feature$id %in% keep_ids, , drop = FALSE]
+dist_sub <- dist_mat[keep_ids, keep_ids]
+sim_sub  <- sim_mat[keep_ids,  keep_ids]
+
+cat("Aligned features:", length(keep_ids), "\n")
+cat("D + S = 1 check (upper triangle):",
+    isTRUE(all.equal(
+      as.numeric(dist_sub[upper.tri(dist_sub)] + sim_sub[upper.tri(sim_sub)]),
+      rep(1, sum(upper.tri(dist_sub))), tolerance = 1e-6
+    )), "\n")
+```
+
+---
+
+## Plot helper
+
+```{r helper}
+PASS_TOL <- 1e-6
+
+corr_plot <- function(x_vals, y_vals, label,
+                      x_label = "_derep value",
+                      y_label = "similarity-based value") {
+  mask <- is.finite(x_vals) & is.finite(y_vals)
+  x <- as.numeric(x_vals[mask])
+  y <- as.numeric(y_vals[mask])
+
+  r        <- cor(x, y, method = "pearson")
+  max_diff <- max(abs(x - y))
+  passed   <- max_diff < PASS_TOL
+
+  df <- data.frame(derep = x, new = y)
+  rng_x <- range(x); rng_y <- range(y)
+
+  status_label <- if (passed) "PASS" else "FAIL"
+  status_color <- if (passed) "#27ae60" else "#e74c3c"
+
+  sub_text <- sprintf(
+    "Pearson r = %.8f   |   Max |delta| = %.2e   |   n = %d points",
+    r, max_diff, length(x)
+  )
+
+  ann_x <- rng_x[1] + 0.04 * diff(rng_x)
+  ann_y <- rng_y[2] - 0.04 * diff(rng_y)
+
+  p <- ggplot(df, aes(x = derep, y = new)) +
+    geom_abline(slope = 1, intercept = 0,
+                color = "firebrick", linetype = "dashed", linewidth = 0.7) +
+    geom_point(alpha = 0.55, color = "#2980b9", size = 1.8) +
+    annotate("label",
+             x = ann_x, y = ann_y,
+             label = status_label,
+             hjust = 0, vjust = 1,
+             fill  = status_color, color = "white",
+             fontface = "bold", size = 4.5, label.size = NA) +
+    labs(
+      title    = label,
+      subtitle = sub_text,
+      x        = x_label,
+      y        = y_label,
+      caption  = "Red dashed line = perfect agreement (y = x)"
+    ) +
+    theme_minimal(base_size = 11) +
+    theme(
+      plot.title    = element_text(face = "bold", size = 12),
+      plot.subtitle = element_text(size = 8.5, color = "gray40"),
+      plot.caption  = element_text(size = 8,   color = "gray55")
+    )
+
+  list(plot = p, r = r, max_diff = max_diff, passed = passed,
+       label = label)
+}
+
+# Accumulate results for final summary
+results <- list()
+show_result <- function(res) {
+  results[[res$label]] <<- res
+  print(res$plot)
+  cat(sprintf("  r = %.10f  |  max|delta| = %.3e  |  %s\n\n",
+              res$r, res$max_diff, if (res$passed) "PASS" else "FAIL"))
+}
+```
+
+---
+
+## 1 — GetFunctionalHillNumber
+
+**What changed:** Rao Q rewritten as $1 - p'Sp$ (avoids $D = 1 - S$ densification).
+For $q = 1$: $Dp = 1 - Sp$. For $q \neq 1$: $DP_q = \text{colSums}(P_q) - SP_q$.
+
+```{r fn-hill-q1}
+h_d1 <- GetFunctionalHillNumber_derep(feat_sub, metadata, dist_sub, q = 1)
+h_n1 <- GetFunctionalHillNumber(      feat_sub, metadata, sim_sub,  q = 1)
+
+show_result(corr_plot(h_d1$value, h_n1$value,
+  label   = "GetFunctionalHillNumber  q = 1",
+  x_label = "_derep: distance-based value",
+  y_label = "new: similarity-based value"))
+```
+
+```{r fn-hill-q2}
+h_d2 <- GetFunctionalHillNumber_derep(feat_sub, metadata, dist_sub, q = 2)
+h_n2 <- GetFunctionalHillNumber(      feat_sub, metadata, sim_sub,  q = 2)
+
+show_result(corr_plot(h_d2$value, h_n2$value,
+  label   = "GetFunctionalHillNumber  q = 2",
+  x_label = "_derep: distance-based value",
+  y_label = "new: similarity-based value"))
+```
+
+---
+
+## 2 — GetFaithPD
+
+**What changed:** similarity converted to distance ($1 - S$) inside the function
+before `hclust`. For $n \leq 10{,}000$ with `use_mst = FALSE` both versions use
+average-linkage on the same underlying distances, so trees and PD values are
+identical.
+
+```{r faith-pd}
+fpd_d <- GetFaithPD_derep(feat_sub, metadata, dist_sub)
+fpd_n <- GetFaithPD(      feat_sub, metadata, sim_sub, use_mst = FALSE)
+
+show_result(corr_plot(fpd_d$PD, fpd_n$PD,
+  label   = "GetFaithPD  (PD, average linkage)",
+  x_label = "_derep: distance-based PD",
+  y_label = "new: similarity-based PD"))
+```
+
+### FaithPD: MST vs average linkage (informational — values intentionally differ)
+
+```{r faith-pd-mst, fig.width=6, fig.height=4.5}
+fpd_mst <- suppressMessages(
+  GetFaithPD(feat_sub, metadata, sim_sub, use_mst = TRUE)
+)
+
+# Not a PASS/FAIL check — just show how much the tree choice matters
+df_mst <- data.frame(
+  avg_linkage   = fpd_d$PD,
+  single_linkage = fpd_mst$PD,
+  sample         = fpd_d$sample
+)
+
+ggplot(df_mst, aes(x = avg_linkage, y = single_linkage, label = sample)) +
+  geom_abline(slope = 1, intercept = 0,
+              color = "firebrick", linetype = "dashed", linewidth = 0.7) +
+  geom_point(color = "#8e44ad", size = 2.5, alpha = 0.8) +
+  labs(
+    title    = "FaithPD: average linkage vs MST/single-linkage (informational)",
+    subtitle = sprintf("Pearson r = %.4f  |  These SHOULD differ — different tree topologies",
+                       cor(df_mst$avg_linkage, df_mst$single_linkage)),
+    x = "Average-linkage PD (_derep)",
+    y = "MST/single-linkage PD (use_mst = TRUE)",
+    caption = "MST path used automatically when n > 10,000. Shown here on small data for illustration."
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(plot.title = element_text(face = "bold", size = 12),
+        plot.subtitle = element_text(size = 8.5, color = "gray40"))
+```
+
+---
+
+## 3 — GetAlphaDiversity
+
+**What changed:** uses `GetSimMat()` instead of `GetDistanceMat()`; delegates to
+the updated `GetFunctionalHillNumber` and `GetFaithPD`.
+
+```{r alpha-weighted-q1}
+a_d <- GetAlphaDiversity_derep(mmo, mode = "weighted", q = 1,
+                               normalization = "Log", distance = "dreams",
+                               output = "sample_level")
+a_n <- GetAlphaDiversity(mmo,       mode = "weighted", q = 1,
+                         normalization = "Log", distance = "dreams",
+                         output = "sample_level", use_mst = FALSE)
+
+show_result(corr_plot(a_d$value, a_n$value,
+  label   = "GetAlphaDiversity  mode = weighted, q = 1",
+  x_label = "_derep value",
+  y_label = "new value"))
+```
+
+```{r alpha-weighted-q2}
+a_d2 <- GetAlphaDiversity_derep(mmo, mode = "weighted", q = 2,
+                                normalization = "Log", distance = "dreams",
+                                output = "sample_level")
+a_n2 <- GetAlphaDiversity(mmo,        mode = "weighted", q = 2,
+                          normalization = "Log", distance = "dreams",
+                          output = "sample_level", use_mst = FALSE)
+
+show_result(corr_plot(a_d2$value, a_n2$value,
+  label   = "GetAlphaDiversity  mode = weighted, q = 2",
+  x_label = "_derep value",
+  y_label = "new value"))
+```
+
+```{r alpha-faith}
+af_d <- GetAlphaDiversity_derep(mmo, mode = "faith",
+                                normalization = "Log", distance = "dreams",
+                                output = "sample_level")
+af_n <- GetAlphaDiversity(mmo,        mode = "faith",
+                          normalization = "Log", distance = "dreams",
+                          output = "sample_level", use_mst = FALSE)
+
+show_result(corr_plot(af_d$value, af_n$value,
+  label   = "GetAlphaDiversity  mode = faith",
+  x_label = "_derep value",
+  y_label = "new value"))
+```
+
+---
+
+## 4 — GetBetaDiversity: CSCS
+
+**What changed:** CSCS used `CSS = 1 - scaled_dissimilarity`; new version uses
+`CSS = scaled_similarity` directly (algebraically identical since $S = 1 - D$).
+
+```{r beta-cscs}
+bc_d <- GetBetaDiversity_derep(mmo, method = "CSCS",
+                               normalization = "Log", distance = "dreams")
+bc_n <- GetBetaDiversity(mmo,       method = "CSCS",
+                         normalization = "Log", distance = "dreams")
+
+ut <- upper.tri(bc_d)
+show_result(corr_plot(bc_d[ut], bc_n[ut],
+  label   = "GetBetaDiversity  method = CSCS  (upper triangle pairwise)",
+  x_label = "_derep pairwise dissimilarity",
+  y_label = "new pairwise dissimilarity"))
+```
+
+---
+
+## 5 — GetBetaDiversity: Generalized UniFrac
+
+**What changed:** same S→D conversion as FaithPD; both use average-linkage at
+small n, so the compound tree is identical and all three weighting levels match.
+
+```{r beta-genuni}
+bg_d <- suppressMessages(
+  GetBetaDiversity_derep(mmo, method = "Gen.Uni",
+                         normalization = "Log", distance = "dreams")
+)
+bg_n <- suppressMessages(
+  GetBetaDiversity(mmo,       method = "Gen.Uni",
+                   normalization = "Log", distance = "dreams", use_mst = FALSE)
+)
+
+for (nm in c("d_0", "d_0.5", "d_1")) {
+  ut <- upper.tri(bg_d[[nm]])
+  show_result(corr_plot(bg_d[[nm]][ut], bg_n[[nm]][ut],
+    label   = sprintf("GetBetaDiversity  Gen.Uni  %s  (upper triangle)", nm),
+    x_label = "_derep pairwise distance",
+    y_label = "new pairwise distance"))
+}
+```
+
+---
+
+## 6 — GetBetaDiversity: Bray-Curtis & Jaccard
+
+**What changed:** nothing — these methods don't use a chemical similarity
+matrix. Outputs should be **bit-for-bit identical**.
+
+```{r beta-bray}
+bb_d <- GetBetaDiversity_derep(mmo, method = "bray",    normalization = "Log")
+bb_n <- GetBetaDiversity(mmo,       method = "bray",    normalization = "Log")
+ut   <- upper.tri(bb_d)
+
+show_result(corr_plot(bb_d[ut], bb_n[ut],
+  label   = "GetBetaDiversity  method = bray  (no matrix used — must be identical)",
+  x_label = "_derep Bray-Curtis",
+  y_label = "new Bray-Curtis"))
+```
+
+```{r beta-jaccard}
+bj_d <- GetBetaDiversity_derep(mmo, method = "jaccard", normalization = "PA")
+bj_n <- GetBetaDiversity(mmo,       method = "jaccard", normalization = "PA")
+ut   <- upper.tri(bj_d)
+
+show_result(corr_plot(bj_d[ut], bj_n[ut],
+  label   = "GetBetaDiversity  method = jaccard  (no matrix used — must be identical)",
+  x_label = "_derep Jaccard",
+  y_label = "new Jaccard"))
+```
+
+---
+
+## 7 — GenerateHeatmapInputs
+
+**What changed:** uses `GetSimMat()` and builds `as.dist(1 - sim_matrix)` for
+row clustering. `FC_matrix` (the abundance data) is unchanged; `dist_matrix`
+(the clustering distances) should equal the _derep version since $D = 1 - S$.
+
+```{r heatmap-inputs}
+hm_d <- GenerateHeatmapInputs_derep(mmo, normalization = "Log", distance = "dreams")
+hm_n <- GenerateHeatmapInputs(mmo,       normalization = "Log", distance = "dreams")
+
+# FC_matrix: feature x group abundance data — no matrix involved, must be identical
+show_result(corr_plot(
+  as.numeric(hm_d$FC_matrix), as.numeric(hm_n$FC_matrix),
+  label   = "GenerateHeatmapInputs  FC_matrix (group means, no chemical matrix)",
+  x_label = "_derep group mean",
+  y_label = "new group mean"))
+```
+
+```{r heatmap-dist}
+# dist_matrix: distances used for row clustering (derived from similarity/dissimilarity)
+show_result(corr_plot(
+  as.numeric(hm_d$dist_matrix), as.numeric(hm_n$dist_matrix),
+  label   = "GenerateHeatmapInputs  dist_matrix (clustering distances, D = 1 - S)",
+  x_label = "_derep clustering distance",
+  y_label = "new clustering distance"))
+```
+
+---
+
+## Summary
+
+```{r summary, fig.width=8, fig.height=max(3, length(results) * 0.5 + 1)}
+summary_df <- data.frame(
+  comparison = names(results),
+  r          = sapply(results, `[[`, "r"),
+  max_diff   = sapply(results, `[[`, "max_diff"),
+  passed     = sapply(results, `[[`, "passed"),
+  stringsAsFactors = FALSE
+)
+summary_df$status <- ifelse(summary_df$passed, "PASS", "FAIL")
+
+# Print table
+cat(sprintf("\n%-70s  %12s  %10s  %6s\n",
+            "Comparison", "Pearson r", "Max |delta|", "Status"))
+cat(strrep("-", 106), "\n")
+for (i in seq_len(nrow(summary_df))) {
+  cat(sprintf("%-70s  %12.8f  %10.2e  %6s\n",
+              substr(summary_df$comparison[i], 1, 70),
+              summary_df$r[i],
+              summary_df$max_diff[i],
+              summary_df$status[i]))
+}
+cat(strrep("-", 106), "\n")
+cat(sprintf("PASS: %d / %d\n", sum(summary_df$passed), nrow(summary_df)))
+
+
+```
