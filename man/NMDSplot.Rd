@@ -15,7 +15,7 @@ NMDSplot(
 )
 }
 \arguments{
-\item{mmo}{The mmo object containing metadata}
+\item{mmo}{The \code{mmo} containing metadata}
 
 \item{betadiv}{The beta diversity distance matrix, output of GetBetaDiversity()}
 

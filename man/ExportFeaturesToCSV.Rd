@@ -7,7 +7,7 @@
 ExportFeaturesToCSV(mmo, id_list, normalization = "None", output_dir)
 }
 \arguments{
-\item{mmo}{The mmo object containing feature data, annotations, and pairwise comparisons}
+\item{mmo}{The \code{mmo} containing feature data, annotations, and pairwise comparisons}
 
 \item{id_list}{A list of feature names to filter and export}
 

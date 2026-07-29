@@ -14,7 +14,7 @@ PlotNPCStackedBar(
 )
 }
 \arguments{
-\item{mmo}{The mmo object with sirius annotation and normalized data}
+\item{mmo}{The \code{mmo} with sirius annotation and normalized data}
 
 \item{group_col}{The column name in metadata to use for grouping samples}
 
@@ -31,7 +31,7 @@ A list containing the stacked bar plot and the data used to generate it
 }
 \description{
 This function generates a stacked bar plot showing the count of features in each group categorized by NPC_pathway.
-It uses the mmo object with sirius annotation and normalized data.
+It uses the \code{mmo} with sirius annotation and normalized data.
 Make sure you don't run ReplaceZero() before using this function, as it may remove presence/absence information.
 }
 \examples{

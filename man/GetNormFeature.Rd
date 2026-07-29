@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{GetNormFeature}
 \alias{GetNormFeature}
-\title{Retrieve feature data from the mmo object, with normalization options}
+\title{Retrieve feature data from the \code{mmo}, with normalization options}
 \usage{
 GetNormFeature(mmo, normalization)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{normalization}{The normalization method to use. Options are 'None','PA', 'Log', 'Meancentered', 'Z', or 'Imputed'}
 }
@@ -15,7 +15,7 @@ GetNormFeature(mmo, normalization)
 The feature data corresponding to the specified normalization method
 }
 \description{
-This function retrieves the feature data from the mmo object based on the specified normalization method.
+This function retrieves the feature data from the \code{mmo} based on the specified normalization method.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}

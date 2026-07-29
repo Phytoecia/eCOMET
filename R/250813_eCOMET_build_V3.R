@@ -3061,6 +3061,16 @@ GenerateHeatmapInputs_derep <- function(mmo, filter_id = FALSE, id_list = NULL,
 #' row clustering.
 #'
 #' @inheritParams GenerateHeatmapInputs_derep
+#' @return A list containing the following elements:
+#' \itemize{
+#'   \item FC_matrix: A matrix of fold change or mean values
+#'   \item dist_matrix: A distance matrix derived from the similarity matrix
+#'     as \code{1 - S}, or \code{NULL} when \code{distance} is not supplied
+#'   \item row_label: A vector of row labels for custom-annotated features
+#'     (see \code{AddCustomAnnot()}). Feature IDs are used when no custom
+#'     annotation is available.
+#'   \item heatmap_data: A data frame of the heatmap values with feature IDs
+#' }
 #' @export
 GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
                                   filter_group = FALSE, group_list = NULL,
@@ -6480,6 +6490,17 @@ FeatureDendrogram_derep <- function(
 #' (\code{1 - within_group_dist}) rather than low distance.
 #'
 #' @inheritParams FeatureDendrogram_derep
+#' @return A named list with:
+#' \itemize{
+#'   \item \code{hclust}     -- the \code{hclust} object
+#'   \item \code{dendrogram} -- the \code{dendrogram} object
+#'   \item \code{phylo}      -- the \code{phylo} object (for ape/iTOL)
+#'   \item \code{dist_used}  -- the distance matrix used for clustering
+#'     (\code{1 - sim_used})
+#'   \item \code{sim_used}   -- the (possibly modified) similarity matrix
+#'   \item \code{tip_map}    -- data.frame of feature ID -> group assignment
+#'     (\code{NULL} when \code{ion_identity = "none"})
+#' }
 #' @export
 FeatureDendrogram <- function(
     mmo,

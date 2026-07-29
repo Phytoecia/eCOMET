@@ -15,7 +15,7 @@ GetPerformanceFeatureCorrelation(
 )
 }
 \arguments{
-\item{mmo}{The mmo object with feature data and metadata}
+\item{mmo}{The \code{mmo} with feature data and metadata}
 
 \item{phenotype}{The name of the phenotype performance in the metadata}
 

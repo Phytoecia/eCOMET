@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{AddChemDist}
 \alias{AddChemDist}
-\title{Add chemical distance matrices to the mmo object}
+\title{Add chemical distance matrices to the \code{mmo}}
 \usage{
 AddChemDist(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{cos_dir}{Path to the cosine similarity CSV file from MZMine (molecular networking)}
 
@@ -16,11 +16,11 @@ AddChemDist(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
 \item{m2ds_dir}{Path to the MS2DeepScore similarity CSV file from MZMine (molecular networking)}
 }
 \value{
-The mmo object with dissimilarity matrices added (mmo$cos.dissim, mmo$dreams.dissim, mmo$m2ds.dissim)
+The \code{mmo} with dissimilarity matrices added (mmo$cos.dissim, mmo$dreams.dissim, mmo$m2ds.dissim)
 }
 \description{
 This function reads cosine, DREAMS, and MS2DeepScore molecular networking outputs from MZmine,
-then transform the similarity to distance and adds the dissimilarity matrices to the mmo object.
+then transform the similarity to distance and adds the dissimilarity matrices to the \code{mmo}.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}

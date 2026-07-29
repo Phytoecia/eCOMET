@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{FeatureDendrogram}
 \alias{FeatureDendrogram}
-\title{FeatureDendrogram}
+\title{FeatureDendrogram (similarity-based)}
 \usage{
 FeatureDendrogram(
   mmo,
@@ -18,7 +18,7 @@ FeatureDendrogram(
 )
 }
 \arguments{
-\item{mmo}{mmo object. Must contain the requested dissimilarity matrix
+\item{mmo}{\code{mmo}. Must contain the requested dissimilarity matrix
 (added via \code{AddChemDist()} or \code{AddCustomDist()}) and, for
 ion identity modes, \code{mmo$feature_info}.}
 
@@ -56,38 +56,22 @@ grouped features together. Must be in \code{[0, 1]}.}
 \value{
 A named list with:
 \itemize{
-\item \code{hclust}    -- the \code{hclust} object
+\item \code{hclust}     -- the \code{hclust} object
 \item \code{dendrogram} -- the \code{dendrogram} object
-\item \code{phylo}     -- the \code{phylo} object (for ape/iTOL)
-\item \code{dist_used} -- the (possibly modified) distance matrix used
-\item \code{tip_map}   -- data.frame of feature ID -> group assignment
+\item \code{phylo}      -- the \code{phylo} object (for ape/iTOL)
+\item \code{dist_used}  -- the distance matrix used for clustering
+(\code{1 - sim_used})
+\item \code{sim_used}   -- the (possibly modified) similarity matrix
+\item \code{tip_map}    -- data.frame of feature ID -> group assignment
 (\code{NULL} when \code{ion_identity = "none"})
 }
 }
 \description{
-Build a feature-to-feature dendrogram from a dissimilarity matrix stored in
-the mmo object. Optionally collapses within-group distances for ion identity
-or correlation groups so that adducts/isotopes of the same compound cluster
-together before chemical distance drives the higher-level topology.
-}
-\details{
-\strong{Ion identity options:}
-\itemize{
-\item \code{"none"} -- use the raw dissimilarity matrix as-is.
-\item \code{"correlation"} -- features sharing the same MZmine correlation
-group (typically co-eluting features likely derived from the same
-compound) are assigned \code{within_group_dist} before clustering.
-\item \code{"ion_identity_network"} -- features linked by MZmine ion
-identity networking (confirmed adducts / isotopes) are assigned
-\code{within_group_dist} before clustering.
-}
-In both grouped modes the constraint is applied symmetrically and the
-diagonal is forced to 0 after the assignment.
-}
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-tree <- FeatureDendrogram(mmo, distance = "dreams")
-tree_iin <- FeatureDendrogram(mmo, distance = "dreams",
-                              ion_identity = "ion_identity_network")
-\dontshow{\}) # examplesIf}
+Identical to \code{FeatureDendrogram_derep()} but retrieves the feature
+\strong{similarity} matrix via \code{GetSimMat()} (.sim slots) and
+converts to distance (\code{1 - S}) only inside \code{hclust()}.
+Adds a size guard: stops with a clear message if n > 10,000 features,
+because \code{as.dist()} on an n x n matrix is infeasible at that scale.
+Ion identity constraints are expressed as high similarity
+(\code{1 - within_group_dist}) rather than low distance.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{GetGroupMeans}
 \alias{GetGroupMeans}
-\title{Calculate group means from the mmo object}
+\title{Calculate group means from the \code{mmo}}
 \usage{
 GetGroupMeans(
   mmo,
@@ -14,7 +14,7 @@ GetGroupMeans(
 )
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{normalization}{The normalization method to use. Options are 'None', 'Log', 'Meancentered', or 'Z'}
 
@@ -30,7 +30,7 @@ GetGroupMeans(
 A data frame containing the mean feature values for each group
 }
 \description{
-This function calculates and returns a dataframe of mean feature values for each group in the mmo object, with options for normalization and filtering.
+This function calculates and returns a dataframe of mean feature values for each group in the \code{mmo}, with options for normalization and filtering.
 Use SwitchGroup() to change the grouping variable before running this function.
 }
 \examples{

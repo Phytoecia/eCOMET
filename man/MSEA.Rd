@@ -18,7 +18,7 @@ MSEA(
 )
 }
 \arguments{
-\item{mmo}{The mmo object with sirius annotation and normalized data}
+\item{mmo}{The \code{mmo} with sirius annotation and normalized data}
 
 \item{feature_id}{A vector of feature ids corresponding to the feature scores}
 

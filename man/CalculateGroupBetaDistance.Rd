@@ -7,7 +7,7 @@
 CalculateGroupBetaDistance(mmo, beta_div, reference_group, groups)
 }
 \arguments{
-\item{mmo}{The mmo object containing feature data and metadata}
+\item{mmo}{The \code{mmo} containing feature data and metadata}
 
 \item{beta_div}{The beta diversity distance matrix, output of GetBetaDiversity()}
 

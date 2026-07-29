@@ -7,25 +7,25 @@
 FeaturePresence(mmo, threshold = 1)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{threshold}{Numeric threshold for presence (default = 1).
 Values > threshold are set to 1, values <= threshold or NA are set to 0.}
 }
 \value{
-The mmo object with a new presence/absence table
-stored in mmo$feature_presence
+The \code{mmo} with a new presence/absence table
+stored in \code{mmo$feature_presence}
 }
 \description{
-This function converts the feature abundance matrix in an mmo object
+This function converts the feature abundance matrix in a \code{mmo}
 into a binary presence/absence matrix and stores it as a new component
-of the mmo object (mmo$feature_presence).
+of the \code{mmo} (\code{mmo$feature_presence}).
 }
 \details{
 A feature is considered present (1) if its abundance is greater than
 a specified threshold, and absent (0) otherwise.
 
-This function does NOT overwrite mmo$feature_data.
+This function does NOT overwrite \code{mmo$feature_data}.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}

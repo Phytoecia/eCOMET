@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{GetFunctionalHillNumber}
 \alias{GetFunctionalHillNumber}
-\title{GetFunctionalHillNumber}
+\title{GetFunctionalHillNumber (similarity-based)}
 \usage{
 GetFunctionalHillNumber(
   feature,
   metadata,
-  distance_matrix,
+  sim_matrix,
   q = 1,
   threshold = 0,
   scale_dissim = TRUE
@@ -18,20 +18,23 @@ GetFunctionalHillNumber(
 
 \item{metadata}{Metadata table with sample and group columns}
 
-\item{distance_matrix}{Feature distance matrix}
+\item{sim_matrix}{Feature similarity matrix (dense or sparse dgCMatrix)}
 
-\item{q}{The order of the Hill number to calculate (default: 1).
-Larger q values give more weight to evenness portion of the hill number over richness.
-q = 0 treats abundance matrix as a presence absence matrix}
+\item{q}{The order of the Hill number (default: 1)}
 
 \item{threshold}{Numeric; detection threshold for presence (default: 0)}
 
-\item{scale_dissim}{Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)}
+\item{scale_dissim}{Kept for interface compatibility; max(sim)=1 so scaling
+is a no-op, but passing FALSE still skips it}
 }
 \value{
-A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
+A data frame with sample, group, hill_number, and value columns.
 }
 \description{
-This function calculates the functional Hill number for a given mmo object, normalization method, and distance metric.
-See https://nph.onlinelibrary.wiley.com/doi/full/10.1111/nph.18685 for details of the functional Hill number calculation.
+Calculates the functional Hill number using a pairwise feature \strong{similarity}
+matrix (values 0--1, higher = more similar) from \code{GetSimMat()}.
+Algebraically equivalent to \code{GetFunctionalHillNumber_derep()} but avoids
+ever constructing the full dense distance matrix, making it safe for sparse
+large-dataset similarity matrices. Key identity used: \eqn{p'Dp = 1 - p'Sp}
+(exact when \eqn{\sum p_i = 1} and \eqn{D = 1 - S}).
 }

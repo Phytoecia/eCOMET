@@ -20,7 +20,6 @@ Description: The ecomet package provides tools for processing and analyzing mass
 License: AGPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.3
 Imports:
   Matrix,
   dplyr,
@@ -61,3 +60,4 @@ Remotes:
     pmartinezarbizu/pairwiseAdonis/pairwiseAdonis
 URL: https://phytoecia.github.io/eCOMET/
 VignetteBuilder: knitr
+Config/roxygen2/version: 8.0.0

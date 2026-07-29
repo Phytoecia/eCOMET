@@ -18,7 +18,7 @@ PLSDAplot(
 )
 }
 \arguments{
-\item{mmo}{The mmo object with feature data and metadata}
+\item{mmo}{The \code{mmo} with feature data and metadata}
 
 \item{color}{A vector of colors for the groups in the plot. Make sure the names correspond to the group names in metadata}
 

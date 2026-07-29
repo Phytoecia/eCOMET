@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{LoadMMO}
 \alias{LoadMMO}
-\title{Load an mmo object previously saved with SaveMMO}
+\title{Load a \code{mmo} previously saved with SaveMMO}
 \usage{
 LoadMMO(file, check_session = TRUE, verbose = TRUE)
 }
@@ -14,10 +14,10 @@ LoadMMO(file, check_session = TRUE, verbose = TRUE)
 \item{verbose}{Logical; print messages about saved session info when available (default: TRUE)}
 }
 \value{
-The loaded mmo object (list)
+The loaded \code{mmo}
 }
 \description{
-This function returns the loaded mmo object (visible return). By default it prints basic
+This function returns the loaded \code{mmo} (visible return). By default it prints basic
 information about the R version and recorded packages that were present when the object
 was saved.
 }

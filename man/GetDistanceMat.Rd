@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{GetDistanceMat}
 \alias{GetDistanceMat}
-\title{Get the distance matrix from the mmo object based on the specified distance metric}
+\title{Get the distance matrix from the \code{mmo} based on the specified distance metric}
 \usage{
 GetDistanceMat(mmo, distance = "dreams")
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{distance}{Name of the distance matrix to retrieve. Built-in options are
 \code{'dreams'}, \code{'cosine'}, and \code{'m2ds'}. Any name passed to
@@ -17,10 +17,10 @@ GetDistanceMat(mmo, distance = "dreams")
 The distance matrix (numeric matrix with feature ID row/col names).
 }
 \description{
-Retrieve a feature distance matrix from the mmo object
+Retrieve a feature distance matrix from the \code{mmo}
 }
 \details{
-Looks up a dissimilarity matrix stored in the mmo object by name. Works with
+Looks up a dissimilarity matrix stored in the \code{mmo} by name. Works with
 the three built-in matrices added by \code{AddChemDist()} as well as any
 custom matrix added via \code{AddCustomDist()}.
 }

@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{FeatureToID}
 \alias{FeatureToID}
-\title{Convert feature names to IDs in the mmo object}
+\title{Convert feature names to IDs in the \code{mmo}}
 \usage{
 FeatureToID(mmo, feature_names)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{feature_names}{A vector of feature names to convert}
 }
@@ -15,7 +15,7 @@ FeatureToID(mmo, feature_names)
 A vector of feature IDs corresponding to the input feature names
 }
 \description{
-This function converts feature names to their corresponding IDs in the mmo object.
+This function converts feature names to their corresponding IDs in the \code{mmo}.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}

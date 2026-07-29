@@ -18,7 +18,7 @@ FeaturePhenotypeCorrelation(
 )
 }
 \arguments{
-\item{mmo}{The mmo object with feature data and metadata}
+\item{mmo}{The \code{mmo} with feature data and metadata}
 
 \item{feature_id}{The id of the feature to analyze}
 

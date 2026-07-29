@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{filter_canopus_annotations}
 \alias{filter_canopus_annotations}
-\title{Filter CANOPUS / SIRIUS annotations in an ecomet mmo object by probability threshold}
+\title{Filter CANOPUS / SIRIUS annotations in an eCOMET \code{mmo} by probability threshold}
 \usage{
 filter_canopus_annotations(
   mmo,
@@ -16,7 +16,7 @@ filter_canopus_annotations(
 )
 }
 \arguments{
-\item{mmo}{An ecomet mmo object containing \code{mmo[[input]]} (a data.frame).}
+\item{mmo}{An eCOMET \code{mmo} containing \code{mmo[[input]]} (a data.frame).}
 
 \item{input}{Character. Name of the element on \code{mmo} to filter. Defaults to \code{"sirius_annot"}.}
 
@@ -56,11 +56,11 @@ the function errors to avoid accidental overwrites.}
 non-missing annotations before and after filtering.}
 }
 \value{
-The updated \code{mmo} object, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
+The updated \code{mmo}, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
 }
 \description{
 Applies a minimum-probability cutoff to selected CANOPUS (NPClassifier / ClassyFire)
-annotation levels inside an ecomet \code{mmo} object. The function reads a chosen
+annotation levels inside an eCOMET \code{mmo}. The function reads a chosen
 annotation table from \code{mmo[[input]]} (default \code{"sirius_annot"}), flags
 annotations below \code{threshold} by setting them to \code{NA}, and stores the result
 as a new element on \code{mmo} named \code{"sirius_annot_filtered_<suffix>"}.

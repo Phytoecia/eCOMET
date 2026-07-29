@@ -16,7 +16,7 @@ ExportITOL(
 \arguments{
 \item{tree}{Output list from \code{FeatureDendrogram()}.}
 
-\item{mmo}{mmo object. Must contain \code{mmo$sirius_annot} (for colour
+\item{mmo}{\code{mmo}. Must contain \code{mmo$sirius_annot} (for colour
 strip) and \code{mmo$feature_presence} or \code{mmo$feature_data} (for
 prevalence bar chart).}
 

@@ -2,20 +2,20 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{LogNormalization}
 \alias{LogNormalization}
-\title{Log-normalize the peak area in the mmo object}
+\title{Log-normalize the peak area in the \code{mmo}}
 \usage{
 LogNormalization(mmo, imputed_data = FALSE)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{imputed_data}{Whether to use imputed feature data (default = FALSE)}
 }
 \value{
-The mmo object with log-normalized feature data (mmo$log)
+The \code{mmo} with log-normalized feature data (mmo$log)
 }
 \description{
-This function applies log2 transformation to the peak area in the feature data of the mmo object.
+This function applies log2 transformation to the peak area in the feature data of the \code{mmo}.
 Run ReplaceZero() before this function to avoid -Inf values.
 }
 \examples{

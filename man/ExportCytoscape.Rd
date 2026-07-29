@@ -15,7 +15,7 @@ ExportCytoscape(
 )
 }
 \arguments{
-\item{mmo}{mmo object. Must contain \code{mmo$feature_data} and
+\item{mmo}{\code{mmo}. Must contain \code{mmo$feature_data} and
 \code{mmo$metadata}. \code{mmo$feature_info} and
 \code{mmo$sirius_annot} are used when present.}
 
@@ -44,7 +44,7 @@ Invisibly returns a named list:
 \code{nodes_path}, \code{edges_path} (file paths).
 }
 \description{
-Export an mmo object as a node table and edge table for visualisation in
+Export a \code{mmo} as a node table and edge table for visualisation in
 Cytoscape. Edges are derived from a stored feature dissimilarity matrix.
 Nodes carry abundance statistics and any annotation columns present in
 \code{mmo$sirius_annot} and \code{mmo$feature_info}.

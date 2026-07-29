@@ -14,7 +14,7 @@ GetSpecializationIndex(
 )
 }
 \arguments{
-\item{mmo}{The mmo object containing feature data and metadata}
+\item{mmo}{The \code{mmo} containing feature data and metadata}
 
 \item{normalization}{The normalization method to use for feature data.
 Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
@@ -31,7 +31,7 @@ Options are 'None', 'Log', 'Meancentered', or 'Z' (default: 'None')}
 A data frame containing the specialization index for each group in the metadata, with columns for group and specialization index.
 }
 \description{
-This function calculates the specialization index for a given mmo object, normalization method, and optional filtering by groups and features.
+This function calculates the specialization index for a given \code{mmo}, normalization method, and optional filtering by groups and features.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
