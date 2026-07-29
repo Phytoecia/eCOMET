@@ -4452,20 +4452,29 @@ GetFunctionalHillNumber_derep <- function(
   relative_proportions <- relative_proportions[rownames(scaled_dissimilarity), , drop = FALSE]
   scaled_dissimilarity <- as.matrix(scaled_dissimilarity)
   raoQ <- colSums(relative_proportions * (scaled_dissimilarity %*% relative_proportions))
+  # raoQ holds one value per SAMPLE, while relative_proportions is
+  # features x samples. `relative_proportions / raoQ` would recycle raoQ down
+  # the columns, so a feature's proportion would be divided by some other
+  # sample's Rao Q. sweep() applies each sample's own value to its own column.
+  ratio <- sweep(relative_proportions, 2L, raoQ, "/")
   # Calculate Hill
   functional_hill_number <- c()
   if (q == 1){
     mask <- relative_proportions > 0
-    Plog <- ifelse(mask, relative_proportions/raoQ * log(relative_proportions/raoQ), 0)
+    Plog <- ifelse(mask, ratio * log(ratio), 0)
     DP <- scaled_dissimilarity %*% relative_proportions
     vals <- 2 * colSums(Plog * DP)
     functional_hill_number <- exp(-vals)
   } else {
-    Pq <- (relative_proportions/raoQ)^q
+    Pq <- ratio^q
     DPq <- scaled_dissimilarity %*% Pq
     vals <- colSums(Pq*DPq)
     functional_hill_number <- vals^(1/(1-q))
   }
+  # A sample with no signal has proportions summing to 0, so its Rao Q and
+  # every quantity derived from it are undefined. GetHillNumbers() already
+  # returns NA in that situation; match it instead of reporting 1 or Inf.
+  functional_hill_number[colSums(relative_proportions, na.rm = TRUE) <= 0] <- NA_real_
   sample_names <- colnames(relative_proportions)
   names(functional_hill_number) <- sample_names
   # Get the group information
@@ -4540,24 +4549,33 @@ GetFunctionalHillNumber <- function(
   # No as.matrix() call here — sparse S passes directly into %*% without densification.
   SP   <- scaled_similarity %*% relative_proportions
   raoQ <- 1 - colSums(relative_proportions * SP)
+  # raoQ holds one value per SAMPLE, while relative_proportions is
+  # features x samples. `relative_proportions / raoQ` would recycle raoQ down
+  # the columns, so a feature's proportion would be divided by some other
+  # sample's Rao Q. sweep() applies each sample's own value to its own column.
+  ratio <- sweep(relative_proportions, 2L, raoQ, "/")
 
   # Calculate Hill numbers
   functional_hill_number <- c()
   if (q == 1) {
     mask <- relative_proportions > 0
-    Plog <- ifelse(mask, relative_proportions / raoQ * log(relative_proportions / raoQ), 0)
+    Plog <- ifelse(mask, ratio * log(ratio), 0)
     # Dp = 1 - Sp  (valid because sum(p) = 1, so J%*%p = 1)
     DP   <- 1 - SP
     vals <- 2 * colSums(Plog * DP)
     functional_hill_number <- exp(-vals)
   } else {
-    Pq  <- (relative_proportions / raoQ)^q
+    Pq  <- ratio^q
     SPq <- scaled_similarity %*% Pq
     # Dpq = colSums(Pq)*1 - Spq  (general: Pq does not sum to 1, so J%*%Pq != 1)
     DPq <- sweep(SPq, 2, colSums(Pq), function(sp, cs) cs - sp)
     vals <- colSums(Pq * DPq)
     functional_hill_number <- vals^(1 / (1 - q))
   }
+  # A sample with no signal has proportions summing to 0, so its Rao Q and
+  # every quantity derived from it are undefined. GetHillNumbers() already
+  # returns NA in that situation; match it instead of reporting 1 or Inf.
+  functional_hill_number[colSums(relative_proportions, na.rm = TRUE) <= 0] <- NA_real_
   sample_names <- colnames(relative_proportions)
   names(functional_hill_number) <- sample_names
   # Get the group information

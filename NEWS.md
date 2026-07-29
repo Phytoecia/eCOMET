@@ -1,5 +1,24 @@
 # ecomet (development version)
 
+## Rao's quadratic entropy normalisation
+
+* `GetFunctionalHillNumber()` and `GetFunctionalHillNumber_derep()` divided the
+  feature proportion matrix by `raoQ` with `/`. `raoQ` holds one value per
+  sample while the matrix is features x samples, so R recycled the divisor down
+  the columns and only 4.2% of cells received their own sample's Rao Q. The
+  division now uses `sweep(..., 2, raoQ, "/")`.
+
+  This changes every weighted alpha-diversity value (`GetAlphaDiversity(mode =
+  "weighted")`). On the treatment-based tutorial data the q = 1 numbers move by
+  up to 13.3%; on the interspecific data, where samples differ more, by up to
+  63.5%, and the ordering of samples changes at every q >= 1. Results computed
+  with earlier versions need recalculating. Richness, unweighted Hill numbers,
+  Faith's PD, and all beta-diversity methods are unaffected.
+
+* A sample whose abundances sum to zero now returns `NA` rather than 1 (q = 1)
+  or `Inf` (q != 1). Its Rao Q is undefined, and `GetHillNumbers()` already
+  returned `NA` in the same situation.
+
 ## Similarity-based storage, review follow-ups
 
 * `ScreenFeaturePhenotypeCorrelation()`, `GetPerformanceFeatureCorrelation()`,
