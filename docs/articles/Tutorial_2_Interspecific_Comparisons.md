@@ -1,7 +1,7 @@
 # Tutorial 2: Interspecific Ecometabolomics
 
 > **Download and run this tutorial:**
-> [Tutorial_2_Interspecific_Comparisons.Rmd](https://github.com/Phytoecia/eCOMET/blob/main/vignettes/articles/Tutorial_2_Interspecific_Comparisons.Rmd)
+> [Tutorial\_2\_Interspecific\_Comparisons.Rmd](https://github.com/Phytoecia/eCOMET/blob/main/vignettes/articles/Tutorial_2_Interspecific_Comparisons.Rmd)
 > — open in RStudio and run chunks with Ctrl+Enter.
 
 ## Overview
@@ -40,22 +40,22 @@ comparisons.
 
 This tutorial is organized into the following sections:
 
-- [1. Load input data and build the MMO
-  object](#id_1-load-input-data-and-build-the-mmo-object)
-- [2. Inspect the core data tables](#id_2-inspect-the-core-data-tables)
-- [3. Compare feature richness across samples and
-  species](#id_3-compare-feature-richness-across-samples-and-species)
-- [4. Add SIRIUS annotations and inspect class
-  composition](#id_4-add-sirius-annotations-and-inspect-class-composition)
-- [5. Compare samples with feature-based multivariate
-  methods](#id_5-compare-samples-with-feature-based-multivariate-methods)
-- [6. Add structural relationships among
-  features](#id_6-add-structural-relationships-among-features)
-- [7. Recalculate beta diversity using chemical
-  distances](#id_7-recalculate-beta-diversity-using-chemical-distances)
-- [8. Revisit alpha diversity with structure-aware
-  metrics](#id_8-revisit-alpha-diversity-with-structure-aware-metrics)
-- [Key takeaways](#key-takeaways)
+  - [1. Load input data and build the MMO
+    object](#1-load-input-data-and-build-the-mmo-object)
+  - [2. Inspect the core data tables](#2-inspect-the-core-data-tables)
+  - [3. Compare feature richness across samples and
+    species](#3-compare-feature-richness-across-samples-and-species)
+  - [4. Add SIRIUS annotations and inspect class
+    composition](#4-add-sirius-annotations-and-inspect-class-composition)
+  - [5. Compare samples with feature-based multivariate
+    methods](#5-compare-samples-with-feature-based-multivariate-methods)
+  - [6. Add structural relationships among
+    features](#6-add-structural-relationships-among-features)
+  - [7. Recalculate beta diversity using chemical
+    distances](#7-recalculate-beta-diversity-using-chemical-distances)
+  - [8. Revisit alpha diversity with structure-aware
+    metrics](#8-revisit-alpha-diversity-with-structure-aware-metrics)
+  - [Key takeaways](#key-takeaways)
 
 The package can be installed or updated as needed using Pak:
 
@@ -77,21 +77,20 @@ library(colorspace)
 library(cowplot)
 ```
 
-## 1. Load input data and build the MMO object
+## 1\. Load input data and build the MMO object
 
 The first step is to point `eCOMET` to the processed feature table, the
 sample metadata, and any optional annotation files that will be used
 later in the workflow.
 
-Before calling
-[`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md),
-it is useful to understand what the `mmo` object is. In `eCOMET`, the
-`mmo` object is a container that keeps the feature matrix, feature
-metadata, sample metadata, and later annotation and distance information
-together in one place. This matters because most downstream functions
-expect these pieces to stay aligned. By storing them in a single object,
-we reduce the chance of mixing up sample order, dropping feature
-identifiers, or applying annotations to the wrong feature table.
+Before calling `GetMZmineFeature()`, it is useful to understand what the
+`mmo` object is. In `eCOMET`, the `mmo` object is a container that keeps
+the feature matrix, feature metadata, sample metadata, and later
+annotation and distance information together in one place. This matters
+because most downstream functions expect these pieces to stay aligned.
+By storing them in a single object, we reduce the chance of mixing up
+sample order, dropping feature identifiers, or applying annotations to
+the wrong feature table.
 
 ``` r
 data_dir <- system.file(
@@ -125,7 +124,7 @@ of the tutorial. As you add normalization results, structural
 annotations, or chemical distances, they are stored within the same
 object and can be reused by later functions.
 
-## 2. Inspect the core data tables
+## 2\. Inspect the core data tables
 
 Building the `mmo` object creates several linked components. It is good
 practice to inspect these early so you know what information is
@@ -160,14 +159,12 @@ head(mmo$metadata)
 #> 6 Annonaceae annRSS85_MDP0636 annRSS85_MDP0636.mzXML Annona RSS-85
 ```
 
-When
-[`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md)
-is called, `group_col = "Species_binomial"` tells `eCOMET` which
-metadata column should define the biological groups used throughout the
-analysis, and `sample_col = "filename"` tells it which metadata column
-matches the sample columns in the feature table. Those two mappings are
-what allow `eCOMET` to connect sample abundances to the correct species
-labels.
+When `GetMZmineFeature()` is called, `group_col = "Species_binomial"`
+tells `eCOMET` which metadata column should define the biological groups
+used throughout the analysis, and `sample_col = "filename"` tells it
+which metadata column matches the sample columns in the feature table.
+Those two mappings are what allow `eCOMET` to connect sample abundances
+to the correct species labels.
 
 ### 2.2 Feature information
 
@@ -194,12 +191,12 @@ head(mmo$feature_info)
 #> 5     119.0193            10                    NA
 #> 6     218.9844            10                    NA
 #>   ion_identities:ion_identities
-#> 1                          <NA>
-#> 2                          <NA>
-#> 3                          <NA>
-#> 4                          <NA>
-#> 5                          <NA>
-#> 6                          <NA>
+#> 1                              
+#> 2                              
+#> 3                              
+#> 4                              
+#> 5                              
+#> 6
 ```
 
 This table is especially useful when you are troubleshooting missing
@@ -238,7 +235,12 @@ separate object first.
 
 ``` r
 #View the groups
-#unique(mmo$metadata$group)
+unique(mmo$metadata$group)
+#>  [1] Annona RSS-85            Beilschmiedia tovarensis Elaeagia mariae         
+#>  [4] Inga alba                Myrcia fallax            Myrsine coriacea        
+#>  [7] Ocotea aciphylla         Pourouma bicolor         Schizocalyx obovatus    
+#> [10] Weinmannia lechleriana  
+#> 10 Levels: Annona RSS-85 Beilschmiedia tovarensis Elaeagia mariae ... Weinmannia lechleriana
 
 mmo_subset <- filter_mmo(mmo,group_list = unique(mmo$metadata$group)[1])
 ```
@@ -247,30 +249,28 @@ This is the table you would inspect if you want to understand how
 intensities are organized, check whether zeros are present, or confirm
 that sample columns are aligned with the metadata.
 
-## 3. Compare feature richness across samples and species
+## 3\. Compare feature richness across samples and species
 
 We begin with the most direct question: how many metabolite features are
 observed in each sample and in each species? This is an alpha diversity
 question because we are summarizing chemical diversity within samples or
 groups rather than comparing composition between them.
 
-We can use
-[`GetAlphaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.md)
-to calculate several diversity indices from the data. This function is
-based on the functional Hill framework, which means it can represent
-simple richness as well as measures that incorporate feature abundances
-and structural relationships among compounds.
+We can use `GetAlphaDiversity()` to calculate several diversity indices
+from the data. This function is based on the functional Hill framework,
+which means it can represent simple richness as well as measures that
+incorporate feature abundances and structural relationships among
+compounds.
 
-There are three parts of
-[`GetAlphaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.md)
-that are especially important to understand.
+There are three parts of `GetAlphaDiversity()` that are especially
+important to understand.
 
 First, the `mode` argument controls which diversity metric is
-calculated. `mode = "richness"` counts detected features,
-`mode = "unweighted"` calculates Hill diversity without structural
-weighting, `mode = "weighted"` calculates functional Hill diversity
-using a distance matrix, and `mode = "faith"` calculates a Faith-style
-diversity measure using the supplied feature relationship matrix.
+calculated. `mode = "richness"` counts detected features, `mode =
+"unweighted"` calculates Hill diversity without structural weighting,
+`mode = "weighted"` calculates functional Hill diversity using a
+distance matrix, and `mode = "faith"` calculates a Faith-style diversity
+measure using the supplied feature relationship matrix.
 
 Second, the `output` argument controls the level at which results are
 summarized. In this tutorial we use sample-level values, group averages,
@@ -411,15 +411,14 @@ Finally, we can estimate accumulation curves by rarefying samples within
 each species. This shows how richness increases as more individuals are
 added and helps assess whether sampling is approaching saturation.
 
-When `output = "rarefied_sample"`,
-[`GetAlphaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.md)
-works within each group separately. For each sampling depth `k`, it
-repeatedly draws `k` samples from that species without replacement,
-pools those samples, and recalculates the chosen alpha-diversity metric.
-It then summarizes the resulting distribution across permutations with a
-mean and confidence interval. In other words, the curve shows the
-expected richness for a species if you had collected 1, 2, 3, and so on
-up to all available samples.
+When `output = "rarefied_sample"`, `GetAlphaDiversity()` works within
+each group separately. For each sampling depth `k`, it repeatedly draws
+`k` samples from that species without replacement, pools those samples,
+and recalculates the chosen alpha-diversity metric. It then summarizes
+the resulting distribution across permutations with a mean and
+confidence interval. In other words, the curve shows the expected
+richness for a species if you had collected 1, 2, 3, and so on up to all
+available samples.
 
 ``` r
 
@@ -510,7 +509,7 @@ Rarefaction_AUC_Plot
 We can also summarize this by quantifying the area under the curve for
 each species.
 
-## 4. Add SIRIUS annotations and inspect class composition
+## 4\. Add SIRIUS annotations and inspect class composition
 
 Richness tells us how many features are present, but it does not tell us
 what kinds of compounds those features may represent. The next step
@@ -567,14 +566,13 @@ sirius_hist
 ![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-18-1.png)
 
 There is typically a long tail of low-confidence predictions. We can
-filter these using
-[`filter_canopus_annotations()`](https://phytoecia.github.io/eCOMET/reference/filter_canopus_annotations.md):
+filter these using `filter_canopus_annotations()`:
 
-- `pathway_level`: which classification levels to filter (e.g.,
-  `"NPC#pathway"`, `"All"`, `"All_NPC"`)
-- `threshold`: minimum probability to retain (values below are set to
-  NA)
-- `suffix`: label for the filtered result
+  - `pathway_level`: which classification levels to filter (e.g.,
+    `"NPC#pathway"`, `"All"`, `"All_NPC"`)
+  - `threshold`: minimum probability to retain (values below are set to
+    NA)
+  - `suffix`: label for the filtered result
 
 > **How to choose a threshold?** There is no universal threshold. The
 > [SIRIUS
@@ -659,7 +657,7 @@ class. The PlotNPCStackedBar will generate a plot to do just that.
 ### 4.3 Generate a NPClassifier based stacked barplot
 
 For functions plotting functions we give the option to save the plot
-directly by providing an outdir, and setting save_output = T. Otherwise
+directly by providing an outdir, and setting save\_output = T. Otherwise
 it will return a ggplot object that can be further modified.
 
 ``` r
@@ -701,7 +699,7 @@ p_stacked
 
 ![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-23-1.png)
 
-## 5. Compare samples with feature-based multivariate methods
+## 5\. Compare samples with feature-based multivariate methods
 
 Before introducing structure-aware methods, it is helpful to start with
 standard multivariate approaches that treat each feature as an
@@ -725,16 +723,15 @@ scaling, a single highly abundant compound can dominate the first
 principal component, and the ordination ends up summarizing little more
 than “how much of that one compound is there.”
 
-[`PCAplot()`](https://phytoecia.github.io/eCOMET/reference/PCAplot.md)
-accepts a `normalization` argument that controls how the feature table
-is scaled before PCA is run. The main options are:
+`PCAplot()` accepts a `normalization` argument that controls how the
+feature table is scaled before PCA is run. The main options are:
 
-| Option | What it does | When to use |
-|----|----|----|
-| `"Z"` | Z-score: mean = 0, SD = 1 per feature | Equal weight to all features; good for detecting subtle variation in rare compounds |
-| `"Log"` | Log10 transformation | Compresses dynamic range while preserving relative abundance differences |
-| `"PA"` | Presence/absence | Ignores abundance entirely; purely compositional |
-| `"None"` | Raw peak areas | Only appropriate if you have already normalized externally |
+| Option   | What it does                          | When to use                                                                         |
+| -------- | ------------------------------------- | ----------------------------------------------------------------------------------- |
+| `"Z"`    | Z-score: mean = 0, SD = 1 per feature | Equal weight to all features; good for detecting subtle variation in rare compounds |
+| `"Log"`  | Log10 transformation                  | Compresses dynamic range while preserving relative abundance differences            |
+| `"PA"`   | Presence/absence                      | Ignores abundance entirely; purely compositional                                    |
+| `"None"` | Raw peak areas                        | Only appropriate if you have already normalized externally                          |
 
 **Z-score** is the most aggressive equalizer. Every feature — abundant
 or trace — contributes equally to the PCA. The tradeoff is that noisy
@@ -791,18 +788,14 @@ distance measure for hierarchical clustering. Like PCA, it is based on
 the abundance matrix and emphasizes observed overlap and abundance
 differences among detected features.
 
-We use
-[`GetBetaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetBetaDiversity.md),
-which like
-[`GetAlphaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetAlphaDiversity.md)
-can calculate several different diversity measures through a common
+We use `GetBetaDiversity()`, which like `GetAlphaDiversity()` can
+calculate several different diversity measures through a common
 interface. Here we apply `"bray"`, which is feature-based and does not
 require a distance matrix between compounds.
 
-We generate a distance matrix and pass it directly to
-[`HCplot()`](https://phytoecia.github.io/eCOMET/reference/HCplot.md),
-which handles clustering and produces a phylogram with tips colored by
-species group.
+We generate a distance matrix and pass it directly to `HCplot()`, which
+handles clustering and produces a phylogram with tips colored by species
+group.
 
 ``` r
 
@@ -841,12 +834,12 @@ also be driven by the fact that many species do not share exact features
 at all. In that situation, feature-overlap methods may exaggerate
 separation even when species produce structurally related metabolites.
 
-## 6. Add structural relationships among features
+## 6\. Add structural relationships among features
 
 Feature-overlap metrics become limited when most compounds are unique to
 one species. Two species may appear completely dissimilar even if they
 produce related compounds from the same biosynthetic pathways. To
-address that limitation, we next add chemical distance information
+address that limitation, we next add chemical similarity information
 derived from DREAMS so that similarity can be evaluated among compounds,
 not just among exact matching features.
 
@@ -854,29 +847,36 @@ We introduce feature-based molecular networking and compound dendrograms
 that group mz-features into structurally similar groups on a tree.
 
 ``` r
-# Add Dreams distance
-mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
+# Add Dreams similarity
+mmo <- AddChemSim(mmo, dreams_dir = demo_dreams)
 
-mmo$dreams.dissim[1:10,1:10]
+mmo$dreams.sim[1:10,1:10]
 #>         4    37    91    94   101   130   200   204   211   213
-#> 4   0.000 0.751 1.000 1.000 0.775 0.659 1.000 0.647 0.827 0.772
-#> 37  0.751 0.000 1.000 0.730 0.738 0.733 0.786 1.000 0.720 1.000
-#> 91  1.000 1.000 0.000 0.255 0.688 0.552 1.000 0.622 0.774 1.000
-#> 94  1.000 0.730 0.255 0.000 0.585 0.522 1.000 0.585 0.683 0.694
-#> 101 0.775 0.738 0.688 0.585 0.000 0.171 1.000 0.600 0.587 0.703
-#> 130 0.659 0.733 0.552 0.522 0.171 0.000 1.000 0.548 0.569 0.730
-#> 200 1.000 0.786 1.000 1.000 1.000 1.000 0.000 1.000 1.000 1.000
-#> 204 0.647 1.000 0.622 0.585 0.600 0.548 1.000 0.000 0.607 0.555
-#> 211 0.827 0.720 0.774 0.683 0.587 0.569 1.000 0.607 0.000 0.442
-#> 213 0.772 1.000 1.000 0.694 0.703 0.730 1.000 0.555 0.442 0.000
+#> 4   1.000 0.249 0.000 0.000 0.225 0.341 0.000 0.353 0.173 0.228
+#> 37  0.249 1.000 0.000 0.270 0.262 0.267 0.214 0.000 0.280 0.000
+#> 91  0.000 0.000 1.000 0.745 0.312 0.448 0.000 0.378 0.226 0.000
+#> 94  0.000 0.270 0.745 1.000 0.415 0.478 0.000 0.415 0.317 0.306
+#> 101 0.225 0.262 0.312 0.415 1.000 0.829 0.000 0.400 0.413 0.297
+#> 130 0.341 0.267 0.448 0.478 0.829 1.000 0.000 0.452 0.431 0.270
+#> 200 0.000 0.214 0.000 0.000 0.000 0.000 1.000 0.000 0.000 0.000
+#> 204 0.353 0.000 0.378 0.415 0.400 0.452 0.000 1.000 0.393 0.445
+#> 211 0.173 0.280 0.226 0.317 0.413 0.431 0.000 0.393 1.000 0.558
+#> 213 0.228 0.000 0.000 0.306 0.297 0.270 0.000 0.445 0.558 1.000
 ```
 
-This matrix stores pairwise chemical dissimilarity among features. Once
-this information is available, later analyses can distinguish between
-features that are unrelated and features that are distinct but still
-structurally similar.
+This matrix stores pairwise chemical similarity among features, on a 0–1
+scale where 1 means identical. Downstream functions convert it to a
+distance internally as `1 - similarity`. Once this information is
+available, later analyses can distinguish between features that are
+unrelated and features that are distinct but still structurally similar.
 
-## 7. Recalculate beta diversity using chemical distances
+Storing similarity rather than distance also matters for large studies.
+An unmeasured feature pair has similarity 0, which a sparse matrix can
+leave out entirely, whereas the same pair has distance 1, which must be
+stored. Above 10,000 features `AddChemSim()` therefore switches to
+sparse storage automatically.
+
+## 7\. Recalculate beta diversity using chemical distances
 
 Now that we have a matrix describing relationships among compounds, we
 can recalculate sample-to-sample dissimilarity in a way that uses
@@ -886,53 +886,52 @@ detected feature to be considered chemically similar.
 
 ### A note on controlling feature abundance in `GetBetaDiversity()`
 
-Each method in
-[`GetBetaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetBetaDiversity.md)
-treats feature abundance differently, and the levers available to you
-depend on which method you are using.
+Each method in `GetBetaDiversity()` treats feature abundance
+differently, and the levers available to you depend on which method you
+are using.
 
-- **Bray-Curtis (`method = "bray"`)**: Abundance is used directly in the
-  dissimilarity formula. You control how much influence high-abundance
-  features have through the `normalization` argument.
-  `normalization = "None"` uses raw peak areas, `normalization = "Log"`
-  compresses the dynamic range so that very abundant features have less
-  outsized influence, and `normalization = "PA"` converts everything to
-  presence/absence so abundance is ignored entirely.
+  - **Bray-Curtis (`method = "bray"`)**: Abundance is used directly in
+    the dissimilarity formula. You control how much influence
+    high-abundance features have through the `normalization` argument.
+    `normalization = "None"` uses raw peak areas, `normalization =
+    "Log"` compresses the dynamic range so that very abundant features
+    have less outsized influence, and `normalization = "PA"` converts
+    everything to presence/absence so abundance is ignored entirely.
 
-- **Jaccard (`method = "jaccard"`)**: Jaccard is a presence/absence
-  measure by definition. The `normalization` argument is ignored — the
-  function always uses the presence/absence table internally and will
-  issue a warning if you supply anything else. This means Jaccard
-  answers the question: do these two samples detect the same compounds
-  at all, regardless of how much of each compound is present?
+  - **Jaccard (`method = "jaccard"`)**: Jaccard is a presence/absence
+    measure by definition. The `normalization` argument is ignored — the
+    function always uses the presence/absence table internally and will
+    issue a warning if you supply anything else. This means Jaccard
+    answers the question: do these two samples detect the same compounds
+    at all, regardless of how much of each compound is present?
 
-- **CSCS (`method = "CSCS"`)**: Like Bray-Curtis, CSCS is sensitive to
-  abundance by default and you control that sensitivity through
-  `normalization`. The key difference from Bray-Curtis is that CSCS also
-  uses the compound distance matrix, so structurally related features
-  that are not identical can still contribute to similarity.
-  `normalization = "None"` makes highly abundant features drive the CSCS
-  score; `normalization = "PA"` makes it a purely structural comparison
-  based on which chemical neighborhoods are represented.
+  - **CSCS (`method = "CSCS"`)**: Like Bray-Curtis, CSCS is sensitive to
+    abundance by default and you control that sensitivity through
+    `normalization`. The key difference from Bray-Curtis is that CSCS
+    also uses the compound distance matrix, so structurally related
+    features that are not identical can still contribute to similarity.
+    `normalization = "None"` makes highly abundant features drive the
+    CSCS score; `normalization = "PA"` makes it a purely structural
+    comparison based on which chemical neighborhoods are represented.
 
-- **Generalized UniFrac (`method = "Gen.Uni"`)**: This method computes
-  three distance matrices in a single pass, each with a different
-  abundance-weighting level controlled by an internal `alpha` parameter.
-  Rather than choosing one upfront,
-  [`GetBetaDiversity()`](https://phytoecia.github.io/eCOMET/reference/GetBetaDiversity.md)
-  returns all three as a named list so you can compare or choose the
-  most appropriate one:
-
-  - `d_0`: presence/absence only — equivalent to unweighted UniFrac. Use
-    this when you want to know whether the same chemical branches are
-    represented, regardless of how much of each compound is present.
-  - `d_0.5`: balanced weighting (recommended starting point). Moderates
-    the influence of highly abundant features without ignoring abundance
-    entirely.
-  - `d_1`: fully abundance-weighted. Dominant features drive the
-    distance. Use this when peak intensity is a reliable biological
-    signal and you want the most abundant compounds to have the most
-    influence.
+  - **Generalized UniFrac (`method = "Gen.Uni"`)**: This method computes
+    three distance matrices in a single pass, each with a different
+    abundance-weighting level controlled by an internal `alpha`
+    parameter. Rather than choosing one upfront, `GetBetaDiversity()`
+    returns all three as a named list so you can compare or choose the
+    most appropriate one:
+    
+      - `d_0`: presence/absence only — equivalent to unweighted UniFrac.
+        Use this when you want to know whether the same chemical
+        branches are represented, regardless of how much of each
+        compound is present.
+      - `d_0.5`: balanced weighting (recommended starting point).
+        Moderates the influence of highly abundant features without
+        ignoring abundance entirely.
+      - `d_1`: fully abundance-weighted. Dominant features drive the
+        distance. Use this when peak intensity is a reliable biological
+        signal and you want the most abundant compounds to have the most
+        influence.
 
 We present two structure-aware methods below:
 
@@ -1032,7 +1031,7 @@ chemistry. Overlap among species indicates greater similarity or weaker
 taxonomic structure.
 
 We can also visualize beta diversity in a PCoA plot. Here we use
-Generalized UniFrac (d_1) to show a structure-aware ordination.
+Generalized UniFrac (d\_1) to show a structure-aware ordination.
 
 ``` r
 PCOA_example <- PCoAplot(mmo, color = custom_colors,
@@ -1117,7 +1116,7 @@ pcoa_comparison
 
 ![](Tutorial_2_Interspecific_Comparisons_files/figure-html/unnamed-chunk-34-1.png)
 
-## 8. structure-aware alpha diversity
+## 8\. structure-aware alpha diversity
 
 So far, our alpha diversity summaries have treated each feature as
 equally distinct. We now revisit alpha diversity using structure-aware
@@ -1138,62 +1137,62 @@ group_mean_functionalhill <- GetAlphaDiversity(
 )
 group_mean_functionalhill
 #>              sample                    group     value
-#> 1  annRSS85_MDP0005            Annona RSS-85 1753206.3
-#> 2  annRSS85_MDP0091            Annona RSS-85 1753582.5
-#> 3  annRSS85_MDP0307            Annona RSS-85 1910780.5
-#> 4  annRSS85_MDP0415            Annona RSS-85 1687474.2
-#> 5  annRSS85_MDP0464            Annona RSS-85 1133026.8
-#> 6  annRSS85_MDP0636            Annona RSS-85 1104330.2
-#> 7    beitov_MDP0008 Beilschmiedia tovarensis 1145308.3
-#> 8    beitov_MDP0229 Beilschmiedia tovarensis  863457.4
-#> 9    beitov_MDP0466 Beilschmiedia tovarensis  733205.4
-#> 10   beitov_MDP0536 Beilschmiedia tovarensis  975442.8
-#> 11   beitov_MDP0638 Beilschmiedia tovarensis  898505.6
-#> 12   elamar_MDP0022          Elaeagia mariae 1335654.3
-#> 13   elamar_MDP0104          Elaeagia mariae  965135.2
-#> 14   elamar_MDP0244          Elaeagia mariae 1161497.1
-#> 15   elamar_MDP0423          Elaeagia mariae 1199102.1
-#> 16   elamar_MDP0479          Elaeagia mariae 1425507.3
-#> 17   elamar_MDP0547          Elaeagia mariae  759208.8
-#> 18   elamar_MDP0651          Elaeagia mariae 1401670.5
-#> 19   elamar_MDP0720          Elaeagia mariae 1483933.4
-#> 20   ingalb_MDP0036                Inga alba 1483835.3
-#> 21   ingalb_MDP0115                Inga alba 1919854.4
-#> 22   ingalb_MDP0260                Inga alba 1191965.2
-#> 23   ingalb_MDP0336                Inga alba  371055.3
-#> 24   ingalb_MDP0735                Inga alba  730737.8
-#> 25  myr2fal_MDP0051            Myrcia fallax 1304563.6
-#> 26  myr2fal_MDP0130            Myrcia fallax  511474.6
-#> 27  myr2fal_MDP0269            Myrcia fallax 1740573.4
-#> 28  myr2fal_MDP0360            Myrcia fallax  800080.7
-#> 29  myr2fal_MDP0569            Myrcia fallax 1530809.8
-#> 30  myr2fal_MDP0678            Myrcia fallax 1130863.6
-#> 31  myr8cor_MDP0214         Myrsine coriacea 1387676.2
-#> 32  myr8cor_MDP0444         Myrsine coriacea  664712.9
-#> 33  myr8cor_MDP0507         Myrsine coriacea  598500.2
-#> 34  myr8cor_MDP0617         Myrsine coriacea  521899.8
-#> 35  myr8cor_MDP0679         Myrsine coriacea  777342.7
-#> 36   ocoaci_MDP0057         Ocotea aciphylla 1998877.3
-#> 37   ocoaci_MDP0134         Ocotea aciphylla 2316543.2
-#> 38   ocoaci_MDP0275         Ocotea aciphylla 1713947.2
-#> 39   ocoaci_MDP0365         Ocotea aciphylla 2351181.2
-#> 40   ocoaci_MDP0576         Ocotea aciphylla 1909361.5
-#> 41   ocoaci_MDP0751         Ocotea aciphylla 1991312.3
-#> 42  pou2bic_MDP0068         Pourouma bicolor 1468636.9
-#> 43  pou2bic_MDP0144         Pourouma bicolor 1050802.0
-#> 44  pou2bic_MDP0284         Pourouma bicolor 1242546.6
-#> 45  pou2bic_MDP0375         Pourouma bicolor  856883.5
-#> 46  pou2bic_MDP0764         Pourouma bicolor 1244316.4
-#> 47  sch4obo_MDP0079     Schizocalyx obovatus  683229.4
-#> 48  sch4obo_MDP0156     Schizocalyx obovatus  734315.8
-#> 49  sch4obo_MDP0293     Schizocalyx obovatus 1230012.7
-#> 50  sch4obo_MDP0394     Schizocalyx obovatus  979810.3
-#> 51  sch4obo_MDP0772     Schizocalyx obovatus 1031886.6
-#> 52   weilec_MDP0087   Weinmannia lechleriana 1301957.8
-#> 53   weilec_MDP0160   Weinmannia lechleriana  638061.9
-#> 54   weilec_MDP0526   Weinmannia lechleriana  915838.3
-#> 55   weilec_MDP0599   Weinmannia lechleriana 1170650.2
-#> 56   weilec_MDP0703   Weinmannia lechleriana 1045505.5
+#> 1  annRSS85_MDP0005            Annona RSS-85 1716416.9
+#> 2  annRSS85_MDP0091            Annona RSS-85 1701286.3
+#> 3  annRSS85_MDP0307            Annona RSS-85 1853813.6
+#> 4  annRSS85_MDP0415            Annona RSS-85 1624374.7
+#> 5  annRSS85_MDP0464            Annona RSS-85 1100585.5
+#> 6  annRSS85_MDP0636            Annona RSS-85 1086792.7
+#> 7    beitov_MDP0008 Beilschmiedia tovarensis 1128375.5
+#> 8    beitov_MDP0229 Beilschmiedia tovarensis  842751.5
+#> 9    beitov_MDP0466 Beilschmiedia tovarensis  734259.9
+#> 10   beitov_MDP0536 Beilschmiedia tovarensis  968330.0
+#> 11   beitov_MDP0638 Beilschmiedia tovarensis  896874.3
+#> 12   elamar_MDP0022          Elaeagia mariae 1324587.5
+#> 13   elamar_MDP0104          Elaeagia mariae  976936.3
+#> 14   elamar_MDP0244          Elaeagia mariae 1169100.9
+#> 15   elamar_MDP0423          Elaeagia mariae 1198670.1
+#> 16   elamar_MDP0479          Elaeagia mariae 1409565.8
+#> 17   elamar_MDP0547          Elaeagia mariae  765869.8
+#> 18   elamar_MDP0651          Elaeagia mariae 1399804.6
+#> 19   elamar_MDP0720          Elaeagia mariae 1474160.2
+#> 20   ingalb_MDP0036                Inga alba 1453440.0
+#> 21   ingalb_MDP0115                Inga alba 1865743.6
+#> 22   ingalb_MDP0260                Inga alba 1160821.1
+#> 23   ingalb_MDP0336                Inga alba  377564.0
+#> 24   ingalb_MDP0735                Inga alba  729566.2
+#> 25  myr2fal_MDP0051            Myrcia fallax 1334262.7
+#> 26  myr2fal_MDP0130            Myrcia fallax  552178.5
+#> 27  myr2fal_MDP0269            Myrcia fallax 1736194.1
+#> 28  myr2fal_MDP0360            Myrcia fallax  845937.9
+#> 29  myr2fal_MDP0569            Myrcia fallax 1534528.8
+#> 30  myr2fal_MDP0678            Myrcia fallax 1170564.5
+#> 31  myr8cor_MDP0214         Myrsine coriacea 1386579.6
+#> 32  myr8cor_MDP0444         Myrsine coriacea  682057.4
+#> 33  myr8cor_MDP0507         Myrsine coriacea  628258.5
+#> 34  myr8cor_MDP0617         Myrsine coriacea  545821.4
+#> 35  myr8cor_MDP0679         Myrsine coriacea  798791.6
+#> 36   ocoaci_MDP0057         Ocotea aciphylla 1919065.1
+#> 37   ocoaci_MDP0134         Ocotea aciphylla 2212845.8
+#> 38   ocoaci_MDP0275         Ocotea aciphylla 1659346.5
+#> 39   ocoaci_MDP0365         Ocotea aciphylla 2252871.5
+#> 40   ocoaci_MDP0576         Ocotea aciphylla 1841217.3
+#> 41   ocoaci_MDP0751         Ocotea aciphylla 1916534.0
+#> 42  pou2bic_MDP0068         Pourouma bicolor 1456292.8
+#> 43  pou2bic_MDP0144         Pourouma bicolor 1063226.1
+#> 44  pou2bic_MDP0284         Pourouma bicolor 1237720.2
+#> 45  pou2bic_MDP0375         Pourouma bicolor  868753.5
+#> 46  pou2bic_MDP0764         Pourouma bicolor 1251108.7
+#> 47  sch4obo_MDP0079     Schizocalyx obovatus  683579.9
+#> 48  sch4obo_MDP0156     Schizocalyx obovatus  736756.2
+#> 49  sch4obo_MDP0293     Schizocalyx obovatus 1218768.6
+#> 50  sch4obo_MDP0394     Schizocalyx obovatus  979225.6
+#> 51  sch4obo_MDP0772     Schizocalyx obovatus 1038715.9
+#> 52   weilec_MDP0087   Weinmannia lechleriana 1319372.1
+#> 53   weilec_MDP0160   Weinmannia lechleriana  655752.7
+#> 54   weilec_MDP0526   Weinmannia lechleriana  946423.1
+#> 55   weilec_MDP0599   Weinmannia lechleriana 1188543.3
+#> 56   weilec_MDP0703   Weinmannia lechleriana 1076018.7
 ```
 
 Compare the structure-aware ordination from a feature only

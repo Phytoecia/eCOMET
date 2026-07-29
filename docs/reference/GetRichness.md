@@ -11,17 +11,17 @@ GetRichness(feature_data, metadata, threshold = 0)
 
 ## Arguments
 
-- feature_data:
+  - feature\_data:
+    
+    Feature table with columns: id, feature, then sample columns
 
-  Feature table with columns: id, feature, then sample columns
+  - metadata:
+    
+    Metadata table with sample and group columns
 
-- metadata:
-
-  Metadata table with sample and group columns
-
-- threshold:
-
-  Numeric; detection threshold for presence (default: 0)
+  - threshold:
+    
+    Numeric; detection threshold for presence (default: 0)
 
 ## Value
 

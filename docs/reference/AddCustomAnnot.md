@@ -1,4 +1,4 @@
-# Add custom annotations to an mmo object
+# Add custom annotations to a `mmo`
 
 Match features to a custom DB by m/z (ppm) and RT (minutes) tolerances
 and attach a list-column of candidate compound IDs per feature.
@@ -11,27 +11,25 @@ AddCustomAnnot(mmo, DB_file, mztol = 5, rttol = 0.5)
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    A `mmo` created by `GetMZmineFeature()`.
 
-  An `mmo` object created by
-  [`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md).
+  - DB\_file:
+    
+    CSV path with at least columns `compound`, `mz`, `rt`.
 
-- DB_file:
+  - mztol:
+    
+    m/z tolerance in ppm (default 5).
 
-  CSV path with at least columns `compound`, `mz`, `rt`.
-
-- mztol:
-
-  m/z tolerance in ppm (default 5).
-
-- rttol:
-
-  RT tolerance in minutes (default 0.5).
+  - rttol:
+    
+    RT tolerance in minutes (default 0.5).
 
 ## Value
 
-The same `mmo` object with `mmo$custom_annot` (id, feature,
-custom_annot).
+The same `mmo` with `mmo$custom_annot` (id, feature, custom\_annot).
 
 ## Examples
 

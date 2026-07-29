@@ -10,23 +10,23 @@ SaveMMO(mmo, file = "mmo.rds", compress = "xz", include_session = TRUE)
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` to save
 
-  The mmo object (list) to save
+  - file:
+    
+    File path to write (default: "mmo.rds")
 
-- file:
+  - compress:
+    
+    Compression type passed to saveRDS ("gzip", "bzip2", "xz", or
+    logical) (default: "xz")
 
-  File path to write (default: "mmo.rds")
-
-- compress:
-
-  Compression type passed to saveRDS ("gzip", "bzip2", "xz", or logical)
-  (default: "xz")
-
-- include_session:
-
-  Logical; if TRUE attach sessionInfo() as an attribute to the saved
-  object (default: TRUE)
+  - include\_session:
+    
+    Logical; if TRUE attach sessionInfo() as an attribute to the saved
+    object (default: TRUE)
 
 ## Value
 

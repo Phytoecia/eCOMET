@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{AddCustomAnnot}
 \alias{AddCustomAnnot}
-\title{Add custom annotations to an mmo object}
+\title{Add custom annotations to a \code{mmo}}
 \usage{
 AddCustomAnnot(mmo, DB_file, mztol = 5, rttol = 0.5)
 }
 \arguments{
-\item{mmo}{An \code{mmo} object created by \code{GetMZmineFeature()}.}
+\item{mmo}{A \code{mmo} created by \code{GetMZmineFeature()}.}
 
 \item{DB_file}{CSV path with at least columns \code{compound}, \code{mz}, \code{rt}.}
 
@@ -16,7 +16,7 @@ AddCustomAnnot(mmo, DB_file, mztol = 5, rttol = 0.5)
 \item{rttol}{RT tolerance in minutes (default 0.5).}
 }
 \value{
-The same \code{mmo} object with \code{mmo$custom_annot} (id, feature, custom_annot).
+The same \code{mmo} with \code{mmo$custom_annot} (id, feature, custom_annot).
 }
 \description{
 Match features to a custom DB by m/z (ppm) and RT (minutes) tolerances and

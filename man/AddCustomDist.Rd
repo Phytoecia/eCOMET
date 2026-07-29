@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{AddCustomDist}
 \alias{AddCustomDist}
-\title{Add a custom feature distance matrix to the mmo object}
+\title{Add a custom feature distance matrix to the \code{mmo}}
 \usage{
 AddCustomDist(mmo, dist_matrix, name)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{dist_matrix}{A square numeric matrix of pairwise feature dissimilarities
 (see Details for format requirements).}
@@ -20,11 +20,11 @@ Must not conflict with existing names: \code{"dreams"}, \code{"cosine"},
 \code{"m2ds"}.}
 }
 \value{
-The mmo object with the new distance matrix stored in
+The \code{mmo} with the new distance matrix stored in
 \code{mmo$<name>.dissim}.
 }
 \description{
-Stores any user-supplied pairwise feature distance matrix in the mmo object
+Stores any user-supplied pairwise feature distance matrix in the \code{mmo}
 so it can be used by \code{GetBetaDiversity()}, \code{GetAlphaDiversity()},
 and \code{HeatmapPlot()} via the \code{distance} argument.
 }

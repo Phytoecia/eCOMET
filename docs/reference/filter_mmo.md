@@ -1,13 +1,13 @@
-# Filter an mmo object by samples, groups, and/or features
+# Filter a `mmo` by samples, groups, and/or features
 
-Subset all components of an mmo object (feature tables, metadata,
-distance matrices, and annotations) to a given set of samples, groups,
-and/or feature IDs. Filtering is applied consistently across all slots
-present in `mmo`.
+Subset all components of a `mmo` (feature tables, metadata, distance
+matrices, and annotations) to a given set of samples, groups, and/or
+feature IDs. Filtering is applied consistently across all slots present
+in `mmo`.
 
 Optionally, if an `mgf_path` is provided, a filtered MGF is written
 containing only spectra for the retained features (using
-[`filter_mgf_to_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mgf_to_mmo.md)).
+`filter_mgf_to_mmo()`).
 
 ## Usage
 
@@ -28,66 +28,63 @@ filter_mmo(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    A list-like `mmo` as returned by `GetMZmineFeature()`.
 
-  A list-like mmo object as returned by
-  [`GetMZmineFeature()`](https://phytoecia.github.io/eCOMET/reference/GetMZmineFeature.md).
+  - sample\_list:
+    
+    Optional character vector of sample IDs (matching `sample_col` in
+    `mmo$metadata`) to retain.
 
-- sample_list:
+  - group\_list:
+    
+    Optional character vector of group labels (matching `group_col` in
+    `mmo$metadata`) to retain. Mutually exclusive with `sample_list`.
 
-  Optional character vector of sample IDs (matching `sample_col` in
-  `mmo$metadata`) to retain.
+  - id\_list:
+    
+    Optional character vector of feature IDs to retain. If `NULL`,
+    features are determined from `feature_data` and optionally filtered
+    by `drop_empty_feat`.
 
-- group_list:
+  - sample\_col:
+    
+    Column name in `mmo$metadata` containing sample IDs. Default is
+    `"sample"`.
 
-  Optional character vector of group labels (matching `group_col` in
-  `mmo$metadata`) to retain. Mutually exclusive with `sample_list`.
+  - group\_col:
+    
+    Column name in `mmo$metadata` containing group labels. Default is
+    `"group"`.
 
-- id_list:
+  - drop\_empty\_feat:
+    
+    Logical; if `TRUE` (default) drop features with no non-zero values
+    in the retained samples.
 
-  Optional character vector of feature IDs to retain. If `NULL`,
-  features are determined from `feature_data` and optionally filtered by
-  `drop_empty_feat`.
+  - empty\_threshold:
+    
+    Optional numeric threshold used to define "empty" features. If
+    `NULL` (default), the smallest positive, non-NA intensity in the
+    retained samples is used. Features are kept if they have at least
+    one value \> threshold across retained samples.
 
-- sample_col:
+  - mgf\_path:
+    
+    Optional character. If provided, an MGF file will be filtered to
+    retained features using `filter_mgf_to_mmo()`.
 
-  Column name in `mmo$metadata` containing sample IDs. Default is
-  `"sample"`.
-
-- group_col:
-
-  Column name in `mmo$metadata` containing group labels. Default is
-  `"group"`.
-
-- drop_empty_feat:
-
-  Logical; if `TRUE` (default) drop features with no non-zero values in
-  the retained samples.
-
-- empty_threshold:
-
-  Optional numeric threshold used to define "empty" features. If `NULL`
-  (default), the smallest positive, non-NA intensity in the retained
-  samples is used. Features are kept if they have at least one value \>
-  threshold across retained samples.
-
-- mgf_path:
-
-  Optional character. If provided, an MGF file will be filtered to
-  retained features using
-  [`filter_mgf_to_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mgf_to_mmo.md).
-
-- output_path:
-
-  Character or NULL. Passed to
-  [`filter_mgf_to_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mgf_to_mmo.md).
-  If `NULL` (default), output is `"<input>_filtered.mgf"`.
+  - output\_path:
+    
+    Character or NULL. Passed to `filter_mgf_to_mmo()`. If `NULL`
+    (default), output is `"<input>_filtered.mgf"`.
 
 ## Value
 
-A filtered mmo object with the same structure as `mmo`, but restricted
-to the requested samples / groups / features. If `mgf_path` is provided,
-the returned object also includes `mmo_filtered$mgf_filtered_path`.
+A filtered `mmo` with the same structure as `mmo`, but restricted to the
+requested samples / groups / features. If `mgf_path` is provided, the
+returned object also includes `mmo_filtered$mgf_filtered_path`.
 
 ## Examples
 

@@ -17,7 +17,7 @@ HCplot(
 )
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{betadiv}{Beta diversity distance matrix, output of GetBetaDiversity()}
 
@@ -40,7 +40,7 @@ A list containing: plot (ggplot object), hc (hclust), phy (phylo)
 }
 \description{
 Hierarchical clustering of samples from a precomputed beta-diversity matrix,
-plotted as a phylogram with tip labels colored by mmo$metadata$group.
+plotted as a phylogram with tip labels colored by \code{mmo$metadata$group}.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}

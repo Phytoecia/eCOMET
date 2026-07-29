@@ -2,20 +2,20 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{MeancenterNormalization}
 \alias{MeancenterNormalization}
-\title{Mean-center the peak area in the mmo object}
+\title{Mean-center the peak area in the \code{mmo}}
 \usage{
 MeancenterNormalization(mmo, imputed_data = FALSE)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{imputed_data}{Whether to use imputed feature data (default = FALSE)}
 }
 \value{
-The mmo object with mean-centered feature data stored in \code{mmo$meancentered}
+The \code{mmo} with mean-centered feature data stored in \code{mmo$meancentered}
 }
 \description{
 This function applies mean-centering to the peak area in the feature data
-of the mmo object. Mean-centering is performed per feature (row) across samples.
+of the \code{mmo}. Mean-centering is performed per feature (row) across samples.
 Features with zero variance are returned as all zeros and are reported in a warning.
 }

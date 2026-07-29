@@ -1,8 +1,8 @@
-# Perform ANOVA and Tukey's HSD test on the mmo object
+# Perform ANOVA and Tukey's HSD test on the `mmo`
 
 This function performs ANOVA and Tukey's HSD test on the feature data of
-the mmo object, Returns a list of ANOVA results, Tukey's HSD results,
-Tukey's significance letters, and Dunnett's test results.
+the `mmo`, Returns a list of ANOVA results, Tukey's HSD results, Tukey's
+significance letters, and Dunnett's test results.
 
 ## Usage
 
@@ -12,13 +12,13 @@ anova_tukey_dunnett(df, formula)
 
 ## Arguments
 
-- df:
+  - df:
+    
+    The data frame containing the feature data and metadata
 
-  The data frame containing the feature data and metadata
-
-- formula:
-
-  The formula for the ANOVA test, e.g., "feature ~ group"
+  - formula:
+    
+    The formula for the ANOVA test, e.g., "feature \~ group"
 
 ## Value
 

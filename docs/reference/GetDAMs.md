@@ -1,7 +1,7 @@
-# Generates lists of DAMs (Differentially Accumulated Metabolites) for each comparison in the mmo object
+# Generates lists of DAMs (Differentially Accumulated Metabolites) for each comparison in the `mmo`
 
 This function generates lists of upregulated and downregulated DAMs for
-each pairwise comparison in the mmo object. It uses log2 fold change and
+each pairwise comparison in the `mmo`. It uses log2 fold change and
 adjusted p-value thresholds to determine significance. Make sure to run
 PairwiseComp() for all desired comparisons before using this function.
 
@@ -13,28 +13,28 @@ GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05, use_padj = TRUE)
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with pairwise comparison matrix
 
-  The mmo object with pairwise comparison matrix
+  - fc\_cutoff:
+    
+    The threshold of log2 fold change to be considered significant
+    (default: 0.5849625, which is log2(1.5))
 
-- fc_cutoff:
+  - pval\_cutoff:
+    
+    The threshold of adjusted p-value to be considered significant
+    (default: 0.05)
 
-  The threshold of log2 fold change to be considered significant
-  (default: 0.5849625, which is log2(1.5))
-
-- pval_cutoff:
-
-  The threshold of adjusted p-value to be considered significant
-  (default: 0.05)
-
-- use_padj:
-
-  Boolean value indicating whether to use adjusted p-value (default:
-  TRUE)
+  - use\_padj:
+    
+    Boolean value indicating whether to use adjusted p-value (default:
+    TRUE)
 
 ## Value
 
-A list containing two lists: DAMs_up and DAMs_down
+A list containing two lists: DAMs\_up and DAMs\_down
 
 ## Examples
 

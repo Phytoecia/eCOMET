@@ -24,55 +24,55 @@ AnovaBarPlot(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` containing metadata and feature data
 
-  The mmo object containing metadata and feature data
+  - ID\_list:
+    
+    A list of feature IDs to analyze. Use FeatureToID() to convert
+    feature names to IDs.
 
-- ID_list:
+  - outdir:
+    
+    The output directory to save the bar plots and ANOVA results
 
-  A list of feature IDs to analyze. Use FeatureToID() to convert feature
-  names to IDs.
+  - normalization:
+    
+    The normalization method to use for feature data. Options are
+    'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 
-- outdir:
+  - filter\_group:
+    
+    A boolean indicating whether to filter the feature values by a
+    specific group list (default: FALSE)
 
-  The output directory to save the bar plots and ANOVA results
+  - group\_list:
+    
+    A list of groups to filter the feature values by, if filter\_group
+    is TRUE (default: NULL)
 
-- normalization:
+  - save\_output:
+    
+    A logical value indicating whether to save the output plot (default:
+    TRUE)
 
-  The normalization method to use for feature data. Options are 'None',
-  'Log', 'Meancentered', or 'Z' (default: 'None')
+  - width:
+    
+    The width of the output plot in inches (default: 6)
 
-- filter_group:
+  - height:
+    
+    The height of the output plot in inches (default: 6)
 
-  A boolean indicating whether to filter the feature values by a
-  specific group list (default: FALSE)
+  - colors:
+    
+    A vector of colors for the groups (default: NULL)
 
-- group_list:
-
-  A list of groups to filter the feature values by, if filter_group is
-  TRUE (default: NULL)
-
-- save_output:
-
-  A logical value indicating whether to save the output plot (default:
-  TRUE)
-
-- width:
-
-  The width of the output plot in inches (default: 6)
-
-- height:
-
-  The height of the output plot in inches (default: 6)
-
-- colors:
-
-  A vector of colors for the groups (default: NULL)
-
-- posthoc:
-
-  A character string indicating the post-hoc test to perform (default:
-  NULL)
+  - posthoc:
+    
+    A character string indicating the post-hoc test to perform (default:
+    NULL)
 
 ## Value
 

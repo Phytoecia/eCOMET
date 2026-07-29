@@ -26,36 +26,34 @@ ExportITOL(
 
 ## Arguments
 
-- tree:
+  - tree:
+    
+    Output list from `FeatureDendrogram()`.
 
-  Output list from
-  [`FeatureDendrogram()`](https://phytoecia.github.io/eCOMET/reference/FeatureDendrogram.md).
+  - mmo:
+    
+    `mmo`. Must contain `mmo$sirius_annot` (for colour strip) and
+    `mmo$feature_presence` or `mmo$feature_data` (for prevalence bar
+    chart).
 
-- mmo:
+  - outprefix:
+    
+    File path prefix for output files (default: `"itol_export"`).
+    Directories in the path must exist.
 
-  mmo object. Must contain `mmo$sirius_annot` (for colour strip) and
-  `mmo$feature_presence` or `mmo$feature_data` (for prevalence bar
-  chart).
+  - color\_by:
+    
+    Column name in `mmo$sirius_annot` used for the colour strip
+    (default: `"NPC#pathway"`).
 
-- outprefix:
+  - palette:
+    
+    Qualitative palette name for `colorspace::qualitative_hcl` (default:
+    `"Dark 3"`).
 
-  File path prefix for output files (default: `"itol_export"`).
-  Directories in the path must exist.
-
-- color_by:
-
-  Column name in `mmo$sirius_annot` used for the colour strip (default:
-  `"NPC#pathway"`).
-
-- palette:
-
-  Qualitative palette name for
-  [`colorspace::qualitative_hcl`](https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html)
-  (default: `"Dark 3"`).
-
-- na_color:
-
-  Hex colour for features with no annotation (default: `"#CCCCCC"`).
+  - na\_color:
+    
+    Hex colour for features with no annotation (default: `"#CCCCCC"`).
 
 ## Value
 

@@ -17,7 +17,7 @@ filter_cosmic_structure(
 )
 }
 \arguments{
-\item{mmo}{An ecomet mmo object containing \code{mmo[[input]]} (a data.frame).}
+\item{mmo}{An eCOMET \code{mmo} containing \code{mmo[[input]]} (a data.frame).}
 
 \item{input}{Character. Name of the element on \code{mmo} to filter. Defaults to \code{"sirius_annot"}.}
 
@@ -38,11 +38,11 @@ when the structure is filtered out.}
 \item{verbose}{Logical. If \code{TRUE}, prints a concise summary.}
 }
 \value{
-The updated \code{mmo} object, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
+The updated \code{mmo}, with a new element \code{mmo[[paste0("sirius_annot_filtered_", suffix)]]}.
 }
 \description{
 Applies a minimum COSMIC confidence cutoff to SIRIUS structure predictions inside an
-ecomet \code{mmo} object. The function reads a chosen annotation table from
+ecomet \code{mmo}. The function reads a chosen annotation table from
 \code{mmo[[input]]} (default \code{"sirius_annot"}), flags structure annotations below
 \code{threshold} by setting selected structure-identification fields to \code{NA},
 and stores the result as a new element on \code{mmo} named

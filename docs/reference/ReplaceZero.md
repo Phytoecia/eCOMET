@@ -1,8 +1,8 @@
-# \#' Replace zero and NA values in the mmo object
+# \#' Replace zero and NA values in the `mmo`
 
-This function replaces zero values in the feature table of an mmo
-object. Imputed data are stored in mmo\$imputed_feature_data, to be used
-for downsteam analyses including PairwiseComp(). Note that imputation
+This function replaces zero values in the feature table of a `mmo`.
+Imputed data are stored in mmo$imputed\_feature\_data, to be used for
+downsteam analyses including PairwiseComp(). Note that imputation
 affects normalizations (Log-transformation, etc.), as well as chemical
 diversity calculations that uses presence/absence.
 
@@ -14,19 +14,19 @@ ReplaceZero(mmo, method = c("one", "half_min"))
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    A `mmo` containing `feature_data`
 
-  An mmo object containing `feature_data`
-
-- method:
-
-  Replacement method:
-
-  - "one": replace zeros and NA values with 1
-
-  - "half_min": replace zeros and NA values with half of the smallest
-    non-zero value in each feature (row)
+  - method:
+    
+    Replacement method:
+    
+      - "one": replace zeros and NA values with 1
+    
+      - "half\_min": replace zeros and NA values with half of the
+        smallest non-zero value in each feature (row)
 
 ## Value
 
-The updated mmo object
+The updated `mmo`

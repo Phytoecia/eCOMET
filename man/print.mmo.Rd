@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{print.mmo}
 \alias{print.mmo}
-\title{Print method for mmo objects
+\title{Print method for \code{mmo}s
 Provides a clean, human-readable overview of an \code{mmo} list object instead of
 dumping the entire list when the object is printed in the console.}
 \usage{
@@ -18,7 +18,7 @@ dumping the entire list when the object is printed in the console.}
 Invisibly returns \code{x} unchanged.
 }
 \description{
-Print method for mmo objects
+Print method for \code{mmo}s
 Provides a clean, human-readable overview of an \code{mmo} list object instead of
 dumping the entire list when the object is printed in the console.
 }

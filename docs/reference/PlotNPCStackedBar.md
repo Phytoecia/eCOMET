@@ -1,10 +1,10 @@
 # PlotNPCStackedBar
 
 This function generates a stacked bar plot showing the count of features
-in each group categorized by NPC_pathway. It uses the mmo object with
-sirius annotation and normalized data. Make sure you don't run
-ReplaceZero() before using this function, as it may remove
-presence/absence information.
+in each group categorized by NPC\_pathway. It uses the `mmo` with sirius
+annotation and normalized data. Make sure you don't run ReplaceZero()
+before using this function, as it may remove presence/absence
+information.
 
 ## Usage
 
@@ -21,30 +21,30 @@ PlotNPCStackedBar(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with sirius annotation and normalized data
 
-  The mmo object with sirius annotation and normalized data
+  - group\_col:
+    
+    The column name in metadata to use for grouping samples
 
-- group_col:
+  - outdir:
+    
+    The output file path for the stacked bar plot (e.g.,
+    'NPC\_stacked\_bar.png')
 
-  The column name in metadata to use for grouping samples
+  - width:
+    
+    The width of the output plot
 
-- outdir:
+  - height:
+    
+    The height of the output plot
 
-  The output file path for the stacked bar plot (e.g.,
-  'NPC_stacked_bar.png')
-
-- width:
-
-  The width of the output plot
-
-- height:
-
-  The height of the output plot
-
-- save_output:
-
-  boolean, whether to save the output plot
+  - save\_output:
+    
+    boolean, whether to save the output plot
 
 ## Value
 

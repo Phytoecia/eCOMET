@@ -1,7 +1,7 @@
 # Volcano plot for visualizing differential metabolite analysis results
 
-This function generates a volcano plot using data from mmo\$pairwise
-(PairwiseComp(mmo, 'group1', 'group2') should be precended),
+This function generates a volcano plot using data from `mmo$pairwise`
+(`PairwiseComp(mmo, 'group1', 'group2')` should be specified),
 highlighting upregulated and downregulated features based on log2 fold
 change and adjusted p-value
 
@@ -24,49 +24,49 @@ VolcanoPlot(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with pairwise comparison matrix
 
-  The mmo object with pairwise comparison matrix
+  - comp:
+    
+    The comparison to visualize, e.g., 'group1\_vs\_group2
 
-- comp:
+  - topk:
+    
+    The number of top features to label in the plot (default: 10)
 
-  The comparison to visualize, e.g., 'group1_vs_group2
+  - log2FC\_thr:
+    
+    The threshold of log2 fold change to be considered significant
+    (default: 1)
 
-- topk:
+  - pthr:
+    
+    The threshold of adjusted p-value to be considered significant
+    (default: 0.05)
 
-  The number of top features to label in the plot (default: 10)
+  - outdir:
+    
+    The output file path for the volcano plot (default: 'volcano.png')
 
-- log2FC_thr:
+  - height:
+    
+    The height of the output plot in inches (default: 5)
 
-  The threshold of log2 fold change to be considered significant
-  (default: 1)
+  - width:
+    
+    The width of the output plot in inches (default: 5)
 
-- pthr:
+  - save\_output:
+    
+    A logical value indicating whether to save the output plot (default:
+    TRUE)
 
-  The threshold of adjusted p-value to be considered significant
-  (default: 0.05)
-
-- outdir:
-
-  The output file path for the volcano plot (default: 'volcano.png')
-
-- height:
-
-  The height of the output plot in inches (default: 5)
-
-- width:
-
-  The width of the output plot in inches (default: 5)
-
-- save_output:
-
-  A logical value indicating whether to save the output plot (default:
-  TRUE)
-
-- use_padj:
-
-  A logical value indicating whether to use adjusted p-value (default:
-  TRUE)
+  - use\_padj:
+    
+    A logical value indicating whether to use adjusted p-value (default:
+    TRUE)
 
 ## Value
 

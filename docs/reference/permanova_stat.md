@@ -22,30 +22,30 @@ permanova_stat(
 
 ## Arguments
 
-- data:
+  - data:
+    
+    A data frame or distance matrix for PERMANOVA
 
-  A data frame or distance matrix for PERMANOVA
+  - metadata:
+    
+    A data frame containing sample metadata, including a 'group' column
 
-- metadata:
+  - mode:
+    
+    The mode of the input data: 'data' for raw data or 'distance' for a
+    distance matrix
 
-  A data frame containing sample metadata, including a 'group' column
+  - filter\_group:
+    
+    Boolean to filter groups based on a provided list (default: FALSE)
 
-- mode:
+  - group\_list:
+    
+    A vector of group names to filter (default: NULL)
 
-  The mode of the input data: 'data' for raw data or 'distance' for a
-  distance matrix
-
-- filter_group:
-
-  Boolean to filter groups based on a provided list (default: FALSE)
-
-- group_list:
-
-  A vector of group names to filter (default: NULL)
-
-- permutations:
-
-  The number of permutations for the PERMANOVA test (default: 5000)
+  - permutations:
+    
+    The number of permutations for the PERMANOVA test (default: 5000)
 
 ## Value
 

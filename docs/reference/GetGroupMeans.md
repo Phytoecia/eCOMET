@@ -1,7 +1,7 @@
-# Calculate group means from the mmo object
+# Calculate group means from the `mmo`
 
 This function calculates and returns a dataframe of mean feature values
-for each group in the mmo object, with options for normalization and
+for each group in the `mmo`, with options for normalization and
 filtering. Use SwitchGroup() to change the grouping variable before
 running this function.
 
@@ -20,30 +20,30 @@ GetGroupMeans(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo`
 
-  The mmo object
+  - normalization:
+    
+    The normalization method to use. Options are 'None', 'Log',
+    'Meancentered', or 'Z'
 
-- normalization:
+  - filter\_id:
+    
+    Boolean to filter features based on a provided list (default: FALSE)
 
-  The normalization method to use. Options are 'None', 'Log',
-  'Meancentered', or 'Z'
+  - id\_list:
+    
+    A vector of feature names to filter (default: NULL)
 
-- filter_id:
+  - filter\_group:
+    
+    Boolean to filter groups based on a provided list (default: FALSE)
 
-  Boolean to filter features based on a provided list (default: FALSE)
-
-- id_list:
-
-  A vector of feature names to filter (default: NULL)
-
-- filter_group:
-
-  Boolean to filter groups based on a provided list (default: FALSE)
-
-- group_list:
-
-  A vector of group names to filter (default: NULL)
+  - group\_list:
+    
+    A vector of group names to filter (default: NULL)
 
 ## Value
 

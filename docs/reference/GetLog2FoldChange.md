@@ -12,13 +12,13 @@ GetLog2FoldChange(group_means, control_group)
 
 ## Arguments
 
-- group_means:
+  - group\_means:
+    
+    A data frame containing the mean feature values for each group
 
-  A data frame containing the mean feature values for each group
-
-- control_group:
-
-  The name of the control group to compare against
+  - control\_group:
+    
+    The name of the control group to compare against
 
 ## Value
 

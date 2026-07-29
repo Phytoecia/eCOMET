@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{anova_tukey_dunnett}
 \alias{anova_tukey_dunnett}
-\title{Perform ANOVA and Tukey's HSD test on the mmo object}
+\title{Perform ANOVA and Tukey's HSD test on the \code{mmo}}
 \usage{
 anova_tukey_dunnett(df, formula)
 }
@@ -15,7 +15,7 @@ anova_tukey_dunnett(df, formula)
 A list containing the ANOVA results, Tukey's HSD results, Tukey's significance letters, and Dunnett's test results
 }
 \description{
-This function performs ANOVA and Tukey's HSD test on the feature data of the mmo object,
+This function performs ANOVA and Tukey's HSD test on the feature data of the \code{mmo},
 Returns a list of ANOVA results, Tukey's HSD results, Tukey's significance letters, and Dunnett's test results.
 }
 \examples{

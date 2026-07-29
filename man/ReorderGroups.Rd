@@ -2,20 +2,20 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{ReorderGroups}
 \alias{ReorderGroups}
-\title{Reorder samples in the mmo object based on group order}
+\title{Reorder samples in the \code{mmo} based on group order}
 \usage{
 ReorderGroups(mmo, group_order)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{group_order}{A vector specifying the desired order of groups}
 }
 \value{
-The mmo object with reordered samples
+The \code{mmo} with reordered samples
 }
 \description{
-This function reorders the samples in the mmo object based on a specified group order.
+This function reorders the samples in the \code{mmo} based on a specified group order.
 The function updates the order of samples in the feature data, log-normalized data, z-score data, and mean-centered data.
 Use this function before plotting heatmaps or other visualizations to ensure consistent group ordering.
 }

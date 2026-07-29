@@ -1,10 +1,12 @@
-# FeatureDendrogram
+# FeatureDendrogram (similarity-based)
 
-Build a feature-to-feature dendrogram from a dissimilarity matrix stored
-in the mmo object. Optionally collapses within-group distances for ion
-identity or correlation groups so that adducts/isotopes of the same
-compound cluster together before chemical distance drives the
-higher-level topology.
+Identical to `FeatureDendrogram_derep()` but retrieves the feature
+**similarity** matrix via `GetSimMat()` (.sim slots) and converts to
+distance (`1 - S`) only inside `hclust()`. Adds a size guard: stops with
+a clear message if n \> 10,000 features, because `as.dist()` on an n x n
+matrix is infeasible at that scale. Ion identity constraints are
+expressed as high similarity (`1 - within_group_dist`) rather than low
+distance.
 
 ## Usage
 
@@ -25,103 +27,75 @@ FeatureDendrogram(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    `mmo`. Must contain the requested dissimilarity matrix (added via
+    `AddChemDist()` or `AddCustomDist()`) and, for ion identity modes,
+    `mmo$feature_info`.
 
-  mmo object. Must contain the requested dissimilarity matrix (added via
-  [`AddChemDist()`](https://phytoecia.github.io/eCOMET/reference/AddChemDist.md)
-  or
-  [`AddCustomDist()`](https://phytoecia.github.io/eCOMET/reference/AddCustomDist.md))
-  and, for ion identity modes, `mmo$feature_info`.
+  - distance:
+    
+    Name of the dissimilarity matrix to use (default: `"dreams"`).
+    Passed to `GetDistanceMat()`; supports built-in and custom names.
 
-- distance:
+  - features:
+    
+    Optional character vector of feature IDs to include. `NULL`
+    (default) uses all features in the distance matrix.
 
-  Name of the dissimilarity matrix to use (default: `"dreams"`). Passed
-  to
-  [`GetDistanceMat()`](https://phytoecia.github.io/eCOMET/reference/GetDistanceMat.md);
-  supports built-in and custom names.
+  - method:
+    
+    hclust linkage method (default: `"average"`). Other sensible
+    choices: `"complete"`, `"ward.D2"`.
 
-- features:
+  - ion\_identity:
+    
+    One of `"none"`, `"correlation"`, `"ion_identity_network"` (default:
+    `"none"`).
 
-  Optional character vector of feature IDs to include. `NULL` (default)
-  uses all features in the distance matrix.
+  - corr\_col:
+    
+    Column in `mmo$feature_info` containing MZmine correlation group IDs
+    (default: `"feature_group"`). Used when `ion_identity =
+    "correlation"`.
 
-- method:
+  - iin\_col:
+    
+    Column in `mmo$feature_info` containing MZmine IIN IDs (default:
+    `"ion_identities:iin_id"`). Used when `ion_identity =
+    "ion_identity_network"`.
 
-  hclust linkage method (default: `"average"`). Other sensible choices:
-  `"complete"`, `"ward.D2"`.
+  - within\_group\_dist:
+    
+    Distance assigned to pairs within the same ion identity group
+    (default: `0.01`). A small positive value rather than 0 avoids
+    degenerate zero-height clusters in the tree while still pulling
+    grouped features together. Must be in `[0, 1]`.
 
-- ion_identity:
+  - save\_newick:
+    
+    Logical; if `TRUE` writes a Newick file (`<outprefix>.nwk`) of the
+    tree (default: `FALSE`).
 
-  One of `"none"`, `"correlation"`, `"ion_identity_network"` (default:
-  `"none"`).
-
-- corr_col:
-
-  Column in `mmo$feature_info` containing MZmine correlation group IDs
-  (default: `"feature_group"`). Used when
-  `ion_identity = "correlation"`.
-
-- iin_col:
-
-  Column in `mmo$feature_info` containing MZmine IIN IDs (default:
-  `"ion_identities:iin_id"`). Used when
-  `ion_identity = "ion_identity_network"`.
-
-- within_group_dist:
-
-  Distance assigned to pairs within the same ion identity group
-  (default: `0.01`). A small positive value rather than 0 avoids
-  degenerate zero-height clusters in the tree while still pulling
-  grouped features together. Must be in `[0, 1]`.
-
-- save_newick:
-
-  Logical; if `TRUE` writes a Newick file (`<outprefix>.nwk`) of the
-  tree (default: `FALSE`).
-
-- outprefix:
-
-  File prefix used when `save_newick = TRUE` (default:
-  `"feature_tree"`).
+  - outprefix:
+    
+    File prefix used when `save_newick = TRUE` (default:
+    `"feature_tree"`).
 
 ## Value
 
 A named list with:
 
-- `hclust` – the `hclust` object
+  - `hclust` – the `hclust` object
 
-- `dendrogram` – the `dendrogram` object
+  - `dendrogram` – the `dendrogram` object
 
-- `phylo` – the `phylo` object (for ape/iTOL)
+  - `phylo` – the `phylo` object (for ape/iTOL)
 
-- `dist_used` – the (possibly modified) distance matrix used
+  - `dist_used` – the distance matrix used for clustering (`1 -
+    sim_used`)
 
-- `tip_map` – data.frame of feature ID -\> group assignment (`NULL` when
-  `ion_identity = "none"`)
+  - `sim_used` – the (possibly modified) similarity matrix
 
-## Details
-
-**Ion identity options:**
-
-- `"none"` – use the raw dissimilarity matrix as-is.
-
-- `"correlation"` – features sharing the same MZmine correlation group
-  (typically co-eluting features likely derived from the same compound)
-  are assigned `within_group_dist` before clustering.
-
-- `"ion_identity_network"` – features linked by MZmine ion identity
-  networking (confirmed adducts / isotopes) are assigned
-  `within_group_dist` before clustering.
-
-In both grouped modes the constraint is applied symmetrically and the
-diagonal is forced to 0 after the assignment.
-
-## Examples
-
-``` r
-if (FALSE) {
-tree <- FeatureDendrogram(mmo, distance = "dreams")
-tree_iin <- FeatureDendrogram(mmo, distance = "dreams",
-                              ion_identity = "ion_identity_network")
-}
-```
+  - `tip_map` – data.frame of feature ID -\> group assignment (`NULL`
+    when `ion_identity = "none"`)

@@ -19,5 +19,5 @@ GetHillNumbers(feature, metadata, q = 0, threshold = 0)
 A data frame containing the Hill number for each group in the metadata, with columns for group and hill number.
 }
 \description{
-This function calculates the Hill numbers for a given mmo object, normalization method, and order of the Hill number without considering feature dissimilarity.
+This function calculates the Hill numbers for a given \code{mmo}, normalization method, and order of the Hill number without considering feature dissimilarity.
 }

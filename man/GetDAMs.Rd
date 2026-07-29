@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{GetDAMs}
 \alias{GetDAMs}
-\title{Generates lists of DAMs (Differentially Accumulated Metabolites) for each comparison in the mmo object}
+\title{Generates lists of DAMs (Differentially Accumulated Metabolites) for each comparison in the \code{mmo}}
 \usage{
 GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05, use_padj = TRUE)
 }
 \arguments{
-\item{mmo}{The mmo object with pairwise comparison matrix}
+\item{mmo}{The \code{mmo} with pairwise comparison matrix}
 
 \item{fc_cutoff}{The threshold of log2 fold change to be considered significant (default: 0.5849625, which is log2(1.5))}
 
@@ -19,7 +19,7 @@ GetDAMs(mmo, fc_cutoff = 0.5849625, pval_cutoff = 0.05, use_padj = TRUE)
 A list containing two lists: DAMs_up and DAMs_down
 }
 \description{
-This function generates lists of upregulated and downregulated DAMs for each pairwise comparison in the mmo object.
+This function generates lists of upregulated and downregulated DAMs for each pairwise comparison in the \code{mmo}.
 It uses log2 fold change and adjusted p-value thresholds to determine significance.
 Make sure to run PairwiseComp() for all desired comparisons before using this function.
 }

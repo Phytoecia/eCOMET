@@ -1,4 +1,4 @@
-# Write results of anova_tukey_dunnett to a CSV file
+# Write results of anova\_tukey\_dunnett to a CSV file
 
 This function writes the results of ANOVA and Tukey's HSD test to a CSV
 file.
@@ -11,17 +11,17 @@ write_anova(anova_data, outdir, way = "oneway")
 
 ## Arguments
 
-- anova_data:
+  - anova\_data:
+    
+    A list containing the results of ANOVA and Tukey's HSD test
 
-  A list containing the results of ANOVA and Tukey's HSD test
+  - outdir:
+    
+    The output directory where the results will be saved
 
-- outdir:
-
-  The output directory where the results will be saved
-
-- way:
-
-  The type of ANOVA test to perform. Options are 'oneway' or 'twoway'
+  - way:
+    
+    The type of ANOVA test to perform. Options are 'oneway' or 'twoway'
 
 ## Examples
 

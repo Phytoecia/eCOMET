@@ -18,7 +18,7 @@ CanopusLevelEnrichmentPlot(
 )
 }
 \arguments{
-\item{mmo}{The mmo object with sirius annotation and normalized data}
+\item{mmo}{The \code{mmo} with sirius annotation and normalized data}
 
 \item{comp.list}{A list to analyze, where each element is a vector of feature ids}
 

@@ -1,6 +1,6 @@
 # ExportCytoscape
 
-Export an mmo object as a node table and edge table for visualisation in
+Export a `mmo` as a node table and edge table for visualisation in
 Cytoscape. Edges are derived from a stored feature dissimilarity matrix.
 Nodes carry abundance statistics and any annotation columns present in
 `mmo$sirius_annot` and `mmo$feature_info`.
@@ -21,41 +21,40 @@ ExportCytoscape(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    `mmo`. Must contain `mmo$feature_data` and `mmo$metadata`.
+    `mmo$feature_info` and `mmo$sirius_annot` are used when present.
 
-  mmo object. Must contain `mmo$feature_data` and `mmo$metadata`.
-  `mmo$feature_info` and `mmo$sirius_annot` are used when present.
+  - distance:
+    
+    Name of the dissimilarity matrix to use for edges (default:
+    `"dreams"`). Passed to `GetDistanceMat()`.
 
-- distance:
+  - outprefix:
+    
+    File path prefix for output CSVs (default: `"cytoscape_export"`).
 
-  Name of the dissimilarity matrix to use for edges (default:
-  `"dreams"`). Passed to
-  [`GetDistanceMat()`](https://phytoecia.github.io/eCOMET/reference/GetDistanceMat.md).
+  - sim\_threshold:
+    
+    Minimum pairwise similarity (= 1 - dissimilarity) for an edge to be
+    retained (default: `0.7`). Set to `0` to disable.
 
-- outprefix:
+  - top\_k:
+    
+    Integer or `NULL`. If not `NULL`, each node retains only its `top_k`
+    most similar neighbours after threshold filtering (default: `NULL` =
+    no k limit).
 
-  File path prefix for output CSVs (default: `"cytoscape_export"`).
+  - group\_col:
+    
+    Metadata column defining groups for per-group mean abundance columns
+    (default: `"group"`).
 
-- sim_threshold:
-
-  Minimum pairwise similarity (= 1 - dissimilarity) for an edge to be
-  retained (default: `0.7`). Set to `0` to disable.
-
-- top_k:
-
-  Integer or `NULL`. If not `NULL`, each node retains only its `top_k`
-  most similar neighbours after threshold filtering (default: `NULL` =
-  no k limit).
-
-- group_col:
-
-  Metadata column defining groups for per-group mean abundance columns
-  (default: `"group"`).
-
-- sample_col:
-
-  Metadata column matching sample IDs to feature columns (default:
-  `"sample"`).
+  - sample\_col:
+    
+    Metadata column matching sample IDs to feature columns (default:
+    `"sample"`).
 
 ## Value
 
@@ -68,13 +67,13 @@ Invisibly returns a named list: `nodes` (data.frame), `edges`
 retained. Both are applied together (a pair must pass both to be
 included):
 
-- `sim_threshold` – drop all edges with similarity below this value.
-  Higher values produce sparser, higher-confidence networks.
+  - `sim_threshold` – drop all edges with similarity below this value.
+    Higher values produce sparser, higher-confidence networks.
 
-- `top_k` – for each node, retain only its `top_k` most similar
-  neighbours (by similarity). `NULL` keeps all edges that pass the
-  threshold. This is useful for preventing highly-connected hub nodes
-  from dominating the layout.
+  - `top_k` – for each node, retain only its `top_k` most similar
+    neighbours (by similarity). `NULL` keeps all edges that pass the
+    threshold. This is useful for preventing highly-connected hub nodes
+    from dominating the layout.
 
 A warning is issued when the retained edge count exceeds 50 000, as
 large networks can be slow to render in Cytoscape.

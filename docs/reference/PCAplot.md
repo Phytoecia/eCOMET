@@ -23,49 +23,49 @@ PCAplot(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with feature data and metadata
 
-  The mmo object with feature data and metadata
+  - color:
+    
+    A vector of colors for the groups in the plot. Make sure the names
+    correspond to the group names in metadata
 
-- color:
+  - outdir:
+    
+    The output file path for the PCA plot (default: 'PCA')
 
-  A vector of colors for the groups in the plot. Make sure the names
-  correspond to the group names in metadata
+  - normalization:
+    
+    The normalization method to use for feature data. Options are
+    'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
 
-- outdir:
+  - filter\_id:
+    
+    Boolean to filter features by id\_list (default: FALSE)
 
-  The output file path for the PCA plot (default: 'PCA')
+  - id\_list:
+    
+    A vector of feature names to filter (default: NULL)
 
-- normalization:
+  - filter\_group:
+    
+    Boolean to filter groups by group\_list (default: FALSE)
 
-  The normalization method to use for feature data. Options are 'None',
-  'Log', 'Meancentered', or 'Z' (default: 'Z')
+  - group\_list:
+    
+    A vector of group names to filter (default: NULL)
 
-- filter_id:
+  - label:
+    
+    Boolean to indicate whether to label points with sample names
+    (default: TRUE)
 
-  Boolean to filter features by id_list (default: FALSE)
-
-- id_list:
-
-  A vector of feature names to filter (default: NULL)
-
-- filter_group:
-
-  Boolean to filter groups by group_list (default: FALSE)
-
-- group_list:
-
-  A vector of group names to filter (default: NULL)
-
-- label:
-
-  Boolean to indicate whether to label points with sample names
-  (default: TRUE)
-
-- save_output:
-
-  Boolean; if TRUE (default) write plot (.pdf) and PERMANOVA tables
-  using `outdir` as prefix. If FALSE, nothing is written.
+  - save\_output:
+    
+    Boolean; if TRUE (default) write plot (.pdf) and PERMANOVA tables
+    using `outdir` as prefix. If FALSE, nothing is written.
 
 ## Value
 

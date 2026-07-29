@@ -1,9 +1,9 @@
-# Z-normalize the peak area in the mmo object
+# Z-normalize the peak area in the `mmo`
 
 This function applies Z-score normalization to the peak area in the
-feature data of the mmo object. Z-scores are calculated per feature
-(row) across samples. Features with zero variance cannot be Z-normalized
-and are returned as NA.
+feature data of the `mmo`. Z-scores are calculated per feature (row)
+across samples. Features with zero variance cannot be Z-normalized and
+are returned as NA.
 
 ## Usage
 
@@ -13,14 +13,14 @@ ZNormalization(mmo, imputed_data = FALSE)
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo`
 
-  The mmo object
-
-- imputed_data:
-
-  Whether to use imputed feature data (default = FALSE)
+  - imputed\_data:
+    
+    Whether to use imputed feature data (default = FALSE)
 
 ## Value
 
-The mmo object with Z-normalized feature data stored in `mmo$zscore`
+The `mmo` with Z-normalized feature data stored in `mmo$zscore`

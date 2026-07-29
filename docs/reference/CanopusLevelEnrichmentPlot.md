@@ -23,51 +23,52 @@ CanopusLevelEnrichmentPlot(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with sirius annotation and normalized data
 
-  The mmo object with sirius annotation and normalized data
+  - comp.list:
+    
+    A list to analyze, where each element is a vector of feature ids
 
-- comp.list:
+  - term\_level:
+    
+    The level of term to use for enrichment analysis. Options are
+    'NPC\_pathway', 'NPC\_superclass', 'NPC\_class',
+    'ClassyFire\_superclass', 'ClassyFire\_class',
+    'ClassyFire\_subclass', 'ClassyFire\_level5', or
+    'ClassyFire\_most\_specific' (default: 'NPC\_pathway')
 
-  A list to analyze, where each element is a vector of feature ids
+  - pthr:
+    
+    The threshold for adjusted p-value to be considered significant
+    (default: 0.1)
 
-- term_level:
+  - representation:
+    
+    The representation type for enrichment analysis. Options are
+    'greater' for overrepresentation (default: 'greater')
 
-  The level of term to use for enrichment analysis. Options are
-  'NPC_pathway', 'NPC_superclass', 'NPC_class', 'ClassyFire_superclass',
-  'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', or
-  'ClassyFire_most_specific' (default: 'NPC_pathway')
+  - outdir:
+    
+    The output directory for saving the plot and the enrichment results
+    (default: 'enrichment')
 
-- pthr:
+  - height:
+    
+    The height of the output plot in inches (default: 5)
 
-  The threshold for adjusted p-value to be considered significant
-  (default: 0.1)
+  - width:
+    
+    The width of the output plot in inches (default: 5)
 
-- representation:
+  - pval:
+    
+    pvalue options-pval or fdr (default: 'pval')
 
-  The representation type for enrichment analysis. Options are 'greater'
-  for overrepresentation (default: 'greater')
-
-- outdir:
-
-  The output directory for saving the plot and the enrichment results
-  (default: 'enrichment')
-
-- height:
-
-  The height of the output plot in inches (default: 5)
-
-- width:
-
-  The width of the output plot in inches (default: 5)
-
-- pval:
-
-  pvalue options-pval or fdr (default: 'pval')
-
-- save_output:
-
-  boolean, whether to save the output plot (default: TRUE)
+  - save\_output:
+    
+    boolean, whether to save the output plot (default: TRUE)
 
 ## Value
 

@@ -24,49 +24,49 @@ FeaturePhenotypeCorrelation(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with feature data and metadata
 
-  The mmo object with feature data and metadata
+  - feature\_id:
+    
+    The id of the feature to analyze
 
-- feature_id:
+  - phenotype:
+    
+    The name of the phenotype in the metadata
 
-  The id of the feature to analyze
+  - groups:
+    
+    A vector of group names from the metadata containing phenotype data
 
-- phenotype:
+  - model:
+    
+    The type of regression model to use. Options are 'lmm' for linear
+    mixed model, 'lm' for simple linear regression, or 'pearson' for
+    Pearson correlation (default: 'lmm')
 
-  The name of the phenotype in the metadata
+  - normalization:
+    
+    The normalization method to use for feature data. Options are
+    'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
 
-- groups:
+  - outdir:
+    
+    The directory to save the output files
 
-  A vector of group names from the metadata containing phenotype data
+  - width:
+    
+    The width of the output plot in inches (default: 6)
 
-- model:
+  - height:
+    
+    The height of the output plot in inches (default: 6)
 
-  The type of regression model to use. Options are 'lmm' for linear
-  mixed model, 'lm' for simple linear regression, or 'pearson' for
-  Pearson correlation (default: 'lmm')
-
-- normalization:
-
-  The normalization method to use for feature data. Options are 'None',
-  'Log', 'Meancentered', or 'Z' (default: 'Z')
-
-- outdir:
-
-  The directory to save the output files
-
-- width:
-
-  The width of the output plot in inches (default: 6)
-
-- height:
-
-  The height of the output plot in inches (default: 6)
-
-- save_output:
-
-  A logical value indicating whether to save the output plot (default:
-  TRUE)
+  - save\_output:
+    
+    A logical value indicating whether to save the output plot (default:
+    TRUE)
 
 ## Value
 

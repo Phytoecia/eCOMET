@@ -7,15 +7,15 @@
 pool_mmo_by_group(mmo, group_col = "group")
 }
 \arguments{
-\item{mmo}{mmo object}
+\item{mmo}{A \code{mmo}}
 
-\item{group_col}{column in mmo$metadata used for grouping (default: "group")}
+\item{group_col}{column in \code{mmo$metadata} used for grouping (default: "group")}
 }
 \value{
-mmo object with feature_data containing one column per group and metadata updated accordingly
+\code{mmo} with feature_data containing one column per group and metadata updated accordingly
 }
 \description{
 Pools sample columns within each group into one pseudo-sample per group.
 Feature rows are preserved (no filtering of features).
-Keeps all other slots of the mmo object unchanged by copying mmo first.
+Keeps all other slots of the \code{mmo} unchanged by copying the \code{mmo} first.
 }

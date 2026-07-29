@@ -11,18 +11,18 @@ RarefactionAUC(rarefied_richness, n_boot = 1000, seed = 513)
 
 ## Arguments
 
-- rarefied_richness:
+  - rarefied\_richness:
+    
+    The rarefied richness object containing feature data, annotations,
+    and pairwise comparisons
 
-  The rarefied richness object containing feature data, annotations, and
-  pairwise comparisons
+  - n\_boot:
+    
+    The number of bootstrap samples to use (default: 1000)
 
-- n_boot:
-
-  The number of bootstrap samples to use (default: 1000)
-
-- seed:
-
-  The seed to use for the bootstrap samples (default: 513)
+  - seed:
+    
+    The seed to use for the bootstrap samples (default: 513)
 
 ## Value
 

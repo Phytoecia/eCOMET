@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{PairwiseComp}
 \alias{PairwiseComp}
-\title{Perform pairwise comparison between two groups in the mmo object}
+\title{Perform pairwise comparison between two groups in the \code{mmo}}
 \usage{
 PairwiseComp(mmo, group1, group2, correction = "BH")
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{group1}{The name of the nominator group}
 
@@ -16,12 +16,12 @@ PairwiseComp(mmo, group1, group2, correction = "BH")
 \item{correction}{The method for multiple comparison correction. Options are 'BH', 'holm', 'bonferroni', etc. Inherits from p.adjust() (default: 'BH')}
 }
 \value{
-The mmo object with pairwise comparison results added to mmo$pairwise
+The \code{mmo} with pairwise comparison results added to \code{mmo$pairwise}
 }
 \description{
-This function performs pairwise comparison between two groups in the mmo object,
+This function performs pairwise comparison between two groups in the \code{mmo},
 calculating log2 fold change and adjusted p-values for given comparison of two groups.
-The function adds the results to the mmo$pairwise data frame.
+The function adds the results to the \code{mmo$pairwise} data frame.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}

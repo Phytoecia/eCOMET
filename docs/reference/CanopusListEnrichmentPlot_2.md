@@ -22,42 +22,42 @@ CanopusListEnrichmentPlot_2(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with sirius annotation and normalized data
 
-  The mmo object with sirius annotation and normalized data
+  - id\_list:
+    
+    A vector containing names of features to analyze
 
-- id_list:
+  - pthr:
+    
+    The threshold for adjusted p-value to be considered significant
+    (default: 0.05)
 
-  A vector containing names of features to analyze
+  - outdir:
+    
+    The output file path for the enrichment plot
 
-- pthr:
+  - height:
+    
+    The height of the output plot in inches (default: 5)
 
-  The threshold for adjusted p-value to be considered significant
-  (default: 0.05)
+  - width:
+    
+    The width of the output plot in inches (default: 5)
 
-- outdir:
+  - topn:
+    
+    The number of top terms to display in the plot (default: 5)
 
-  The output file path for the enrichment plot
+  - pval:
+    
+    pvalue options-pval or fdr (default: 'pval')
 
-- height:
-
-  The height of the output plot in inches (default: 5)
-
-- width:
-
-  The width of the output plot in inches (default: 5)
-
-- topn:
-
-  The number of top terms to display in the plot (default: 5)
-
-- pval:
-
-  pvalue options-pval or fdr (default: 'pval')
-
-- save_output:
-
-  boolean, whether to save the output plot (default: TRUE)
+  - save\_output:
+    
+    boolean, whether to save the output plot (default: TRUE)
 
 ## Value
 

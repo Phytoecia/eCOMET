@@ -1,7 +1,7 @@
-# Retrieve feature data from the mmo object, with normalization options
+# Retrieve feature data from the `mmo`, with normalization options
 
-This function retrieves the feature data from the mmo object based on
-the specified normalization method.
+This function retrieves the feature data from the `mmo` based on the
+specified normalization method.
 
 ## Usage
 
@@ -11,14 +11,14 @@ GetNormFeature(mmo, normalization)
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo`
 
-  The mmo object
-
-- normalization:
-
-  The normalization method to use. Options are 'None','PA', 'Log',
-  'Meancentered', 'Z', or 'Imputed'
+  - normalization:
+    
+    The normalization method to use. Options are 'None','PA', 'Log',
+    'Meancentered', 'Z', or 'Imputed'
 
 ## Value
 

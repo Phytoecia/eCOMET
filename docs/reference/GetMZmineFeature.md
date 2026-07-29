@@ -1,16 +1,15 @@
-# Import MZmine feature table and metadata to create a mmo object
+# Import MZmine feature table and metadata to create a mmo (mass-spectrometry metabolomics object)
 
 Reads an MZmine exported feature table (typically the full feature
-table) and a sample metadata table to initialize an mmo object
-containing:
+table) and a sample metadata table to initialize a mmo containing:
 
-- `mmo$feature_data`: feature-by-sample abundance matrix (peak areas)
+  - `mmo$feature_data`: feature-by-sample abundance matrix (peak areas)
 
-- `mmo$feature_info`: feature-level annotations (e.g., mz, rt, ranges,
-  IDs)
+  - `mmo$feature_info`: feature-level annotations (e.g., mz, rt, ranges,
+    IDs)
 
-- `mmo$metadata`: sample metadata with standardized `sample` and `group`
-  columns
+  - `mmo$metadata`: sample metadata with standardized `sample` and
+    `group` columns
 
 Sample columns in the MZmine table are matched to metadata using fuzzy
 string matching on area column names.
@@ -36,58 +35,59 @@ GetMZmineFeature(
 
 ## Arguments
 
-- mzmine_dir:
+  - mzmine\_dir:
+    
+    Path to the MZmine feature table CSV (should include feature-level
+    columns and per-sample area columns)
 
-  Path to the MZmine feature table CSV (should include feature-level
-  columns and per-sample area columns)
+  - metadata\_dir:
+    
+    Path to the metadata CSV file (must include sample\_col and
+    group\_col)
 
-- metadata_dir:
+  - group\_col:
+    
+    Column name in metadata used for grouping samples (e.g.,
+    treatment/species)
 
-  Path to the metadata CSV file (must include sample_col and group_col)
+  - sample\_col:
+    
+    Column name in metadata used to identify and match samples to MZmine
+    area columns
 
-- group_col:
+  - drop\_missing\_samples:
+    
+    Logical. If FALSE (default), error when metadata samples are missing
+    from the MZmine table area columns. If TRUE, drop those samples from
+    metadata (with a warning) and continue.
 
-  Column name in metadata used for grouping samples (e.g.,
-  treatment/species)
+  - mz\_col:
+    
+    Optional m/z column name in the MZmine table (defaults to "mz" or
+    "row m/z")
 
-- sample_col:
+  - rt\_col:
+    
+    Optional RT column name in the MZmine table (defaults to "rt" or
+    "row retention time")
 
-  Column name in metadata used to identify and match samples to MZmine
-  area columns
+  - max\_distance:
+    
+    Maximum edit distance used when fuzzy-matching metadata sample names
+    to MZmine area column names (default 5). Lower this for stricter
+    matching.
 
-- drop_missing_samples:
+  - pa\_threshold:
+    
+    Minimum peak area threshold for a feature to be considered present
+    in a sample.
 
-  Logical. If FALSE (default), error when metadata samples are missing
-  from the MZmine table area columns. If TRUE, drop those samples from
-  metadata (with a warning) and continue.
-
-- mz_col:
-
-  Optional m/z column name in the MZmine table (defaults to "mz" or "row
-  m/z")
-
-- rt_col:
-
-  Optional RT column name in the MZmine table (defaults to "rt" or "row
-  retention time")
-
-- max_distance:
-
-  Maximum edit distance used when fuzzy-matching metadata sample names
-  to MZmine area column names (default 5). Lower this for stricter
-  matching.
-
-- pa_threshold:
-
-  Minimum peak area threshold for a feature to be considered present in
-  a sample.
-
-- feature_info_cols:
-
-  Character vector of feature-level columns to retain in
-  `mmo$feature_info`. Columns not present in the MZmine table are
-  skipped with a warning.
+  - feature\_info\_cols:
+    
+    Character vector of feature-level columns to retain in
+    `mmo$feature_info`. Columns not present in the MZmine table are
+    skipped with a warning.
 
 ## Value
 
-A mmo object
+A mmo

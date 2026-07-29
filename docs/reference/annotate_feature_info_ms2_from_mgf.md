@@ -1,12 +1,12 @@
-# Annotate mmo\$feature_info with MS2 presence and MS2 block counts from an MGF
+# Annotate `mmo$feature_info` with MS2 presence and MS2 block counts from an MGF
 
 Scan an `.mgf` file and summarize MS/MS availability for each feature in
 `mmo$feature_info`. The function adds two columns:
 
-- `ms2`: `TRUE` if the MGF contains at least one `MSLEVEL=2` block for
-  that `id`; otherwise `FALSE`.
+  - `ms2`: `TRUE` if the MGF contains at least one `MSLEVEL=2` block for
+    that `id`; otherwise `FALSE`.
 
-- `count_ms2`: number of `MSLEVEL=2` blocks for that `id`.
+  - `count_ms2`: number of `MSLEVEL=2` blocks for that `id`.
 
 ## Usage
 
@@ -22,36 +22,36 @@ annotate_feature_info_ms2_from_mgf(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    An eCOMET `mmo` containing a required `feature_info` table with an
+    `id` column (`mmo$feature_info$id`).
 
-  An ecomet `mmo` object containing a required `feature_info` table with
-  an `id` column (`mmo$feature_info$id`).
+  - mgf\_path:
+    
+    Character. Path to the input `.mgf` file.
 
-- mgf_path:
+  - chunk\_lines:
+    
+    Integer. Number of lines read per iteration. Larger values are
+    typically faster but use more memory. Default is `100000L`.
 
-  Character. Path to the input `.mgf` file.
+  - overwrite:
+    
+    Logical. If `FALSE` (default) and `ms2` and/or `count_ms2` already
+    exist in `mmo$feature_info`, the function errors. Set `overwrite =
+    TRUE` to replace existing columns.
 
-- chunk_lines:
-
-  Integer. Number of lines read per iteration. Larger values are
-  typically faster but use more memory. Default is `100000L`.
-
-- overwrite:
-
-  Logical. If `FALSE` (default) and `ms2` and/or `count_ms2` already
-  exist in `mmo$feature_info`, the function errors. Set
-  `overwrite = TRUE` to replace existing columns.
-
-- verbose:
-
-  Logical. If `TRUE` (default), prints a brief summary of how many MS2
-  blocks were found and how many features have MS2.
+  - verbose:
+    
+    Logical. If `TRUE` (default), prints a brief summary of how many MS2
+    blocks were found and how many features have MS2.
 
 ## Value
 
-The updated `mmo` object with `mmo$feature_info$ms2` and
-`mmo$feature_info$count_ms2` added (or overwritten if
-`overwrite = TRUE`).
+The updated `mmo` with `mmo$feature_info$ms2` and
+`mmo$feature_info$count_ms2` added (or overwritten if `overwrite =
+TRUE`).
 
 ## Details
 

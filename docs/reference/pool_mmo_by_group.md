@@ -1,8 +1,8 @@
-# pool_mmo_by_group
+# pool\_mmo\_by\_group
 
 Pools sample columns within each group into one pseudo-sample per group.
 Feature rows are preserved (no filtering of features). Keeps all other
-slots of the mmo object unchanged by copying mmo first.
+slots of the `mmo` unchanged by copying the `mmo` first.
 
 ## Usage
 
@@ -12,15 +12,15 @@ pool_mmo_by_group(mmo, group_col = "group")
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    A `mmo`
 
-  mmo object
-
-- group_col:
-
-  column in mmo\$metadata used for grouping (default: "group")
+  - group\_col:
+    
+    column in `mmo$metadata` used for grouping (default: "group")
 
 ## Value
 
-mmo object with feature_data containing one column per group and
-metadata updated accordingly
+`mmo` with feature\_data containing one column per group and metadata
+updated accordingly

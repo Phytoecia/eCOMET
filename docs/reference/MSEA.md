@@ -24,51 +24,52 @@ MSEA(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with sirius annotation and normalized data
 
-  The mmo object with sirius annotation and normalized data
+  - feature\_id:
+    
+    A vector of feature ids corresponding to the feature scores
 
-- feature_id:
+  - feature\_score:
+    
+    A vector of feature scores (e.g., log2 fold changes)
 
-  A vector of feature ids corresponding to the feature scores
+  - term\_level:
+    
+    The level of term to use for enrichment analysis. Options are
+    'NPC\_pathway', 'NPC\_superclass', 'NPC\_class',
+    'ClassyFire\_superclass', 'ClassyFire\_class',
+    'ClassyFire\_subclass', 'ClassyFire\_level5', or
+    'ClassyFire\_most\_specific' (default: 'NPC\_class')
 
-- feature_score:
+  - pthr:
+    
+    The threshold for adjusted p-value to be considered significant
+    (default: 0.05)
 
-  A vector of feature scores (e.g., log2 fold changes)
+  - outdir:
+    
+    The directory to save the output files (default: 'MSEA')
 
-- term_level:
+  - width:
+    
+    The width of the output plot in inches (default: 8)
 
-  The level of term to use for enrichment analysis. Options are
-  'NPC_pathway', 'NPC_superclass', 'NPC_class', 'ClassyFire_superclass',
-  'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', or
-  'ClassyFire_most_specific' (default: 'NPC_class')
+  - height:
+    
+    The height of the output plot in inches (default: 12)
 
-- pthr:
+  - sig:
+    
+    A logical value indicating whether to return only significant terms
+    (default: FALSE)
 
-  The threshold for adjusted p-value to be considered significant
-  (default: 0.05)
-
-- outdir:
-
-  The directory to save the output files (default: 'MSEA')
-
-- width:
-
-  The width of the output plot in inches (default: 8)
-
-- height:
-
-  The height of the output plot in inches (default: 12)
-
-- sig:
-
-  A logical value indicating whether to return only significant terms
-  (default: FALSE)
-
-- save_output:
-
-  A logical value indicating whether to save the output plot (default:
-  TRUE)
+  - save\_output:
+    
+    A logical value indicating whether to save the output plot (default:
+    TRUE)
 
 ## Value
 

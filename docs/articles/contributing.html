@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>How to Contribute • ecomet</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="How to Contribute">
 </head>
@@ -31,7 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/index.html">Tutorials</a></li>
-<li class="active nav-item"><a class="nav-link" href="../articles/contributing.html">Contributing</a></li>
+<li class="active nav-item"><a class="nav-link" href="../articles/contributing.html">Contribute</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -64,79 +64,19 @@
 <h2 id="contributing-to-ecomet">Contributing to eCOMET<a class="anchor" aria-label="anchor" href="#contributing-to-ecomet"></a>
 </h2>
 <p>eCOMET is a community-driven tool built by ecologists for ecologists. The package grows most usefully when the people using it in real workflows contribute ideas, report problems, and share new methods. This page explains how to do that.</p>
-<hr>
 <div class="section level3">
 <h3 id="design-philosophy">Design philosophy<a class="anchor" aria-label="anchor" href="#design-philosophy"></a>
 </h3>
 <p>Before contributing, it helps to understand what eCOMET is trying to be:</p>
 <ul>
 <li>
-<strong>The <code>mmo</code> object is the center of everything.</strong> Every function should accept an <code>mmo</code> object as its primary input and either return a modified <code>mmo</code> or a plot/data.frame. This keeps workflows composable and readable.</li>
-<li>
-<strong>Ecology first.</strong> Unlike biomedical metabolomics tools, eCOMET is designed for comparative analyses across species, habitats, and treatments. New functions should be motivated by ecological or evolutionary questions, not just cheminformatics.</li>
+<strong>The <code>mmo</code>, the S3 Class Object, is the center of everything in the eCOMET package</strong> All contributed functions should work with an <code>mmo</code> as its primary input and either return a modified <code>mmo</code> or a plot/data.frame or list. This keeps workflows composable and readable.</li>
 <li>
 <strong>Reproducibility over interactivity.</strong> Functions should work in scripts, vignettes, and automated pipelines — not just interactively in RStudio.</li>
 <li>
-<strong>ggplot2 for visualization.</strong> All new plot functions should return a <code>ggplot</code>/<code>ggtree</code> object so users can layer modifications with <code>+</code> without rewriting the function.</li>
+<strong>ggplot2 for visualization.</strong> We designed eCOMET around ggplot so that users could use ggplot conventions to keep modifying plots after they are produced by eCOMET functions. New plot functions should return a <code>ggplot</code>/<code>ggtree</code> object so users can layer modifications with <code>+</code> without rewriting the function.</li>
 </ul>
 <hr>
-</div>
-<div class="section level3">
-<h3 id="ways-to-contribute">Ways to contribute<a class="anchor" aria-label="anchor" href="#ways-to-contribute"></a>
-</h3>
-<div class="section level4">
-<h4 id="report-a-bug">Report a bug<a class="anchor" aria-label="anchor" href="#report-a-bug"></a>
-</h4>
-<p>If something produces an error, a warning that shouldn’t be there, or a result that looks wrong:</p>
-<ol style="list-style-type: decimal">
-<li>Go to the <a href="https://github.com/Phytoecia/eCOMET/issues" class="external-link">eCOMET GitHub Issues page</a>
-</li>
-<li>Click <strong>New Issue</strong> and select <strong>Bug Report</strong>
-</li>
-<li>Include:
-<ul>
-<li>The function name and the arguments you passed</li>
-<li>A minimal reproducible example — ideally using the built-in demo data (<code>system.file("extdata/tutorials/treatment_based", package = "ecomet")</code>)</li>
-<li>The full error message or unexpected output</li>
-<li>Your R version (<code>R.version.string</code>) and eCOMET version (<code>packageVersion("ecomet")</code>)</li>
-</ul>
-</li>
-</ol>
-</div>
-<div class="section level4">
-<h4 id="request-a-new-feature">Request a new feature<a class="anchor" aria-label="anchor" href="#request-a-new-feature"></a>
-</h4>
-<p>If you have a workflow step that eCOMET doesn’t support yet — a new diversity metric, a visualization, a different output format — open a feature request:</p>
-<ol style="list-style-type: decimal">
-<li>Go to the <a href="https://github.com/Phytoecia/eCOMET/issues" class="external-link">eCOMET GitHub Issues page</a>
-</li>
-<li>Click <strong>New Issue</strong> and select <strong>Feature Request</strong>
-</li>
-<li>Describe:
-<ul>
-<li>The ecological or analytical question the feature addresses</li>
-<li>What inputs you would expect (ideally from the <code>mmo</code> object)</li>
-<li>What the output should look like</li>
-<li>Whether you have a reference or existing implementation you are aware of</li>
-</ul>
-</li>
-</ol>
-<p>Even if you cannot write the code yourself, a well-described feature request is valuable and may be picked up by another contributor.</p>
-</div>
-<div class="section level4">
-<h4 id="contribute-code">Contribute code<a class="anchor" aria-label="anchor" href="#contribute-code"></a>
-</h4>
-<ol style="list-style-type: decimal">
-<li>
-<a href="https://github.com/Phytoecia/eCOMET/fork" class="external-link">Fork the repository</a> on GitHub</li>
-<li>Create a new branch for your change: <code>git checkout -b my-new-feature</code>
-</li>
-<li>Make your changes (see conventions below)</li>
-<li>Push to your fork and open a <strong>Pull Request</strong> against the <code>main</code> branch</li>
-<li>In the PR description, explain what the function does and link any relevant Issue</li>
-</ol>
-<hr>
-</div>
 </div>
 <div class="section level3">
 <h3 id="conventions-for-new-functions">Conventions for new functions<a class="anchor" aria-label="anchor" href="#conventions-for-new-functions"></a>
@@ -152,23 +92,19 @@
 <span>  <span class="co"># return modified mmo OR a ggplot object OR a data.frame</span></span>
 <span><span class="op">}</span></span></code></pre></div>
 <ul>
-<li>Functions that add new results to the dataset should store them inside the <code>mmo</code> object and return the updated <code>mmo</code>
-</li>
-<li>Functions that produce a plot should return a <code>ggplot</code> or <code>ggtree</code> object — never call <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> or open a graphics device inside the function</li>
-<li>Functions that produce a summary table should return a plain <code>data.frame</code>
-</li>
+<li>Functions that add new results to the dataset should store them inside the <code>mmo</code> object and return the updated <code>mmo</code>.</li>
+<li>Functions that produce a plot should return a <code>ggplot</code> or <code>ggtree</code> object — never call <code><a href="https://rdrr.io/r/base/print.html" class="external-link">print()</a></code> or open a graphics device inside the function. You can however save the plot as an output.</li>
+<li>Functions that produce a summary table should return a plain <code>data.frame</code>.</li>
 </ul>
 </div>
 <div class="section level4">
 <h4 id="plot-functions">Plot functions<a class="anchor" aria-label="anchor" href="#plot-functions"></a>
 </h4>
 <ul>
-<li>Use <code>ggplot2</code> (or <code>ggtree</code> for tree layouts) as the base</li>
-<li>Accept a <code>palette</code> argument using <code><a href="https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html" class="external-link">colorspace::qualitative_hcl()</a></code> for color scales</li>
-<li>Return the plot object so users can modify it with <code>+</code>
-</li>
-<li>Default to showing group-level information derived from <code>mmo$metadata</code>
-</li>
+<li>Use <code>ggplot2</code> (or <code>ggtree</code> for tree layouts) as the base.</li>
+<li>Accept a <code>palette</code> argument using <code><a href="https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html" class="external-link">colorspace::qualitative_hcl()</a></code> for color scales.</li>
+<li>Return the plot object so users can modify it with <code>+</code>.</li>
+<li>Default to showing group-level information derived from <code>mmo$metadata</code>.</li>
 </ul>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Good — user can keep layering</span></span>
@@ -196,8 +132,8 @@
 <h4 id="dependencies">Dependencies<a class="anchor" aria-label="anchor" href="#dependencies"></a>
 </h4>
 <ul>
-<li>Before adding a new package dependency, check whether the functionality already exists in a package eCOMET already imports (see <code>DESCRIPTION</code>)</li>
-<li>Heavy or specialized packages (e.g. those requiring system libraries or Bioconductor) should go in <code>Suggests</code>, not <code>Imports</code>, and be loaded with <code>.require_pkg("pkgname")</code> inside the function so they are only required when actually called</li>
+<li>Before adding a new package dependency, check whether the functionality already exists in a package eCOMET already imports (see <code>DESCRIPTION</code>).</li>
+<li>Heavy or specialized packages (e.g. those requiring system libraries or Bioconductor) should go in <code>Suggests</code>, not <code>Imports</code>, and be loaded with <code>.require_pkg("pkgname")</code> inside the function so they are only required when actually called.</li>
 </ul>
 <hr>
 </div>
@@ -208,10 +144,10 @@
 <p>If you have developed a full analysis workflow using eCOMET — a new type of study design, a combination of functions for a specific ecological question, or an integration with another tool — consider contributing it as a tutorial vignette.</p>
 <p>Vignettes live in <code>vignettes/</code> and are built into the website. A good tutorial vignette:</p>
 <ul>
-<li>Loads data using <code>system.file("extdata/...", package = "ecomet")</code> so it is portable</li>
-<li>Walks through a complete, realistic analysis from raw data to interpretation</li>
-<li>Explains the ecological motivation for each step, not just the code</li>
-<li>Uses demo data small enough to be bundled in the package (target &lt; 5 MB total per tutorial)</li>
+<li>Loads data using <code>system.file("extdata/...", package = "ecomet")</code> so it is portable.</li>
+<li>Walks through a complete, realistic analysis from raw data to interpretation.</li>
+<li>Explains the ecological motivation for each step, not just the code.</li>
+<li>Uses demo data small enough to be bundled in the package (target &lt; 5 MB total per tutorial).</li>
 </ul>
 <hr>
 </div>
@@ -232,7 +168,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

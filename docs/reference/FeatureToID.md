@@ -1,7 +1,7 @@
-# Convert feature names to IDs in the mmo object
+# Convert feature names to IDs in the `mmo`
 
 This function converts feature names to their corresponding IDs in the
-mmo object.
+`mmo`.
 
 ## Usage
 
@@ -11,13 +11,13 @@ FeatureToID(mmo, feature_names)
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo`
 
-  The mmo object
-
-- feature_names:
-
-  A vector of feature names to convert
+  - feature\_names:
+    
+    A vector of feature names to convert
 
 ## Value
 

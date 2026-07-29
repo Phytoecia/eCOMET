@@ -1,10 +1,9 @@
-# Filter an MGF file to keep only spectra for features present in mmo\$feature_data\$id
+# Filter an MGF file to keep only spectra for features present in `mmo$feature_data$id`
 
 Create a new `.mgf` file that contains only spectra (ION blocks) whose
 `FEATURE_ID` occurs in `mmo$feature_data$id`. This is useful for keeping
-your spectral library in sync with the features currently stored in an
-`mmo` object (e.g., after subsetting, filtering, or rebuilding an
-`mmo`).
+your spectral library in sync with the features currently stored in a
+`mmo` (e.g., after subsetting, filtering, or rebuilding a `mmo`).
 
 ## Usage
 
@@ -20,43 +19,43 @@ filter_mgf_to_mmo(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    An eCOMET `mmo` containing a required `feature_data` table with an
+    `id` column (`mmo$feature_data$id`).
 
-  An ecomet `mmo` object containing a required `feature_data` table with
-  an `id` column (`mmo$feature_data$id`).
+  - mgf\_path:
+    
+    Character. Path to the input `.mgf` file.
 
-- mgf_path:
+  - output\_path:
+    
+    Character or NULL. Path to write the filtered `.mgf`. If `NULL`
+    (default), the output name is derived from `mgf_path` by appending
+    `_filtered` before the `.mgf` extension (or adding `_filtered.mgf`
+    if no extension is present).
 
-  Character. Path to the input `.mgf` file.
+  - chunk\_lines:
+    
+    Integer. Number of lines read per iteration. Larger values are
+    typically faster but use more memory. Default is `100000L`.
 
-- output_path:
-
-  Character or NULL. Path to write the filtered `.mgf`. If `NULL`
-  (default), the output name is derived from `mgf_path` by appending
-  `_filtered` before the `.mgf` extension (or adding `_filtered.mgf` if
-  no extension is present).
-
-- chunk_lines:
-
-  Integer. Number of lines read per iteration. Larger values are
-  typically faster but use more memory. Default is `100000L`.
-
-- verbose:
-
-  Logical. If `TRUE` (default), prints a short progress summary and
-  final counts.
+  - verbose:
+    
+    Logical. If `TRUE` (default), prints a short progress summary and
+    final counts.
 
 ## Value
 
 Invisibly returns a list with:
 
-- `output_path`: path to the filtered MGF
+  - `output_path`: path to the filtered MGF
 
-- `blocks_total`: total `BEGIN IONS` blocks encountered
+  - `blocks_total`: total `BEGIN IONS` blocks encountered
 
-- `blocks_kept`: number of blocks written to `output_path`
+  - `blocks_kept`: number of blocks written to `output_path`
 
-- `lines_read`: total lines read from `mgf_path`
+  - `lines_read`: total lines read from `mgf_path`
 
 ## Details
 

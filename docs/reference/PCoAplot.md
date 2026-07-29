@@ -21,34 +21,34 @@ PCoAplot(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` containing metadata
 
-  The mmo object containing metadata
+  - betadiv:
+    
+    The beta diversity distance matrix, output of GetBetaDiversity
 
-- betadiv:
+  - outdir:
+    
+    The prefix for the output files
 
-  The beta diversity distance matrix, output of GetBetaDiversity
+  - width:
+    
+    The width of the output PCoA plot (default: 6
 
-- outdir:
+  - height:
+    
+    The height of the output PCoA plot (default: 6)
 
-  The prefix for the output files
+  - color:
+    
+    A vector of colors for the points in the plot
 
-- width:
-
-  The width of the output PCoA plot (default: 6
-
-- height:
-
-  The height of the output PCoA plot (default: 6)
-
-- color:
-
-  A vector of colors for the points in the plot
-
-- save_output:
-
-  A logical value indicating whether to save the output plot (default:
-  TRUE)
+  - save\_output:
+    
+    A logical value indicating whether to save the output plot (default:
+    TRUE)
 
 ## Value
 

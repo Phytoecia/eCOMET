@@ -24,53 +24,53 @@ CanopusAllLevelEnrichmentPlot(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with sirius annotation and normalized data
 
-  The mmo object with sirius annotation and normalized data
+  - comp.list:
+    
+    A list to analyze, where each element is a vector of feature names
 
-- comp.list:
+  - terms:
+    
+    The terms to analyze. Options are 'all\_terms', 'NPC', 'ClassyFire',
+    or 'custom' (default: 'all\_terms')
 
-  A list to analyze, where each element is a vector of feature names
+  - term\_levels:
+    
+    list of custom term levels to use
 
-- terms:
+  - pthr:
+    
+    The threshold for adjusted p-value to be considered significant
+    (default: 0.1)
 
-  The terms to analyze. Options are 'all_terms', 'NPC', 'ClassyFire', or
-  'custom' (default: 'all_terms')
+  - representation:
+    
+    The representation type for enrichment analysis. Options are
+    'greater' for overrepresentation (default: 'greater')
 
-- term_levels:
+  - outdir:
+    
+    The output directory for saving the plot and the enrichment results
+    (default: 'enrichment')
 
-  list of custom term levels to use
+  - height:
+    
+    The height of the output plot in inches (default: 10)
 
-- pthr:
+  - width:
+    
+    The width of the output plot in inches (default: 8)
 
-  The threshold for adjusted p-value to be considered significant
-  (default: 0.1)
+  - pval:
+    
+    pvalue options-pval or fdr (default: 'pval')
 
-- representation:
-
-  The representation type for enrichment analysis. Options are 'greater'
-  for overrepresentation (default: 'greater')
-
-- outdir:
-
-  The output directory for saving the plot and the enrichment results
-  (default: 'enrichment')
-
-- height:
-
-  The height of the output plot in inches (default: 10)
-
-- width:
-
-  The width of the output plot in inches (default: 8)
-
-- pval:
-
-  pvalue options-pval or fdr (default: 'pval')
-
-- save_output:
-
-  boolean, whether to save the output plot (default: TRUE)
+  - save\_output:
+    
+    boolean, whether to save the output plot (default: TRUE)
 
 ## Value
 

@@ -2,9 +2,9 @@
 
 ## Authors
 
-- **Dale L. Forrister**. Author.
+  - **Dale L. Forrister**. Author.
 
-- **Min-Soo Choi**. Author, maintainer.
+  - **Min-Soo Choi**. Author, maintainer.
 
 ## Citation
 

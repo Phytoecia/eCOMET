@@ -11,3 +11,6 @@ tutorial/tutorial_2_interspecific/EcoMET_Interspecific_edges_dreams_dreams.csv
 vignettes/*.nb.html
 .DS_Store
 tutorial/**/.RData
+
+# local review artefacts, not part of the package
+260729_sparse_matrix_test/

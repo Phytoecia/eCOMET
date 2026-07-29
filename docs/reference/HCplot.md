@@ -2,7 +2,7 @@
 
 Hierarchical clustering of samples from a precomputed beta-diversity
 matrix, plotted as a phylogram with tip labels colored by
-mmo\$metadata\$group.
+`mmo$metadata$group`.
 
 ## Usage
 
@@ -22,43 +22,43 @@ HCplot(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo`
 
-  The mmo object
+  - betadiv:
+    
+    Beta diversity distance matrix, output of GetBetaDiversity()
 
-- betadiv:
+  - outdir:
+    
+    Output file prefix (e.g., "output/HC"). PNG saved here if
+    save\_output=TRUE.
 
-  Beta diversity distance matrix, output of GetBetaDiversity()
+  - hclust\_method:
+    
+    hclust linkage method (default: "average"; alternatives:
+    "complete","ward.D2")
 
-- outdir:
+  - color:
+    
+    Named vector of colors for groups. If NULL, uses Set3 palette.
 
-  Output file prefix (e.g., "output/HC"). PNG saved here if
-  save_output=TRUE.
+  - tip\_label\_size:
+    
+    Tip label text size (default: 2.5)
 
-- hclust_method:
+  - width:
+    
+    Plot width in inches (default: 10)
 
-  hclust linkage method (default: "average"; alternatives:
-  "complete","ward.D2")
+  - height:
+    
+    Plot height in inches (default: 7)
 
-- color:
-
-  Named vector of colors for groups. If NULL, uses Set3 palette.
-
-- tip_label_size:
-
-  Tip label text size (default: 2.5)
-
-- width:
-
-  Plot width in inches (default: 10)
-
-- height:
-
-  Plot height in inches (default: 7)
-
-- save_output:
-
-  Whether to save the plot (default: TRUE)
+  - save\_output:
+    
+    Whether to save the plot (default: TRUE)
 
 ## Value
 

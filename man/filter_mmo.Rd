@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{filter_mmo}
 \alias{filter_mmo}
-\title{Filter an mmo object by samples, groups, and/or features}
+\title{Filter a \code{mmo} by samples, groups, and/or features}
 \usage{
 filter_mmo(
   mmo,
@@ -18,7 +18,7 @@ filter_mmo(
 )
 }
 \arguments{
-\item{mmo}{A list-like mmo object as returned by \code{GetMZmineFeature()}.}
+\item{mmo}{A list-like \code{mmo} as returned by \code{GetMZmineFeature()}.}
 
 \item{sample_list}{Optional character vector of sample IDs (matching
 \code{sample_col} in \code{mmo$metadata}) to retain.}
@@ -52,12 +52,12 @@ to retained features using \code{filter_mgf_to_mmo()}.}
 If \code{NULL} (default), output is \code{"<input>_filtered.mgf"}.}
 }
 \value{
-A filtered mmo object with the same structure as \code{mmo}, but
+A filtered \code{mmo} with the same structure as \code{mmo}, but
 restricted to the requested samples / groups / features. If \code{mgf_path}
 is provided, the returned object also includes \code{mmo_filtered$mgf_filtered_path}.
 }
 \description{
-Subset all components of an mmo object (feature tables, metadata, distance
+Subset all components of a \code{mmo} (feature tables, metadata, distance
 matrices, and annotations) to a given set of samples, groups, and/or
 feature IDs. Filtering is applied consistently across all slots present
 in \code{mmo}.

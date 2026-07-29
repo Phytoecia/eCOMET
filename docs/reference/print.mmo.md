@@ -1,8 +1,8 @@
-# Print method for mmo objects Provides a clean, human-readable overview of an `mmo` list object instead of dumping the entire list when the object is printed in the console.
+# Print method for `mmo`s Provides a clean, human-readable overview of an `mmo` list object instead of dumping the entire list when the object is printed in the console.
 
-Print method for mmo objects Provides a clean, human-readable overview
-of an `mmo` list object instead of dumping the entire list when the
-object is printed in the console.
+Print method for `mmo`s Provides a clean, human-readable overview of an
+`mmo` list object instead of dumping the entire list when the object is
+printed in the console.
 
 ## Usage
 
@@ -13,14 +13,14 @@ print(x, ...)
 
 ## Arguments
 
-- x:
+  - x:
+    
+    An `mmo` object (a list with components such as `feature_data`,
+    `metadata`, `pairwise`, etc.)
 
-  An `mmo` object (a list with components such as `feature_data`,
-  `metadata`, `pairwise`, etc.)
-
-- ...:
-
-  Additional arguments passed to other print methods (unused).
+  - ...:
+    
+    Additional arguments passed to other print methods (unused).
 
 ## Value
 

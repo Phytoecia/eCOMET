@@ -11,21 +11,21 @@ CalculateGroupBetaDistance(mmo, beta_div, reference_group, groups)
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` containing feature data and metadata
 
-  The mmo object containing feature data and metadata
+  - beta\_div:
+    
+    The beta diversity distance matrix, output of GetBetaDiversity()
 
-- beta_div:
+  - reference\_group:
+    
+    The name of the reference group to compare against
 
-  The beta diversity distance matrix, output of GetBetaDiversity()
-
-- reference_group:
-
-  The name of the reference group to compare against
-
-- groups:
-
-  A vector of group names from the metadata to calculate distances for
+  - groups:
+    
+    A vector of group names from the metadata to calculate distances for
 
 ## Value
 

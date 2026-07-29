@@ -1,8 +1,7 @@
 # GetSpecializationIndex
 
-This function calculates the specialization index for a given mmo
-object, normalization method, and optional filtering by groups and
-features.
+This function calculates the specialization index for a given `mmo`,
+normalization method, and optional filtering by groups and features.
 
 ## Usage
 
@@ -19,34 +18,34 @@ GetSpecializationIndex(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` containing feature data and metadata
 
-  The mmo object containing feature data and metadata
+  - normalization:
+    
+    The normalization method to use for feature data. Options are
+    'None', 'Log', 'Meancentered', or 'Z' (default: 'None')
 
-- normalization:
+  - filter\_group:
+    
+    A boolean indicating whether to filter the feature data by a
+    specific group list (default: FALSE)
 
-  The normalization method to use for feature data. Options are 'None',
-  'Log', 'Meancentered', or 'Z' (default: 'None')
+  - group\_list:
+    
+    A list of groups to filter the feature data by, if filter\_group is
+    TRUE (default: NULL)
 
-- filter_group:
+  - filter\_id:
+    
+    A boolean indicating whether to filter the feature data by a
+    specific list (default: FALSE)
 
-  A boolean indicating whether to filter the feature data by a specific
-  group list (default: FALSE)
-
-- group_list:
-
-  A list of groups to filter the feature data by, if filter_group is
-  TRUE (default: NULL)
-
-- filter_id:
-
-  A boolean indicating whether to filter the feature data by a specific
-  list (default: FALSE)
-
-- id_list:
-
-  A list of feature names to filter the feature data by, if filter_id is
-  TRUE (default: NULL)
+  - id\_list:
+    
+    A list of feature names to filter the feature data by, if filter\_id
+    is TRUE (default: NULL)
 
 ## Value
 

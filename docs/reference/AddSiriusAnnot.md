@@ -1,7 +1,7 @@
-# Adding annotation from SIRIUS to the mmo object
+# Adding annotation from SIRIUS to the `mmo`
 
 This function reads SIRIUS structure identification and formula summary
-files, and adds the annotations to the mmo object.
+files, and adds the annotations to the `mmo`.
 
 ## Usage
 
@@ -17,31 +17,31 @@ AddSiriusAnnot(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo`
 
-  The mmo object
+  - canopus\_structuredir:
+    
+    Path to the SIRIUS structure\_identification.tsv file
 
-- canopus_structuredir:
+  - canopus\_formuladir:
+    
+    Path to the SIRIUS canopus\_formula\_summary.tsv file
 
-  Path to the SIRIUS structure_identification.tsv file
+  - filter\_annot:
+    
+    Logical. If TRUE, filter the annotations by probability threshold in
+    CANOPUS.
 
-- canopus_formuladir:
-
-  Path to the SIRIUS canopus_formula_summary.tsv file
-
-- filter_annot:
-
-  Logical. If TRUE, filter the annotations by probability threshold in
-  CANOPUS.
-
-- filter_threshold:
-
-  Numeric between 0 and 1. The probability threshold for filtering
-  annotations.
+  - filter\_threshold:
+    
+    Numeric between 0 and 1. The probability threshold for filtering
+    annotations.
 
 ## Value
 
-The mmo object with SIRIUS annotations added
+The `mmo` with SIRIUS annotations added
 
 ## Examples
 

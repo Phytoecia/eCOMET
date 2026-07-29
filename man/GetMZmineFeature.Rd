@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{GetMZmineFeature}
 \alias{GetMZmineFeature}
-\title{Import MZmine feature table and metadata to create a mmo object}
+\title{Import MZmine feature table and metadata to create a mmo (mass-spectrometry metabolomics object)}
 \usage{
 GetMZmineFeature(
   mzmine_dir,
@@ -44,11 +44,11 @@ area column names (default 5). Lower this for stricter matching.}
 Columns not present in the MZmine table are skipped with a warning.}
 }
 \value{
-A mmo object
+A mmo
 }
 \description{
 Reads an MZmine exported feature table (typically the full feature table) and a sample metadata table
-to initialize an mmo object containing:
+to initialize a mmo containing:
 \itemize{
 \item \code{mmo$feature_data}: feature-by-sample abundance matrix (peak areas)
 \item \code{mmo$feature_info}: feature-level annotations (e.g., mz, rt, ranges, IDs)

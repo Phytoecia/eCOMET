@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>eCOMET-intro • ecomet</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="eCOMET-intro">
 </head>
@@ -31,7 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Tutorials</a></li>
-<li class="nav-item"><a class="nav-link" href="../articles/contributing.html">Contributing</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/contributing.html">Contribute</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -65,9 +65,9 @@
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://phytoecia.github.io/eCOMET/">ecomet</a></span><span class="op">)</span></span></code></pre></div>
 <div class="section level2">
-<h2 id="the-mmo-object">The <code>mmo</code> object<a class="anchor" aria-label="anchor" href="#the-mmo-object"></a>
+<h2 id="the-mass-spectrometry-metabolomics-object-mmo">The Mass-spectrometry Metabolomics Object (<code>mmo</code>)<a class="anchor" aria-label="anchor" href="#the-mass-spectrometry-metabolomics-object-mmo"></a>
 </h2>
-<p>The <code>mmo</code> object is a central data structure in the <strong>eCOMET</strong> package.<br>
+<p>The <code>mmo</code> is a central data structure in the <strong>eCOMET</strong> package.<br>
 It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmineFeature()</a></code> function and contains:</p>
 <ul>
 <li>
@@ -81,19 +81,19 @@ It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmin
 <li>
 <strong>custom_annot</strong>: (optional) Custom compound annotations. Added by <code><a href="../reference/AddCustomAnnot.html">AddCustomAnnot()</a></code>.</li>
 <li>
-<strong>cos.dissim</strong>: (optional) Cosine dissimilarity matrix. Added by <code><a href="../reference/AddChemDist.html">AddChemDist()</a></code>.</li>
+<strong>cos.sim</strong>: (optional) Cosine similarity matrix. Added by <code><a href="../reference/AddChemSim.html">AddChemSim()</a></code>.</li>
 <li>
-<strong>m2ds.dissim</strong>: (optional) MS2DeepScore dissimilarity matrix. Added by <code><a href="../reference/AddChemDist.html">AddChemDist()</a></code>.</li>
+<strong>m2ds.sim</strong>: (optional) MS2DeepScore similarity matrix. Added by <code><a href="../reference/AddChemSim.html">AddChemSim()</a></code>.</li>
 <li>
-<strong>dreams.dissim</strong>: (optional) DreaMS dissimilarity matrix. Added by <code><a href="../reference/AddChemDist.html">AddChemDist()</a></code>.</li>
+<strong>dreams.sim</strong>: (optional) DreaMS similarity matrix. Added by <code><a href="../reference/AddChemSim.html">AddChemSim()</a></code>.</li>
 <li>
-<strong>&lt;name&gt;.dissim</strong>: (optional) Any custom feature dissimilarity matrix. Added by <code><a href="../reference/AddCustomDist.html">AddCustomDist()</a></code> with a user-supplied name.</li>
+<strong>&lt;name&gt;.sim</strong>: (optional) Any custom feature similarity matrix. Added by <code><a href="../reference/AddCustomSim.html">AddCustomSim()</a></code> with a user-supplied name.</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="input-file-requirements">Input file requirements<a class="anchor" aria-label="anchor" href="#input-file-requirements"></a>
 </h2>
-<p>The mendatory input files for creating an <code>mmo</code> object are:</p>
+<p>The mendatory input files for creating a <code>mmo</code> are:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>MZmine feature table</strong>:</li>
@@ -108,9 +108,9 @@ It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmin
 </ol>
 <p>Refer <a href="#Inputs_MZMine">Inputs_MZMine</a> below for details.</p>
 <hr>
-<p>You can create an <code>mmo</code> object like this:</p>
+<p>You can create a <code>mmo</code> like this:</p>
 <p>mmo &lt;- GetMZmineFeature( mzmine_dir = “path/to/mzmine_feature.csv”, metadata_dir = “path/to/metadata.csv”, group_col = “treatment” )</p>
-<p>Here we load demo data that is downloaded when eCOMET is installed and create an mmo object</p>
+<p>Here we load demo data that is downloaded when eCOMET is installed and create a <code>mmo</code></p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="co"># Locate tutorial data shipped with the eCOMET package</span></span>
@@ -131,7 +131,7 @@ It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmin
 <span></span>
 <span></span>
 <span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetMZmineFeature.html">GetMZmineFeature</a></span><span class="op">(</span>mzmine_dir<span class="op">=</span><span class="va">demo_feature</span>, metadata_dir <span class="op">=</span> <span class="va">demo_metadata</span>, group_col <span class="op">=</span> <span class="st">'group'</span>, sample_col <span class="op">=</span> <span class="st">'sample'</span><span class="op">)</span></span></code></pre></div>
-<p>Once created, you can use the <code>mmo</code> object for normalization, annotation, statistical analysis, and visualization throughout the package.</p>
+<p>Once created, you can use the <code>mmo</code> for normalization, annotation, statistical analysis, and visualization throughout the package.</p>
 </div>
 <div class="section level2">
 <h2 id="normalization">Normalization<a class="anchor" aria-label="anchor" href="#normalization"></a>
@@ -152,7 +152,7 @@ It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmin
 <div class="section level2">
 <h2 id="adding-siriuscanopus-annotations">Adding Sirius/CANOPUS annotations<a class="anchor" aria-label="anchor" href="#adding-siriuscanopus-annotations"></a>
 </h2>
-<p>The results from SIRIUS/CANOPUS can be added to the <code>mmo</code> object as <strong>mmo$sirius_annot</strong> These are used for chemical class enrichment analysis and visualization. Two files are needed:</p>
+<p>The results from SIRIUS/CANOPUS can be added to the <code>mmo</code> as <strong>mmo$sirius_annot</strong> These are used for chemical class enrichment analysis and visualization. Two files are needed:</p>
 <ol style="list-style-type: decimal">
 <li><p><strong>structure_identifications.tsv</strong></p></li>
 <li><p><strong>canopus_formula_summary.tsv</strong></p></li>
@@ -166,54 +166,53 @@ It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmin
 <span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="adding-chemical-dissimilarity">Adding chemical dissimilarity<a class="anchor" aria-label="anchor" href="#adding-chemical-dissimilarity"></a>
+<h2 id="adding-chemical-similarity">Adding chemical similarity<a class="anchor" aria-label="anchor" href="#adding-chemical-similarity"></a>
 </h2>
-<p>Chemical dissimilarity matrices describe pairwise structural relationships among features. Once added to the <code>mmo</code> object they are used by <code><a href="../reference/GetBetaDiversity.html">GetBetaDiversity()</a></code>, <code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> (weighted mode), and <code>HeatmapPlot()</code> via the <code>distance</code> argument.</p>
+<p>Chemical similarity matrices describe pairwise structural relationships among features. Values are stored as raw similarities (0–1, higher = more similar); downstream functions convert to distance internally as needed. Once added to the <code>mmo</code> they are used by <code><a href="../reference/GetBetaDiversity.html">GetBetaDiversity()</a></code>, <code><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity()</a></code> (weighted mode), and <code>HeatmapPlot()</code> via the <code>distance</code> argument.</p>
 <div class="section level3">
-<h3 id="built-in-methods-addchemdist">Built-in methods: <code>AddChemDist()</code><a class="anchor" aria-label="anchor" href="#built-in-methods-addchemdist"></a>
+<h3 id="built-in-methods-addchemsim">Built-in methods: <code>AddChemSim()</code><a class="anchor" aria-label="anchor" href="#built-in-methods-addchemsim"></a>
 </h3>
-<p><code><a href="../reference/AddChemDist.html">AddChemDist()</a></code> reads MZmine molecular networking output files for three supported similarity types and converts them to dissimilarity (<code>1 - similarity</code>) before storing them in the <code>mmo</code> object.</p>
+<p><code><a href="../reference/AddChemSim.html">AddChemSim()</a></code> reads MZmine molecular networking output files for three supported similarity types and stores the raw similarity values directly in the <code>mmo</code>. For datasets with more than 10,000 features a sparse matrix format is used automatically to avoid memory issues.</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemDist.html">AddChemDist</a></span><span class="op">(</span><span class="va">mmo</span>,</span>
+<code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemSim.html">AddChemSim</a></span><span class="op">(</span><span class="va">mmo</span>,</span>
 <span>  cos_dir    <span class="op">=</span> <span class="st">"path/to/cosine_similarity.csv"</span>,</span>
 <span>  m2ds_dir   <span class="op">=</span> <span class="st">"path/to/ms2deepscore_similarity.csv"</span>,</span>
 <span>  dreams_dir <span class="op">=</span> <span class="st">"path/to/dreams_similarity.csv"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Add Dreams distance from demo data</span></span>
-<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemDist.html">AddChemDist</a></span><span class="op">(</span><span class="va">mmo</span>, dreams_dir <span class="op">=</span> <span class="va">demo_dreams</span><span class="op">)</span></span>
-<span><span class="va">mmo</span><span class="op">$</span><span class="va">dreams.dissim</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="co"># Add DreaMS similarity from demo data</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemSim.html">AddChemSim</a></span><span class="op">(</span><span class="va">mmo</span>, dreams_dir <span class="op">=</span> <span class="va">demo_dreams</span><span class="op">)</span></span>
+<span><span class="va">mmo</span><span class="op">$</span><span class="va">dreams.sim</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span></code></pre></div>
 <p>Pass the stored matrix to downstream functions using its short name:</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">beta</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">"CSCS"</span>, distance <span class="op">=</span> <span class="st">"dreams"</span><span class="op">)</span></span>
-<span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, mode <span class="op">=</span> <span class="st">"weighted"</span>, distance <span class="op">=</span> <span class="st">"dreams"</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">beta</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">"CSCS"</span>,     distance <span class="op">=</span> <span class="st">"dreams"</span><span class="op">)</span></span>
+<span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, mode <span class="op">=</span> <span class="st">"weighted"</span>,  distance <span class="op">=</span> <span class="st">"dreams"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="custom-distance-matrices-addcustomdist">Custom distance matrices: <code>AddCustomDist()</code><a class="anchor" aria-label="anchor" href="#custom-distance-matrices-addcustomdist"></a>
+<h3 id="custom-similarity-matrices-addcustomsim">Custom similarity matrices: <code>AddCustomSim()</code><a class="anchor" aria-label="anchor" href="#custom-similarity-matrices-addcustomsim"></a>
 </h3>
-<p>If you have a feature dissimilarity matrix from another tool (e.g. Tanimoto structural similarity, NPC-based distances, or any other pairwise metric), use <code><a href="../reference/AddCustomDist.html">AddCustomDist()</a></code> to add it under a name of your choice.</p>
+<p>If you have a feature similarity matrix from another tool (e.g. Tanimoto structural similarity, NPC-based scores, or any other pairwise metric), use <code><a href="../reference/AddCustomSim.html">AddCustomSim()</a></code> to add it under a name of your choice.</p>
 <p><strong>Format requirements for the matrix:</strong></p>
 <ul>
-<li>Square numeric matrix with row and column names matching the feature IDs in <code>mmo$feature_data$id</code>.</li>
-<li>Values must be <strong>dissimilarities</strong> in <code>[0, 1]</code>: 0 = identical, 1 = maximally different. If your source is a similarity matrix, convert it first with <code>dist_matrix &lt;- 1 - sim_matrix</code>.</li>
-<li>Diagonal should be 0. Matrix should be symmetric.</li>
+<li>Square numeric matrix (or sparse <code>dgCMatrix</code>) with row and column names matching the feature IDs in <code>mmo$feature_data$id</code>.</li>
+<li>Values must be <strong>similarities</strong> in <code>[0, 1]</code>: 1 = identical, 0 = maximally different. Pass the similarity matrix directly — no conversion needed.</li>
+<li>Diagonal should be 1. Matrix should be symmetric.</li>
 </ul>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Example: Tanimoto structural similarity from an external tool</span></span>
-<span><span class="va">tanimoto_dist</span> <span class="op">&lt;-</span> <span class="fl">1</span> <span class="op">-</span> <span class="va">tanimoto_sim_matrix</span>  <span class="co"># convert similarity → dissimilarity</span></span>
-<span></span>
-<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddCustomDist.html">AddCustomDist</a></span><span class="op">(</span><span class="va">mmo</span>, dist_matrix <span class="op">=</span> <span class="va">tanimoto_dist</span>, name <span class="op">=</span> <span class="st">"tanimoto"</span><span class="op">)</span></span>
+<span><span class="co"># tanimoto_sim_matrix is already a similarity matrix — pass directly</span></span>
+<span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddCustomSim.html">AddCustomSim</a></span><span class="op">(</span><span class="va">mmo</span>, sim_matrix <span class="op">=</span> <span class="va">tanimoto_sim_matrix</span>, name <span class="op">=</span> <span class="st">"tanimoto"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Use it anywhere a 'distance' argument is accepted:</span></span>
 <span><span class="va">beta</span>  <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetBetaDiversity.html">GetBetaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">"CSCS"</span>,     distance <span class="op">=</span> <span class="st">"tanimoto"</span><span class="op">)</span></span>
 <span><span class="va">alpha</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetAlphaDiversity.html">GetAlphaDiversity</a></span><span class="op">(</span><span class="va">mmo</span>, mode <span class="op">=</span> <span class="st">"weighted"</span>,  distance <span class="op">=</span> <span class="st">"tanimoto"</span><span class="op">)</span></span></code></pre></div>
-<p>The matrix is stored as <code>mmo$tanimoto.dissim</code> and the name <code>"tanimoto"</code> can be passed as the <code>distance</code> argument throughout the package.</p>
+<p>The matrix is stored as <code>mmo$tanimoto.sim</code> and the name <code>"tanimoto"</code> can be passed as the <code>distance</code> argument throughout the package.</p>
 </div>
 </div>
 <div class="section level2">
 <h2 id="adding-custom-annotations">Adding custom annotations<a class="anchor" aria-label="anchor" href="#adding-custom-annotations"></a>
 </h2>
-<p>You can add your own custom compound annotations to the <code>mmo</code> object as <strong>mmo$custom_annot</strong>. This is useful for adding known compound names or classes from other databases. The custom annotation file should be a CSV with three columns: 1. compound: Name of the compound 2. mz: m/z value 3. rt: Retention time (in minutes)</p>
+<p>You can add your own custom compound annotations to the <code>mmo</code> as <strong>mmo$custom_annot</strong>. This is useful for adding known compound names or classes from other databases. The custom annotation file should be a CSV with three columns: 1. compound: Name of the compound 2. mz: m/z value 3. rt: Retention time (in minutes)</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddCustomAnnot.html">AddCustomAnnot</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
@@ -221,11 +220,11 @@ It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmin
 <span>  mztol <span class="op">=</span> <span class="fl">5</span>, <span class="co"># m/z tolerance in ppm</span></span>
 <span>  rttol <span class="op">=</span> <span class="fl">0.2</span> <span class="co"># RT tolerance in minutes</span></span>
 <span><span class="op">)</span></span></code></pre></div>
-<p>##Filtering MMO Objectes based on feature list or sample list</p>
-<p>You can provide either a list of species or features to filter the object. This will iterate over all sets of</p>
+<p>##Filtering <code>mmo</code>s based on feature list or sample list</p>
+<p>You can provide either a list of species or features to filter the <code>mmo</code>. This will iterate over all sets of</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#Create a new mmo object containing only control samples</span></span>
+<span><span class="co">#Create a new mmo containing only control samples</span></span>
 <span><span class="va">samples_ctrl</span> <span class="op">&lt;-</span> <span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">sample</span><span class="op">[</span><span class="va">mmo</span><span class="op">$</span><span class="va">metadata</span><span class="op">$</span><span class="va">group</span> <span class="op">==</span> <span class="st">"ctrl"</span><span class="op">]</span></span>
 <span></span>
 <span><span class="va">mmo_ctrl</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_mmo.html">filter_mmo</a></span><span class="op">(</span><span class="va">mmo</span>,</span>
@@ -234,17 +233,17 @@ It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmin
 <span>                       <span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="co">#create a new mmo object only containing Flavonoid based on sirius annotations</span></span>
+<span><span class="co">#create a new mmo only containing Flavonoid based on sirius annotations</span></span>
 <span><span class="va">FLVs</span> <span class="op">&lt;-</span> <span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot</span> <span class="op">%&gt;%</span> </span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/stats/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"Flavonoid"</span>, <span class="va">.data</span><span class="op">[[</span><span class="st">'ClassyFire#most specific class'</span><span class="op">]</span><span class="op">]</span><span class="op">)</span></span>
 <span>  <span class="op">)</span> <span class="op">%&gt;%</span> <span class="fu">pull</span><span class="op">(</span><span class="va">id</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">mmo_FLVs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/filter_mmo.html">filter_mmo</a></span><span class="op">(</span><span class="va">mmo</span>,</span>
 <span>                       feature_list <span class="op">=</span> <span class="va">FLVs</span><span class="op">)</span></span></code></pre></div>
-<p>##Match and Filter an associated mgf file to based on the feature list in an MMO object.</p>
+<p>##Match and Filter an associated mgf file to based on the feature list in a <code>mmo</code>.</p>
 <p>Once an dataset has been filtered you may want to update the associated .mgf file containing ms2 spectra prior to processing with Sirius, GNPS ect.</p>
 <ol style="list-style-type: decimal">
-<li>Match spectra present in an MGF against a feature list and update the mmo$feature_info</li>
+<li>Match spectra present in an MGF against a feature list and update the mmo$feature_info.</li>
 </ol>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -253,7 +252,7 @@ It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmin
 <span>                                          overwrite <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_info</span></span></code></pre></div>
 <ol start="2" style="list-style-type: decimal">
-<li>Given a feature list in an mmo object defined by mmo<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>f</mi><mi>e</mi><mi>a</mi><mi>t</mi><mi>u</mi><mi>r</mi><msub><mi>e</mi><mi>d</mi></msub><mi>a</mi><mi>t</mi><mi>a</mi></mrow><annotation encoding="application/x-tex">feature_data</annotation></semantics></math>id read through an associated mgf file and remove features not in the list</li>
+<li>Given a feature list in a <code>mmo</code> defined by <code>mmo$feature_data$id</code> read through an associated mgf file and remove features not in the list.</li>
 </ol>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/filter_mgf_to_mmo.html">filter_mgf_to_mmo</a></span><span class="op">(</span><span class="va">mmo</span>, </span>
@@ -272,7 +271,7 @@ It is created by the <code><a href="../reference/GetMZmineFeature.html">GetMZmin
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

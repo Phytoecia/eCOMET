@@ -1,8 +1,8 @@
-# Add chemical distance matrices to the mmo object
+# Add chemical distance matrices to the `mmo`
 
 This function reads cosine, DREAMS, and MS2DeepScore molecular
 networking outputs from MZmine, then transform the similarity to
-distance and adds the dissimilarity matrices to the mmo object.
+distance and adds the dissimilarity matrices to the `mmo`.
 
 ## Usage
 
@@ -12,29 +12,29 @@ AddChemDist(mmo, cos_dir = NULL, dreams_dir = NULL, m2ds_dir = NULL)
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo`
 
-  The mmo object
+  - cos\_dir:
+    
+    Path to the cosine similarity CSV file from MZMine (molecular
+    networking)
 
-- cos_dir:
+  - dreams\_dir:
+    
+    Path to the DREAMS similarity CSV file from MZMine (molecular
+    networking)
 
-  Path to the cosine similarity CSV file from MZMine (molecular
-  networking)
-
-- dreams_dir:
-
-  Path to the DREAMS similarity CSV file from MZMine (molecular
-  networking)
-
-- m2ds_dir:
-
-  Path to the MS2DeepScore similarity CSV file from MZMine (molecular
-  networking)
+  - m2ds\_dir:
+    
+    Path to the MS2DeepScore similarity CSV file from MZMine (molecular
+    networking)
 
 ## Value
 
-The mmo object with dissimilarity matrices added (mmo\$cos.dissim,
-mmo\$dreams.dissim, mmo\$m2ds.dissim)
+The `mmo` with dissimilarity matrices added (mmo$cos.dissim,
+mmo$dreams.dissim, mmo$m2ds.dissim)
 
 ## Examples
 

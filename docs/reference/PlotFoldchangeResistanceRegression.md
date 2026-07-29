@@ -20,37 +20,37 @@ PlotFoldchangeResistanceRegression(
 
 ## Arguments
 
-- performance_regression:
+  - performance\_regression:
+    
+    The regression results data frame containing effect size, fold
+    change, and tag. The output from GetPerformanceFeatureRegression,
+    GetPerformanceFeatureLMM, or GetPerformanceFeatureCorrelation.
 
-  The regression results data frame containing effect size, fold change,
-  and tag. The output from GetPerformanceFeatureRegression,
-  GetPerformanceFeatureLMM, or GetPerformanceFeatureCorrelation.
+  - fold\_change:
+    
+    The name of the fold change column in the performance\_regression
+    dataframe
 
-- fold_change:
+  - color:
+    
+    A vector of colors for the points in the plot
 
-  The name of the fold change column in the performance_regression
-  dataframe
+  - outdir:
+    
+    The output file path for the regression plot
 
-- color:
+  - width:
+    
+    The width of the output plot in inches (default: 6)
 
-  A vector of colors for the points in the plot
+  - height:
+    
+    The height of the output plot in inches (default: 6)
 
-- outdir:
-
-  The output file path for the regression plot
-
-- width:
-
-  The width of the output plot in inches (default: 6)
-
-- height:
-
-  The height of the output plot in inches (default: 6)
-
-- save_output:
-
-  A logical value indicating whether to save the output plot (default:
-  TRUE)
+  - save\_output:
+    
+    A logical value indicating whether to save the output plot (default:
+    TRUE)
 
 ## Value
 

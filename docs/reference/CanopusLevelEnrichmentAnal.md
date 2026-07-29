@@ -19,39 +19,40 @@ CanopusLevelEnrichmentAnal(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with sirius annotation and normalized data
 
-  The mmo object with sirius annotation and normalized data
+  - list\_test:
+    
+    A vector containing ids of features to analyze
 
-- list_test:
+  - pthr:
+    
+    The threshold for adjusted p-value to be considered significant
+    (default: 0.1)
 
-  A vector containing ids of features to analyze
+  - sig:
+    
+    A logical value indicating whether to return only significant terms
+    (default: TRUE)
 
-- pthr:
+  - term\_level:
+    
+    The level of term to use for enrichment analysis Options are
+    'NPC\_pathway', 'NPC\_superclass', 'NPC\_class',
+    'ClassyFire\_superclass', 'ClassyFire\_class',
+    'ClassyFire\_subclass', 'ClassyFire\_level5', or
+    'ClassyFire\_most\_specific' (default: 'NPC\_pathway')
 
-  The threshold for adjusted p-value to be considered significant
-  (default: 0.1)
+  - representation:
+    
+    The representation type for enrichment analysis. Options are
+    'greater' for overrepresentation (default: 'greater')
 
-- sig:
-
-  A logical value indicating whether to return only significant terms
-  (default: TRUE)
-
-- term_level:
-
-  The level of term to use for enrichment analysis Options are
-  'NPC_pathway', 'NPC_superclass', 'NPC_class', 'ClassyFire_superclass',
-  'ClassyFire_class', 'ClassyFire_subclass', 'ClassyFire_level5', or
-  'ClassyFire_most_specific' (default: 'NPC_pathway')
-
-- representation:
-
-  The representation type for enrichment analysis. Options are 'greater'
-  for overrepresentation (default: 'greater')
-
-- pval:
-
-  pvalue options-pval or fdr (default: 'pval')
+  - pval:
+    
+    pvalue options-pval or fdr (default: 'pval')
 
 ## Value
 

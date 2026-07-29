@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{annotate_feature_info_ms2_from_mgf}
 \alias{annotate_feature_info_ms2_from_mgf}
-\title{Annotate mmo$feature_info with MS2 presence and MS2 block counts from an MGF}
+\title{Annotate \code{mmo$feature_info} with MS2 presence and MS2 block counts from an MGF}
 \usage{
 annotate_feature_info_ms2_from_mgf(
   mmo,
@@ -13,7 +13,7 @@ annotate_feature_info_ms2_from_mgf(
 )
 }
 \arguments{
-\item{mmo}{An ecomet \code{mmo} object containing a required \code{feature_info}
+\item{mmo}{An eCOMET \code{mmo} containing a required \code{feature_info}
 table with an \code{id} column (\code{mmo$feature_info$id}).}
 
 \item{mgf_path}{Character. Path to the input \code{.mgf} file.}
@@ -29,7 +29,7 @@ to replace existing columns.}
 MS2 blocks were found and how many features have MS2.}
 }
 \value{
-The updated \code{mmo} object with \code{mmo$feature_info$ms2} and
+The updated \code{mmo} with \code{mmo$feature_info$ms2} and
 \code{mmo$feature_info$count_ms2} added (or overwritten if \code{overwrite = TRUE}).
 }
 \description{

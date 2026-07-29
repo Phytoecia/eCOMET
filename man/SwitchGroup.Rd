@@ -2,20 +2,20 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{SwitchGroup}
 \alias{SwitchGroup}
-\title{Switch the group column in the mmo object}
+\title{Switch the group column in the \code{mmo}}
 \usage{
 SwitchGroup(mmo, new_group_col)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{new_group_col}{The name of the new group column in the metadata file}
 }
 \value{
-The mmo object with the updated group column
+The \code{mmo} with the updated group column
 }
 \description{
-This function switches the group column in the metadata of the mmo object to a new specified column.
+This function switches the group column in the metadata of the \code{mmo} to a new specified column.
 The new group column must exist in the metadata file.
 }
 \examples{

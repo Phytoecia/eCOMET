@@ -7,7 +7,7 @@
 SaveMMO(mmo, file = "mmo.rds", compress = "xz", include_session = TRUE)
 }
 \arguments{
-\item{mmo}{The mmo object (list) to save}
+\item{mmo}{The \code{mmo} to save}
 
 \item{file}{File path to write (default: "mmo.rds")}
 

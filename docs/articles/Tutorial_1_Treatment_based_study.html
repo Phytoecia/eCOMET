@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Tutorial 1: Treatment-based Metabolomics • ecomet</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial 1: Treatment-based Metabolomics">
 </head>
@@ -31,7 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Tutorials</a></li>
-<li class="nav-item"><a class="nav-link" href="../articles/contributing.html">Contributing</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/contributing.html">Contribute</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -78,7 +78,7 @@
 <div class="section level2">
 <h2 id="background">Background<a class="anchor" aria-label="anchor" href="#background"></a>
 </h2>
-<p>In this tutorial, we demonstrate how to use the <strong>eCOMET</strong> package for analyzing metabolomics data from a <strong>treatment-based study</strong></p>
+<p>In this tutorial, we demonstrate how to use the <strong>eCOMET</strong> package for analyzing metabolomics data from a <strong>treatment-based study</strong>.</p>
 <p><strong>What is a treatment-based study?</strong></p>
 <ul>
 <li>In a treatment-based study, we compare metabolite profiles between different treatment groups (e.g., control vs. treated).</li>
@@ -113,7 +113,7 @@
 </tr>
 </tbody>
 </table>
-<p>These files are shipped with the eCOMET package and can be accessed via <code><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file()</a></code>.</p>
+<p>These files are included with the eCOMET package and can be accessed via <code><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file()</a></code>.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -121,12 +121,12 @@
 </h2>
 <p>eCOMET is distributed with a small set of example files so that tutorials can be run immediately without downloading additional data.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># Locate tutorial data shipped with the eCOMET package</span></span>
+<code class="sourceCode R"><span><span class="co"># Locate tutorial data included with the eCOMET package</span></span>
 <span><span class="va">data_dir</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/system.file.html" class="external-link">system.file</a></span><span class="op">(</span></span>
 <span>  <span class="st">"extdata/tutorials/treatment_based"</span>,</span>
 <span>  package <span class="op">=</span> <span class="st">"ecomet"</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="va">data_dir</span><span class="op">)</span><span class="op">)</span>  <span class="co"># fail loudly if package/data not installed</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="va">data_dir</span><span class="op">)</span><span class="op">)</span>  <span class="co"># Fail loudly if package or data are not installed</span></span>
 <span></span>
 <span><span class="co"># Define file paths</span></span>
 <span><span class="va">demo_feature</span>          <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"feature_table_demo.csv"</span><span class="op">)</span></span>
@@ -144,18 +144,18 @@
 <p>To create an <code>mmo</code> object, you need at minimum:</p>
 <ol style="list-style-type: decimal">
 <li>
-<strong>Feature abundance table</strong> — exported from MZmine (preferably the “full feature table” format)</li>
+<strong>Feature abundance table</strong> — exported from MZmine (preferably the “full feature table” format).</li>
 <li>
-<strong>Sample metadata</strong> — a CSV identifying samples and their treatment groups</li>
+<strong>Sample metadata</strong> — a CSV identifying samples and their treatment groups.</li>
 </ol>
 <p>Optionally, you can later add:</p>
 <ul>
-<li>SIRIUS/CANOPUS annotations for chemical classification</li>
-<li>Chemical similarity scores (DreaMS, cosine, MS2DeepScore)</li>
-<li>Custom compound database annotations</li>
+<li>SIRIUS/CANOPUS annotations for chemical classification.</li>
+<li>Chemical dissimilarity scores (DreaMS, cosine, MS2DeepScore, etc.).</li>
+<li>Custom compound database annotations.</li>
 </ul>
 <div class="section level3">
-<h3 id="initialize-the-mmo-object">2.1 Initialize the mmo object<a class="anchor" aria-label="anchor" href="#initialize-the-mmo-object"></a>
+<h3 id="initialize-the-mmo-object">2.1 Initialize the <code>mmo</code> object<a class="anchor" aria-label="anchor" href="#initialize-the-mmo-object"></a>
 </h3>
 <p><code><a href="../reference/GetMZmineFeature.html">GetMZmineFeature()</a></code> reads your MZmine feature table and metadata, then links them together.</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
@@ -163,7 +163,7 @@
 <span>  mzmine_dir   <span class="op">=</span> <span class="va">demo_feature</span>,</span>
 <span>  metadata_dir <span class="op">=</span> <span class="va">demo_metadata</span>,</span>
 <span>  group_col    <span class="op">=</span> <span class="st">'group'</span>,     <span class="co"># column in metadata defining treatment groups</span></span>
-<span>  sample_col   <span class="op">=</span> <span class="st">'sample'</span>     <span class="co"># column in metadata with sample file names</span></span>
+<span>  sample_col   <span class="op">=</span> <span class="st">'sample'</span>     <span class="co"># column in metadata with sample filenames used as input in MZmine</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>The newly created <code>mmo</code> object contains three main components:</p>
 <p><strong>1) Feature abundance matrix</strong> — rows are features (m/z + retention time), columns are samples:</p>
@@ -188,9 +188,9 @@
 <p>Mass spectrometry data often contains zeros (undetected features). These need to be handled before log transformation or fold-change calculations. <code><a href="../reference/ReplaceZero.html">ReplaceZero()</a></code> adds an imputed version of the feature table (<code>mmo$imputed_feature_data</code>).</p>
 <ul>
 <li>
-<code>method = 'one'</code>: Replace 0 and NA values with 1 (simple, conservative)</li>
+<code>method = 'one'</code>: Replace 0 and NA values with 1 (simple, conservative).</li>
 <li>
-<code>method = 'half_min'</code>: Replace with half the minimum non-zero value per feature</li>
+<code>method = 'half_min'</code>: Replace with half the minimum non-zero value per feature.</li>
 </ul>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/ReplaceZero.html">ReplaceZero</a></span><span class="op">(</span><span class="va">mmo</span>, method <span class="op">=</span> <span class="st">'one'</span><span class="op">)</span></span>
@@ -199,7 +199,7 @@
 <div class="section level3">
 <h3 id="mass-normalization">3.2 Mass normalization<a class="anchor" aria-label="anchor" href="#mass-normalization"></a>
 </h3>
-<p>If your metadata contains a <code>mass</code> column (tissue mass in mg), <code><a href="../reference/MassNormalization.html">MassNormalization()</a></code> adjusts peak areas for differences in sample mass: <code>normalized = original * mean(mass) / sample_mass</code>.</p>
+<p>If your metadata contains a <code>mass</code> column (tissue mass in mg), then <code><a href="../reference/MassNormalization.html">MassNormalization()</a></code> adjusts peak areas for differences in sample mass: <code>normalized = original * mean(mass) / sample_mass</code>.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/MassNormalization.html">MassNormalization</a></span><span class="op">(</span><span class="va">mmo</span><span class="op">)</span></span>
 <span><span class="va">mmo</span><span class="op">$</span><span class="va">feature_data</span></span></code></pre></div>
@@ -257,7 +257,7 @@
 <div class="section level3">
 <h3 id="siriuscanopus-annotation">4.1 SIRIUS/CANOPUS annotation<a class="anchor" aria-label="anchor" href="#siriuscanopus-annotation"></a>
 </h3>
-<p>SIRIUS provides computational annotations including molecular formula predictions and compound class assignments via CANOPUS (NPC and ClassyFire classifications).</p>
+<p>SIRIUS provides computational annotations including molecular formula predictions and compound class assignments via CANOPUS (NPClassifier and ClassyFire classifications).</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddSiriusAnnot.html">AddSiriusAnnot</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
@@ -301,7 +301,7 @@
 <span><span class="va">mmo</span><span class="op">$</span><span class="va">sirius_annot_filtered_NPC_pathway_0.8</span></span></code></pre></div>
 </div>
 <div class="section level3">
-<h3 id="filter-structure-predictions-by-cosmic-confidence">4.3 Filter structure predictions by COSMIC confidence<a class="anchor" aria-label="anchor" href="#filter-structure-predictions-by-cosmic-confidence"></a>
+<h3 id="filter-structure-predictions-by-cosmic-confidence-scores">4.3 Filter structure predictions by COSMIC confidence scores<a class="anchor" aria-label="anchor" href="#filter-structure-predictions-by-cosmic-confidence-scores"></a>
 </h3>
 <p>SIRIUS structure predictions are scored by the COSMIC confidence score. These scores should be interpreted with caution — they are not probabilities. The <a href="https://www.nature.com/articles/s41587-021-01045-9" class="external-link">SIRIUS team recommends</a> focusing on the highest-confidence hits (e.g., top 5–10%).</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -355,10 +355,10 @@
 <div class="section level3">
 <h3 id="add-chemical-distance-matrix">4.6 Add chemical distance matrix<a class="anchor" aria-label="anchor" href="#add-chemical-distance-matrix"></a>
 </h3>
-<p>Chemical similarity scores (e.g., from DreaMS) can be used for chemically-informed heatmap clustering and diversity analyses.</p>
+<p>Chemical similarity scores (e.g., from DreaMS) can be used for chemically-informed heatmap clustering and diversity analyses. Similarities are stored as-is (0–1, higher = more similar); downstream functions convert to distance internally.</p>
 <div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemDist.html">AddChemDist</a></span><span class="op">(</span><span class="va">mmo</span>, dreams_dir <span class="op">=</span> <span class="va">demo_dreams</span><span class="op">)</span></span>
-<span><span class="va">mmo</span><span class="op">$</span><span class="va">dreams.dissim</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">mmo</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/AddChemSim.html">AddChemSim</a></span><span class="op">(</span><span class="va">mmo</span>, dreams_dir <span class="op">=</span> <span class="va">demo_dreams</span><span class="op">)</span></span>
+<span><span class="va">mmo</span><span class="op">$</span><span class="va">dreams.sim</span><span class="op">[</span><span class="fl">1</span><span class="op">:</span><span class="fl">10</span>, <span class="fl">1</span><span class="op">:</span><span class="fl">10</span><span class="op">]</span></span></code></pre></div>
 <hr>
 </div>
 </div>
@@ -372,13 +372,13 @@
 <p><strong>Key options:</strong></p>
 <ul>
 <li>
-<code>normalization</code>: which normalization to use (<code>"None"</code>, <code>"Log"</code>, <code>"Meancentered"</code>, <code>"Z"</code>)</li>
+<code>normalization</code>: which normalization to use (<code>"None"</code>, <code>"Log"</code>, <code>"Meancentered"</code>, <code>"Z"</code>).</li>
 <li>
-<code>label</code>: whether to label individual sample points</li>
+<code>label</code>: whether to label individual sample points.</li>
 <li>
-<code>filter_id</code> / <code>id_list</code>: restrict analysis to specific features</li>
+<code>filter_id</code> / <code>id_list</code>: restrict analysis to specific features.</li>
 <li>
-<code>save_output</code>: set to <code>FALSE</code> to return the plot object without saving files</li>
+<code>save_output</code>: set to <code>FALSE</code> to return the plot object without saving files.</li>
 </ul>
 <div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># Define group colors</span></span>
@@ -440,9 +440,9 @@
 <p><code><a href="../reference/PairwiseComp.html">PairwiseComp()</a></code> performs a pairwise t-test between two groups and computes:</p>
 <ul>
 <li>
-<strong>log2 fold change</strong> — magnitude of change (log2(group2_mean / group1_mean))</li>
+<strong>log2 fold change</strong> — magnitude of change (log2(group2_mean / group1_mean)).</li>
 <li>
-<strong>adjusted p-value</strong> — significance after BH correction</li>
+<strong>adjusted p-value</strong> — significance after BH correction.</li>
 </ul>
 <blockquote>
 <p><strong>Convention:</strong> The first group (<code>group1</code>) is the reference/control. Positive log2FC means the feature is <em>higher</em> in <code>group2</code> (treatment).</p>
@@ -458,9 +458,9 @@
 <p><code><a href="../reference/GetDAMs.html">GetDAMs()</a></code> extracts DAMs from all comparisons based on fold-change and p-value cutoffs.</p>
 <ul>
 <li>
-<code>fc_cutoff = 0.5849625</code> corresponds to log2(1.5) — a 1.5-fold change</li>
+<code>fc_cutoff = 0.5849625</code> corresponds to log2(1.5) — a 1.5-fold change.</li>
 <li>
-<code>pval_cutoff = 0.1</code> is used here to capture more DAMs in this small demo dataset</li>
+<code>pval_cutoff = 0.1</code> is used here to capture more DAMs in this small demo dataset.</li>
 </ul>
 <div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">DAMs</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/GetDAMs.html">GetDAMs</a></span><span class="op">(</span><span class="va">mmo</span>, fc_cutoff <span class="op">=</span> <span class="fl">0.5849625</span>, pval_cutoff <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span></span>
@@ -497,14 +497,14 @@
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Venn diagram</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">ggvenn</span><span class="op">)</span></span>
-<span><span class="va">venn_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/pkg/ggvenn/man/ggvenn.html" class="external-link">ggvenn</a></span><span class="op">(</span><span class="va">VennInput</span>, stroke_size <span class="op">=</span> <span class="fl">0.5</span>, set_name_size <span class="op">=</span> <span class="fl">4</span>,</span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://yanlinlin82.github.io/ggvenn/" class="external-link">ggvenn</a></span><span class="op">)</span></span>
+<span><span class="va">venn_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://yanlinlin82.github.io/ggvenn/reference/ggvenn.html" class="external-link">ggvenn</a></span><span class="op">(</span><span class="va">VennInput</span>, stroke_size <span class="op">=</span> <span class="fl">0.5</span>, set_name_size <span class="op">=</span> <span class="fl">4</span>,</span>
 <span>                    show_percentage <span class="op">=</span> <span class="cn">FALSE</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"none"</span><span class="op">)</span></span>
 <span><span class="va">venn_plot</span></span>
 <span></span>
 <span><span class="co"># UpSet plot</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="http://github.com/hms-dbmi/UpSetR" class="external-link">UpSetR</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/hms-dbmi/UpSetR" class="external-link">UpSetR</a></span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/UpSetR/man/upset.html" class="external-link">upset</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/UpSetR/man/fromList.html" class="external-link">fromList</a></span><span class="op">(</span><span class="va">VennInput</span><span class="op">)</span>, nsets <span class="op">=</span> <span class="fl">10</span>, nintersects <span class="op">=</span> <span class="fl">20</span>,</span>
 <span>      order.by <span class="op">=</span> <span class="st">'freq'</span>, mainbar.y.label <span class="op">=</span> <span class="st">'Features in Set'</span>,</span>
 <span>      line.size <span class="op">=</span> <span class="fl">1</span>, point.size <span class="op">=</span> <span class="fl">4</span>, shade.color <span class="op">=</span> <span class="st">'white'</span>,</span>
@@ -767,7 +767,7 @@
 <hr>
 </div>
 <div class="section level2">
-<h2 id="step-11-save-and-share-the-mmo-object">Step 11: Save and share the mmo object<a class="anchor" aria-label="anchor" href="#step-11-save-and-share-the-mmo-object"></a>
+<h2 id="step-11-save-and-share-the-mmo-object">Step 11: Save and share the <code>mmo</code> object<a class="anchor" aria-label="anchor" href="#step-11-save-and-share-the-mmo-object"></a>
 </h2>
 <p>The <code>mmo</code> object can be saved to a file and shared with collaborators. This preserves all data, annotations, normalizations, and analysis results.</p>
 <div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
@@ -783,6 +783,11 @@
 </h2>
 <p>This tutorial covered the complete eCOMET workflow for treatment-based metabolomics studies:</p>
 <table class="table">
+<colgroup>
+<col width="33%">
+<col width="33%">
+<col width="33%">
+</colgroup>
 <thead><tr class="header">
 <th>Step</th>
 <th>Function(s)</th>
@@ -802,14 +807,14 @@
 <tr class="odd">
 <td>3</td>
 <td>
-<code><a href="../reference/ReplaceZero.html">ReplaceZero()</a></code>, <code>*Normalization()</code>
+<code><a href="../reference/ReplaceZero.html">ReplaceZero()</a></code>, <code>MassNormalization(mmo)</code>, <code>ZNormalization(mmo)</code>, <code>LogNormalization(mmo)</code>, <code><a href="../reference/MeancenterNormalization.html">MeancenterNormalization()</a></code>
 </td>
 <td>Preprocessing</td>
 </tr>
 <tr class="even">
 <td>4</td>
 <td>
-<code><a href="../reference/AddSiriusAnnot.html">AddSiriusAnnot()</a></code>, <code><a href="../reference/AddCustomAnnot.html">AddCustomAnnot()</a></code>, <code><a href="../reference/AddChemDist.html">AddChemDist()</a></code>
+<code><a href="../reference/AddSiriusAnnot.html">AddSiriusAnnot()</a></code>, <code><a href="../reference/AddCustomAnnot.html">AddCustomAnnot()</a></code>, <code><a href="../reference/AddChemSim.html">AddChemSim()</a></code>
 </td>
 <td>Annotations</td>
 </tr>
@@ -842,7 +847,9 @@
 </tr>
 <tr class="odd">
 <td>9</td>
-<td><code>Canopus*EnrichmentPlot()</code></td>
+<td>
+<code><a href="../reference/CanopusListEnrichmentPlot.html">CanopusListEnrichmentPlot()</a></code>, <code><a href="../reference/CanopusLevelEnrichmentPlot.html">CanopusLevelEnrichmentPlot()</a></code>, <code><a href="../reference/CanopusAllLevelEnrichmentPlot.html">CanopusAllLevelEnrichmentPlot()</a></code>
+</td>
 <td>Chemical class enrichment</td>
 </tr>
 <tr class="even">
@@ -872,7 +879,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

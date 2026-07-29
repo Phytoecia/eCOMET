@@ -7,8 +7,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <title>Tutorial 3: Compound Dendrograms and Molecular Networks • ecomet</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
+<link href="../deps/bootstrap-5.3.8/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.8/bootstrap.bundle.min.js"></script><link href="../deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="../deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
 <script src="../deps/headroom-0.11.0/headroom.min.js"></script><script src="../deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="../deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="../deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="../deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="../deps/search-1.0.0/fuse.min.js"></script><script src="../deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Tutorial 3: Compound Dendrograms and Molecular Networks">
 </head>
@@ -31,7 +31,7 @@
       <ul class="navbar-nav me-auto">
 <li class="nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
 <li class="active nav-item"><a class="nav-link" href="../articles/index.html">Tutorials</a></li>
-<li class="nav-item"><a class="nav-link" href="../articles/contributing.html">Contributing</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/contributing.html">Contribute</a></li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul>
 <ul class="navbar-nav">
@@ -60,6 +60,10 @@
 
     
     
+<blockquote>
+<p><strong>Note:</strong> This tutorial has not yet been moved to the similarity-based storage introduced in eCOMET 1.1, so it uses <code><a href="../reference/AddChemDist.html">AddChemDist()</a></code>, which stores dissimilarity matrices in <code>.dissim</code> slots. The functions shown here read that slot: <code><a href="../reference/ExportCytoscape.html">ExportCytoscape()</a></code> and <code><a href="../reference/ExportITOL.html">ExportITOL()</a></code> have not been converted yet, and <code><a href="../reference/FeatureDendrogram_derep.html">FeatureDendrogram_derep()</a></code> is the preserved dissimilarity-based version of <code><a href="../reference/FeatureDendrogram.html">FeatureDendrogram()</a></code>.</p>
+<p>If you have already built a similarity matrix with <code><a href="../reference/AddChemSim.html">AddChemSim()</a></code>, use <code><a href="../reference/FeatureDendrogram.html">FeatureDendrogram()</a></code> instead — it takes the <code>.sim</code> slot and is otherwise identical. Do not mix the two: <code><a href="../reference/AddChemDist.html">AddChemDist()</a></code> alone will not satisfy <code><a href="../reference/FeatureDendrogram.html">FeatureDendrogram()</a></code>, and <code><a href="../reference/AddChemSim.html">AddChemSim()</a></code> alone will not satisfy <code><a href="../reference/ExportCytoscape.html">ExportCytoscape()</a></code> or <code><a href="../reference/ExportITOL.html">ExportITOL()</a></code>. All of these will read one slot in a future release.</p>
+</blockquote>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
@@ -99,7 +103,7 @@
 <span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nchar.html" class="external-link">nzchar</a></span><span class="op">(</span><span class="va">data_dir</span><span class="op">)</span><span class="op">)</span>  <span class="co"># fail loudly if package data is missing</span></span>
 <span></span>
 <span><span class="va">demo_feature</span>          <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"Ecomet_Interspecific_Demo_full_feature_table.csv"</span><span class="op">)</span></span>
-<span><span class="va">demo_metadata</span>         <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"Ecomet_Interspecific_Demo_metadata_no_blanks.csv"</span><span class="op">)</span></span>
+<span><span class="va">demo_metadata</span>         <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"Ecomet_Interspecific_Demo_metadata_no_blank.csv"</span><span class="op">)</span></span>
 <span><span class="va">demo_sirius_formula</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"canopus_formula_summary.tsv"</span><span class="op">)</span></span>
 <span><span class="va">demo_sirius_structure</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"structure_identifications.tsv"</span><span class="op">)</span></span>
 <span><span class="va">demo_dreams</span>           <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html" class="external-link">file.path</a></span><span class="op">(</span><span class="va">data_dir</span>, <span class="st">"Ecomet_Interspecific_Demo_dreams_sim_dreams.csv"</span><span class="op">)</span></span>
@@ -211,9 +215,9 @@
 <div class="section level3">
 <h3 id="build-the-dendrogram">3.1 Build the dendrogram<a class="anchor" aria-label="anchor" href="#build-the-dendrogram"></a>
 </h3>
-<p><code><a href="../reference/FeatureDendrogram.html">FeatureDendrogram()</a></code> takes the <code>mmo</code> object and the name of a stored distance matrix. Here we use the DreaMS dissimilarity matrix added in section 1. No filtering is applied so the tree includes all features that have an entry in the distance matrix.</p>
+<p><code><a href="../reference/FeatureDendrogram_derep.html">FeatureDendrogram_derep()</a></code> takes the <code>mmo</code> object and the name of a stored distance matrix. Here we use the DreaMS dissimilarity matrix added in section 1. No filtering is applied so the tree includes all features that have an entry in the distance matrix.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tree_dreams</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram.html">FeatureDendrogram</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">tree_dreams</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram_derep.html">FeatureDendrogram_derep</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  distance <span class="op">=</span> <span class="st">"dreams"</span>,</span>
 <span>  method   <span class="op">=</span> <span class="st">"average"</span>   <span class="co"># UPGMA — sensible default for spectral similarity trees</span></span>
@@ -246,7 +250,7 @@
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"Terpenoid"</span>, <span class="va">`NPC#pathway`</span><span class="op">)</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/pull.html" class="external-link">pull</a></span><span class="op">(</span><span class="va">id</span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">tree_terp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram.html">FeatureDendrogram</a></span><span class="op">(</span></span>
+<span><span class="va">tree_terp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram_derep.html">FeatureDendrogram_derep</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  distance <span class="op">=</span> <span class="st">"dreams"</span>,</span>
 <span>  features <span class="op">=</span> <span class="va">terpenoid_ids</span></span>
@@ -269,7 +273,7 @@
 <span><span class="op">)</span></span></code></pre></div>
 <p>And to export the tree topology for use in iTOL or FigTree:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tree_dreams</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram.html">FeatureDendrogram</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">tree_dreams</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram_derep.html">FeatureDendrogram_derep</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  distance    <span class="op">=</span> <span class="st">"dreams"</span>,</span>
 <span>  save_newick <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -308,7 +312,7 @@
 <h3 id="build-the-iin-constrained-dendrogram">4.3 Build the IIN-constrained dendrogram<a class="anchor" aria-label="anchor" href="#build-the-iin-constrained-dendrogram"></a>
 </h3>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tree_iin</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram.html">FeatureDendrogram</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">tree_iin</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram_derep.html">FeatureDendrogram_derep</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  distance     <span class="op">=</span> <span class="st">"dreams"</span>,</span>
 <span>  method       <span class="op">=</span> <span class="st">"average"</span>,</span>
@@ -337,7 +341,7 @@
 </h3>
 <p>MZmine also assigns a <code>feature_group</code> to features that co-elute and show correlated abundance across samples, regardless of whether their m/z differences match known adducts. This is a broader grouping than IIN — in this dataset <strong>2,283 features</strong> fall into <strong>740 correlation groups</strong>. Correlation groups capture the same compound across different charge states or neutral losses that IIN might miss, but they can also group unrelated features that happen to co-vary.</p>
 <div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">tree_corr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram.html">FeatureDendrogram</a></span><span class="op">(</span></span>
+<code class="sourceCode R"><span><span class="va">tree_corr</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/FeatureDendrogram_derep.html">FeatureDendrogram_derep</a></span><span class="op">(</span></span>
 <span>  <span class="va">mmo</span>,</span>
 <span>  distance     <span class="op">=</span> <span class="st">"dreams"</span>,</span>
 <span>  method       <span class="op">=</span> <span class="st">"average"</span>,</span>
@@ -556,7 +560,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.1.</p>
 </div>
 
     </footer>

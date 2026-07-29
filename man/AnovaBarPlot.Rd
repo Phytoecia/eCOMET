@@ -19,7 +19,7 @@ AnovaBarPlot(
 )
 }
 \arguments{
-\item{mmo}{The mmo object containing metadata and feature data}
+\item{mmo}{The \code{mmo} containing metadata and feature data}
 
 \item{ID_list}{A list of feature IDs to analyze. Use FeatureToID() to convert feature names to IDs.}
 

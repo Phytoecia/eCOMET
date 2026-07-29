@@ -1,8 +1,7 @@
 # PlotFeatureDendrogram
 
-Plot a feature dendrogram produced by
-[`FeatureDendrogram()`](https://phytoecia.github.io/eCOMET/reference/FeatureDendrogram.md)
-using ggtree, returning a `ggplot`/`ggtree` object that can be further
+Plot a feature dendrogram produced by `FeatureDendrogram()` using
+ggtree, returning a `ggplot`/`ggtree` object that can be further
 customised with additional `ggplot2` or `ggtree` layers.
 
 ## Usage
@@ -26,70 +25,66 @@ PlotFeatureDendrogram(
 
 ## Arguments
 
-- tree:
+  - tree:
+    
+    Output list from `FeatureDendrogram()`.
 
-  Output list from
-  [`FeatureDendrogram()`](https://phytoecia.github.io/eCOMET/reference/FeatureDendrogram.md).
+  - mmo:
+    
+    `mmo`. Used for `mmo$sirius_annot` when `color_by` is not `NULL`.
 
-- mmo:
+  - color\_by:
+    
+    Column name in `mmo$sirius_annot` to use for tip point colors
+    (default: `"NPC#pathway"`). Set to `NULL` to skip tip coloring.
 
-  mmo object. Used for `mmo$sirius_annot` when `color_by` is not `NULL`.
+  - layout:
+    
+    Tree layout passed to `ggtree::ggtree()`. One of `"circular"`
+    (default), `"rectangular"`, `"fan"`, `"slanted"`, `"radial"`, or any
+    other layout supported by ggtree.
 
-- color_by:
+  - color\_branches:
+    
+    Logical; whether to color the tree branches themselves by the
+    annotation in `color_by`, in addition to the tip points (default:
+    `FALSE`). Branch color is determined by a majority-vote of the tip
+    annotations descending from each node, so mixed-class clades are
+    colored by whichever class is most abundant. Unannotated or mixed
+    branches fall back to `na_color`.
 
-  Column name in `mmo$sirius_annot` to use for tip point colors
-  (default: `"NPC#pathway"`). Set to `NULL` to skip tip coloring.
+  - highlight\_groups:
+    
+    Logical; whether to highlight ion identity / correlation groups
+    using `ggtree::geom_hilight()` (default: `TRUE`). Only has an effect
+    when `tree$tip_map` is not `NULL`.
 
-- layout:
+  - palette:
+    
+    Qualitative palette name for `colorspace::qualitative_hcl` (default:
+    `"Dark 3"`).
 
-  Tree layout passed to
-  [`ggtree::ggtree()`](https://rdrr.io/pkg/ggtree/man/ggtree.html). One
-  of `"circular"` (default), `"rectangular"`, `"fan"`, `"slanted"`,
-  `"radial"`, or any other layout supported by ggtree.
+  - na\_color:
+    
+    Color for tips/branches with no annotation (default: `"grey70"`).
 
-- color_branches:
+  - tip\_size:
+    
+    Point size for tip points (default: `1`).
 
-  Logical; whether to color the tree branches themselves by the
-  annotation in `color_by`, in addition to the tip points (default:
-  `FALSE`). Branch color is determined by a majority-vote of the tip
-  annotations descending from each node, so mixed-class clades are
-  colored by whichever class is most abundant. Unannotated or mixed
-  branches fall back to `na_color`.
+  - branch\_size:
+    
+    Line width for tree branches (default: `0.5`). Increase for small
+    trees; decrease for large ones.
 
-- highlight_groups:
+  - show\_tip\_labels:
+    
+    Logical; draw feature ID text at tips (default: `FALSE`). Only
+    useful for small trees.
 
-  Logical; whether to highlight ion identity / correlation groups using
-  [`ggtree::geom_hilight()`](https://rdrr.io/pkg/ggtree/man/geom-hilight.html)
-  (default: `TRUE`). Only has an effect when `tree$tip_map` is not
-  `NULL`.
-
-- palette:
-
-  Qualitative palette name for
-  [`colorspace::qualitative_hcl`](https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html)
-  (default: `"Dark 3"`).
-
-- na_color:
-
-  Color for tips/branches with no annotation (default: `"grey70"`).
-
-- tip_size:
-
-  Point size for tip points (default: `1`).
-
-- branch_size:
-
-  Line width for tree branches (default: `0.5`). Increase for small
-  trees; decrease for large ones.
-
-- show_tip_labels:
-
-  Logical; draw feature ID text at tips (default: `FALSE`). Only useful
-  for small trees.
-
-- open_angle:
-
-  For `layout = "fan"`, the opening angle in degrees (default: `10`).
+  - open\_angle:
+    
+    For `layout = "fan"`, the opening angle in degrees (default: `10`).
 
 ## Value
 
@@ -100,22 +95,23 @@ A `ggtree`/`ggplot` object. Add further layers with `+`.
 **Design philosophy:** The function returns a `ggtree` object so you can
 keep layering modifications after the call:
 
-      p <- PlotFeatureDendrogram(tree, mmo)
-      p + ggtree::geom_tiplab(size = 1.5) +
-          ggplot2::theme(legend.position = "bottom")
+``` 
+  p <- PlotFeatureDendrogram(tree, mmo)
+  p + ggtree::geom_tiplab(size = 1.5) +
+      ggplot2::theme(legend.position = "bottom")
+```
 
 **Tip point coloring (`color_by`):** Because most metabolomics trees
 have hundreds or thousands of tips, text labels are rarely readable.
 Instead, tiny colored points are drawn at each tip using
-[`ggtree::geom_tippoint()`](https://rdrr.io/pkg/ggtree/man/geom_tippoint.html)
-to indicate compound class. Use `show_tip_labels = TRUE` to additionally
-draw feature ID text (not recommended for large trees).
+`ggtree::geom_tippoint()` to indicate compound class. Use
+`show_tip_labels = TRUE` to additionally draw feature ID text (not
+recommended for large trees).
 
 **IIN / correlation group highlighting (`highlight_groups`):** When
 `tree$tip_map` is present, each ion identity / correlation group is
-highlighted using
-[`ggtree::geom_hilight()`](https://rdrr.io/pkg/ggtree/man/geom-hilight.html),
-which shades the MRCA clade of all members of that group.
+highlighted using `ggtree::geom_hilight()`, which shades the MRCA clade
+of all members of that group.
 
 ## Examples
 

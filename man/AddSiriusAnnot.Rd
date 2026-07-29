@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{AddSiriusAnnot}
 \alias{AddSiriusAnnot}
-\title{Adding annotation from SIRIUS to the mmo object}
+\title{Adding annotation from SIRIUS to the \code{mmo}}
 \usage{
 AddSiriusAnnot(
   mmo,
@@ -13,7 +13,7 @@ AddSiriusAnnot(
 )
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{canopus_structuredir}{Path to the SIRIUS structure_identification.tsv file}
 
@@ -24,11 +24,11 @@ AddSiriusAnnot(
 \item{filter_threshold}{Numeric between 0 and 1. The probability threshold for filtering annotations.}
 }
 \value{
-The mmo object with SIRIUS annotations added
+The \code{mmo} with SIRIUS annotations added
 }
 \description{
 This function reads SIRIUS structure identification and formula summary files,
-and adds the annotations to the mmo object.
+and adds the annotations to the \code{mmo}.
 }
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}

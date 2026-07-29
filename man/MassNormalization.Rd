@@ -7,13 +7,13 @@
 MassNormalization(mmo)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 }
 \value{
-The mmo object with normalized feature data (mmo$feature_data)
+The \code{mmo} with normalized feature data (mmo$feature_data)
 }
 \description{
-This function normalizes the peak area in the feature data of the mmo object by the mass of each sample, provided in the metadata.
+This function normalizes the peak area in the feature data of the \code{mmo} by the mass of each sample, provided in the metadata.
 The feature data is replaced by (original value * mean mass) / sample mass.
 }
 \examples{

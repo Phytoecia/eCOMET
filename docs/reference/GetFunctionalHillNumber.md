@@ -1,9 +1,12 @@
-# GetFunctionalHillNumber
+# GetFunctionalHillNumber (similarity-based)
 
-This function calculates the functional Hill number for a given mmo
-object, normalization method, and distance metric. See
-https://nph.onlinelibrary.wiley.com/doi/full/10.1111/nph.18685 for
-details of the functional Hill number calculation.
+Calculates the functional Hill number using a pairwise feature
+**similarity** matrix (values 0–1, higher = more similar) from
+`GetSimMat()`. Algebraically equivalent to
+`GetFunctionalHillNumber_derep()` but avoids ever constructing the full
+dense distance matrix, making it safe for sparse large-dataset
+similarity matrices. Key identity used: \\(p'Dp = 1 - p'Sp\\) (exact
+when \\(\\sum p\_i = 1\\) and \\(D = 1 - S\\)).
 
 ## Usage
 
@@ -11,7 +14,7 @@ details of the functional Hill number calculation.
 GetFunctionalHillNumber(
   feature,
   metadata,
-  distance_matrix,
+  sim_matrix,
   q = 1,
   threshold = 0,
   scale_dissim = TRUE
@@ -20,34 +23,31 @@ GetFunctionalHillNumber(
 
 ## Arguments
 
-- feature:
+  - feature:
+    
+    Feature table with columns: id, feature, then sample columns
 
-  Feature table with columns: id, feature, then sample columns
+  - metadata:
+    
+    Metadata table with sample and group columns
 
-- metadata:
+  - sim\_matrix:
+    
+    Feature similarity matrix (dense or sparse dgCMatrix)
 
-  Metadata table with sample and group columns
+  - q:
+    
+    The order of the Hill number (default: 1)
 
-- distance_matrix:
+  - threshold:
+    
+    Numeric; detection threshold for presence (default: 0)
 
-  Feature distance matrix
-
-- q:
-
-  The order of the Hill number to calculate (default: 1). Larger q
-  values give more weight to evenness portion of the hill number over
-  richness. q = 0 treats abundance matrix as a presence absence matrix
-
-- threshold:
-
-  Numeric; detection threshold for presence (default: 0)
-
-- scale_dissim:
-
-  Boolean; whether to scale the distance matrix to be between 0 and 1
-  (default: TRUE)
+  - scale\_dissim:
+    
+    Kept for interface compatibility; max(sim)=1 so scaling is a no-op,
+    but passing FALSE still skips it
 
 ## Value
 
-A data frame containing the functional Hill number for each group in the
-metadata, with columns for group and hill number.
+A data frame with sample, group, hill\_number, and value columns.

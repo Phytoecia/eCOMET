@@ -21,48 +21,48 @@ PLSDAplot(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with feature data and metadata
 
-  The mmo object with feature data and metadata
+  - color:
+    
+    A vector of colors for the groups in the plot. Make sure the names
+    correspond to the group names in metadata
 
-- color:
+  - topk:
+    
+    The number of top features to display in the plot (default: 10)
 
-  A vector of colors for the groups in the plot. Make sure the names
-  correspond to the group names in metadata
+  - outdir:
+    
+    The output file path for the PLS-DA plot
 
-- topk:
+  - normalization:
+    
+    The normalization method to use for feature data. Options are
+    'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
 
-  The number of top features to display in the plot (default: 10)
+  - filter\_id:
+    
+    Boolean to filter features by id\_list (default: FALSE)
 
-- outdir:
+  - id\_list:
+    
+    A vector of feature names to filter (default: NULL)
 
-  The output file path for the PLS-DA plot
+  - filter\_group:
+    
+    Boolean to filter groups by group\_list (default: FALSE)
 
-- normalization:
+  - group\_list:
+    
+    A vector of group names to filter (default: NULL)
 
-  The normalization method to use for feature data. Options are 'None',
-  'Log', 'Meancentered', or 'Z' (default: 'Z')
-
-- filter_id:
-
-  Boolean to filter features by id_list (default: FALSE)
-
-- id_list:
-
-  A vector of feature names to filter (default: NULL)
-
-- filter_group:
-
-  Boolean to filter groups by group_list (default: FALSE)
-
-- group_list:
-
-  A vector of group names to filter (default: NULL)
-
-- save_output:
-
-  Boolean; if TRUE (default) write plot (.pdf) and loadings tables using
-  `outdir` as prefix. If FALSE, nothing is written.
+  - save\_output:
+    
+    Boolean; if TRUE (default) write plot (.pdf) and loadings tables
+    using `outdir` as prefix. If FALSE, nothing is written.
 
 ## Value
 

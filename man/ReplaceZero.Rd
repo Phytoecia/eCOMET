@@ -2,12 +2,12 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{ReplaceZero}
 \alias{ReplaceZero}
-\title{#' Replace zero and NA values in the mmo object}
+\title{#' Replace zero and NA values in the \code{mmo}}
 \usage{
 ReplaceZero(mmo, method = c("one", "half_min"))
 }
 \arguments{
-\item{mmo}{An mmo object containing \code{feature_data}}
+\item{mmo}{A \code{mmo} containing \code{feature_data}}
 
 \item{method}{Replacement method:
 \itemize{
@@ -17,10 +17,10 @@ non-zero value in each feature (row)
 }}
 }
 \value{
-The updated mmo object
+The updated \code{mmo}
 }
 \description{
-This function replaces zero values in the feature table of an mmo object.
+This function replaces zero values in the feature table of a \code{mmo}.
 Imputed data are stored in mmo$imputed_feature_data, to be used for
 downsteam analyses including PairwiseComp().
 Note that imputation affects normalizations (Log-transformation, etc.),

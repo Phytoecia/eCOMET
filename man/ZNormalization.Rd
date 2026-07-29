@@ -2,20 +2,20 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{ZNormalization}
 \alias{ZNormalization}
-\title{Z-normalize the peak area in the mmo object}
+\title{Z-normalize the peak area in the \code{mmo}}
 \usage{
 ZNormalization(mmo, imputed_data = FALSE)
 }
 \arguments{
-\item{mmo}{The mmo object}
+\item{mmo}{The \code{mmo}}
 
 \item{imputed_data}{Whether to use imputed feature data (default = FALSE)}
 }
 \value{
-The mmo object with Z-normalized feature data stored in \code{mmo$zscore}
+The \code{mmo} with Z-normalized feature data stored in \code{mmo$zscore}
 }
 \description{
 This function applies Z-score normalization to the peak area in the feature data
-of the mmo object. Z-scores are calculated per feature (row) across samples.
+of the \code{mmo}. Z-scores are calculated per feature (row) across samples.
 Features with zero variance cannot be Z-normalized and are returned as NA.
 }

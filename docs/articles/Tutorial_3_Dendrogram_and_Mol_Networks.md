@@ -1,5 +1,19 @@
 # Tutorial 3: Compound Dendrograms and Molecular Networks
 
+> **Note:** This tutorial has not yet been moved to the similarity-based
+> storage introduced in eCOMET 1.1, so it uses `AddChemDist()`, which
+> stores dissimilarity matrices in `.dissim` slots. The functions shown
+> here read that slot: `ExportCytoscape()` and `ExportITOL()` have not
+> been converted yet, and `FeatureDendrogram_derep()` is the preserved
+> dissimilarity-based version of `FeatureDendrogram()`.
+> 
+> If you have already built a similarity matrix with `AddChemSim()`, use
+> `FeatureDendrogram()` instead — it takes the `.sim` slot and is
+> otherwise identical. Do not mix the two: `AddChemDist()` alone will
+> not satisfy `FeatureDendrogram()`, and `AddChemSim()` alone will not
+> satisfy `ExportCytoscape()` or `ExportITOL()`. All of these will read
+> one slot in a future release.
+
 ## Overview
 
 This tutorial covers how to use `eCOMET` to build and visualize
@@ -33,7 +47,7 @@ library(colorspace)
 library(stringr)
 ```
 
-## 1. Load data and build the mmo object
+## 1\. Load data and build the mmo object
 
 Point `eCOMET` to the four input files and build the `mmo` object in one
 block. Everything downstream reads from this object.
@@ -43,7 +57,7 @@ data_dir <- system.file("extdata/tutorials/interspecific", package = "ecomet")
 stopifnot(nzchar(data_dir))  # fail loudly if package data is missing
 
 demo_feature          <- file.path(data_dir, "Ecomet_Interspecific_Demo_full_feature_table.csv")
-demo_metadata         <- file.path(data_dir, "Ecomet_Interspecific_Demo_metadata_no_blanks.csv")
+demo_metadata         <- file.path(data_dir, "Ecomet_Interspecific_Demo_metadata_no_blank.csv")
 demo_sirius_formula   <- file.path(data_dir, "canopus_formula_summary.tsv")
 demo_sirius_structure <- file.path(data_dir, "structure_identifications.tsv")
 demo_dreams           <- file.path(data_dir, "Ecomet_Interspecific_Demo_dreams_sim_dreams.csv")
@@ -69,28 +83,27 @@ mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
 
 After this block:
 
-- `mmo$feature_data` — feature × sample abundance matrix
-- `mmo$metadata` — sample group assignments
-- `mmo$sirius_annot` — CANOPUS class predictions per feature
-- `mmo$dreams.dissim` — pairwise chemical dissimilarity matrix among
-  features
+  - `mmo$feature_data` — feature × sample abundance matrix
+  - `mmo$metadata` — sample group assignments
+  - `mmo$sirius_annot` — CANOPUS class predictions per feature
+  - `mmo$dreams.dissim` — pairwise chemical dissimilarity matrix among
+    features
 
-## 2. Filtering the mmo object
+## 2\. Filtering the mmo object
 
 Before building a dendrogram or molecular network it is often useful to
 restrict the dataset to a subset of samples, groups, or features.
-[`filter_mmo()`](https://phytoecia.github.io/eCOMET/reference/filter_mmo.md)
-handles all three cases and keeps every slot in the `mmo` object —
-abundance matrix, metadata, distance matrices, and annotations —
-consistently aligned.
+`filter_mmo()` handles all three cases and keeps every slot in the `mmo`
+object — abundance matrix, metadata, distance matrices, and annotations
+— consistently aligned.
 
 The three filtering axes can be combined or used independently:
 
-- **By group** — retain only samples belonging to certain biological
-  groups (e.g. a single species, a treatment arm)
-- **By sample** — retain a hand-picked list of individual sample IDs
-- **By feature** — retain a specific set of feature IDs, for example all
-  compounds derived from a group in an annotation table
+  - **By group** — retain only samples belonging to certain biological
+    groups (e.g. a single species, a treatment arm)
+  - **By sample** — retain a hand-picked list of individual sample IDs
+  - **By feature** — retain a specific set of feature IDs, for example
+    all compounds derived from a group in an annotation table
 
 By default, features with no detected abundance in the retained samples
 are dropped automatically (`drop_empty_feat = TRUE`). You can raise or
@@ -173,7 +186,7 @@ mmo_flv_subset <- filter_mmo(
 )
 ```
 
-## 3. Compound dendrogram from DreaMS distances
+## 3\. Compound dendrogram from DreaMS distances
 
 A compound dendrogram groups features by their pairwise chemical
 similarity. Features that are structurally related end up on nearby
@@ -184,14 +197,13 @@ are well-represented.
 
 ### 3.1 Build the dendrogram
 
-[`FeatureDendrogram()`](https://phytoecia.github.io/eCOMET/reference/FeatureDendrogram.md)
-takes the `mmo` object and the name of a stored distance matrix. Here we
-use the DreaMS dissimilarity matrix added in section 1. No filtering is
-applied so the tree includes all features that have an entry in the
-distance matrix.
+`FeatureDendrogram_derep()` takes the `mmo` object and the name of a
+stored distance matrix. Here we use the DreaMS dissimilarity matrix
+added in section 1. No filtering is applied so the tree includes all
+features that have an entry in the distance matrix.
 
 ``` r
-tree_dreams <- FeatureDendrogram(
+tree_dreams <- FeatureDendrogram_derep(
   mmo,
   distance = "dreams",
   method   = "average"   # UPGMA — sensible default for spectral similarity trees
@@ -205,12 +217,11 @@ tree_dreams <- FeatureDendrogram(
 
 ### 3.2 Plot colored by NPC compound class
 
-[`PlotFeatureDendrogram()`](https://phytoecia.github.io/eCOMET/reference/PlotFeatureDendrogram.md)
-takes the tree and colors each tip by a column in the SIRIUS annotation
-table. The default column is `"NPC#pathway"`, which gives a broad
-chemical class label (e.g. Terpenoids, Alkaloids, Shikimates and
-Phenylpropanoids). Features without a CANOPUS prediction are shown in
-grey.
+`PlotFeatureDendrogram()` takes the tree and colors each tip by a column
+in the SIRIUS annotation table. The default column is `"NPC#pathway"`,
+which gives a broad chemical class label (e.g. Terpenoids, Alkaloids,
+Shikimates and Phenylpropanoids). Features without a CANOPUS prediction
+are shown in grey.
 
 Tip labels are hidden by default (`show_tip_labels = FALSE`) because
 feature IDs are not meaningful at a glance and a large tree becomes
@@ -239,7 +250,7 @@ terpenoid_ids <- mmo$sirius_annot |>
   filter(grepl("Terpenoid", `NPC#pathway`)) |>
   pull(id)
 
-tree_terp <- FeatureDendrogram(
+tree_terp <- FeatureDendrogram_derep(
   mmo,
   distance = "dreams",
   features = terpenoid_ids
@@ -268,7 +279,7 @@ PlotFeatureDendrogram(
 And to export the tree topology for use in iTOL or FigTree:
 
 ``` r
-tree_dreams <- FeatureDendrogram(
+tree_dreams <- FeatureDendrogram_derep(
   mmo,
   distance    = "dreams",
   save_newick = TRUE,
@@ -277,7 +288,7 @@ tree_dreams <- FeatureDendrogram(
 # Writes output/compound_dendro_dreams.nwk
 ```
 
-## 4. Ion identity networking and the IIN-constrained dendrogram
+## 4\. Ion identity networking and the IIN-constrained dendrogram
 
 ### 4.1 What is ion identity networking?
 
@@ -327,7 +338,7 @@ than by adduct artefacts.
 ### 4.3 Build the IIN-constrained dendrogram
 
 ``` r
-tree_iin <- FeatureDendrogram(
+tree_iin <- FeatureDendrogram_derep(
   mmo,
   distance     = "dreams",
   method       = "average",
@@ -341,8 +352,7 @@ tree_iin <- FeatureDendrogram(
 The returned object is identical in structure to the plain tree. The
 difference is in `tree_iin$dist_used`, where within-group pairs have
 been set to 0.01 before `hclust` ran. `tree_iin$tip_map` now contains
-the group assignment for every feature, which
-[`PlotFeatureDendrogram()`](https://phytoecia.github.io/eCOMET/reference/PlotFeatureDendrogram.md)
+the group assignment for every feature, which `PlotFeatureDendrogram()`
 uses to draw the group highlights.
 
 ### 4.4 Plot with IIN groups highlighted
@@ -378,7 +388,7 @@ states or neutral losses that IIN might miss, but they can also group
 unrelated features that happen to co-vary.
 
 ``` r
-tree_corr <- FeatureDendrogram(
+tree_corr <- FeatureDendrogram_derep(
   mmo,
   distance     = "dreams",
   method       = "average",
@@ -397,16 +407,17 @@ PlotFeatureDendrogram(
 
 **When to use which:**
 
-- Use `ion_identity_network` when you want conservative, chemically
-  validated grouping. Only confirmed adduct relationships are collapsed.
-- Use `correlation` when your data lacks IIN annotation or when you want
-  a broader grouping that includes all co-eluting features regardless of
-  adduct confirmation.
-- For the dendrogram and iTOL output, IIN is generally preferable
-  because the groups have a direct chemical interpretation (same
-  compound, different ion forms).
+  - Use `ion_identity_network` when you want conservative, chemically
+    validated grouping. Only confirmed adduct relationships are
+    collapsed.
+  - Use `correlation` when your data lacks IIN annotation or when you
+    want a broader grouping that includes all co-eluting features
+    regardless of adduct confirmation.
+  - For the dendrogram and iTOL output, IIN is generally preferable
+    because the groups have a direct chemical interpretation (same
+    compound, different ion forms).
 
-## 5. Export to iTOL
+## 5\. Export to iTOL
 
 iTOL (Interactive Tree of Life, [itol.embl.de](https://itol.embl.de)) is
 a web-based tool for interactive tree visualisation. It lets you
@@ -415,14 +426,13 @@ publication-quality figures. This is the recommended route for producing
 the circular compound dendrogram with NPC class coloring and prevalence
 bars shown in qemistree-style figures.
 
-[`ExportITOL()`](https://phytoecia.github.io/eCOMET/reference/ExportITOL.md)
-generates three files from your tree and mmo object:
+`ExportITOL()` generates three files from your tree and mmo object:
 
-- **`.nwk`** — the Newick tree file, uploaded to iTOL first
-- **`_colorstrip.txt`** — a coloured strip for each tip, coloured by NPC
-  pathway class
-- **`_barplot.txt`** — a bar chart for each tip showing the proportion
-  of samples in which that feature was detected
+  - **`.nwk`** — the Newick tree file, uploaded to iTOL first
+  - **`_colorstrip.txt`** — a coloured strip for each tip, coloured by
+    NPC pathway class
+  - **`_barplot.txt`** — a bar chart for each tip showing the proportion
+    of samples in which that feature was detected
 
 ### 5.1 Basic export
 
@@ -487,7 +497,7 @@ ExportITOL(tree_dreams, mmo,
 Available NPC/ClassyFire columns in `mmo$sirius_annot`:
 
 | Column                           | Resolution                          |
-|----------------------------------|-------------------------------------|
+| -------------------------------- | ----------------------------------- |
 | `NPC#pathway`                    | Broadest (Terpenoids, Alkaloids, …) |
 | `NPC#superclass`                 | Intermediate                        |
 | `NPC#class`                      | Fine                                |
@@ -495,7 +505,7 @@ Available NPC/ClassyFire columns in `mmo$sirius_annot`:
 | `ClassyFire#class`               | Intermediate                        |
 | `ClassyFire#most specific class` | Finest                              |
 
-## 6. Export a molecular network for Cytoscape
+## 6\. Export a molecular network for Cytoscape
 
 A molecular network represents features as nodes and pairwise chemical
 similarity as edges. Features that are structurally related are
@@ -504,14 +514,13 @@ in Cytoscape lets you explore chemical space interactively, color nodes
 by compound class or abundance, and identify clusters of related
 metabolites.
 
-[`ExportCytoscape()`](https://phytoecia.github.io/eCOMET/reference/ExportCytoscape.md)
-generates two files from the mmo object:
+`ExportCytoscape()` generates two files from the mmo object:
 
-- **`_edges.csv`** — one row per retained edge, with `source`, `target`,
-  `similarity`, and `distance_method` columns
-- **`_nodes.csv`** — one row per feature, combining abundance statistics
-  and all available annotations from `mmo$feature_info` and
-  `mmo$sirius_annot`
+  - **`_edges.csv`** — one row per retained edge, with `source`,
+    `target`, `similarity`, and `distance_method` columns
+  - **`_nodes.csv`** — one row per feature, combining abundance
+    statistics and all available annotations from `mmo$feature_info` and
+    `mmo$sirius_annot`
 
 ### 6.1 Choosing an edge filter
 
@@ -519,16 +528,17 @@ The raw DreaMS distance matrix contains a similarity value for every
 feature pair. Most of these pairs are chemically unrelated and should
 not appear as edges. Two parameters control which edges are retained:
 
-- **`sim_threshold`** sets a minimum similarity floor. Any pair below
-  this value is excluded regardless of how many other neighbours each
-  node has. This is the primary lever — raise it for a sparser,
-  higher-confidence network; lower it to include more distant structural
-  neighbours.
+  - **`sim_threshold`** sets a minimum similarity floor. Any pair below
+    this value is excluded regardless of how many other neighbours each
+    node has. This is the primary lever — raise it for a sparser,
+    higher-confidence network; lower it to include more distant
+    structural neighbours.
 
-- **`top_k`** limits each node to its `k` most similar neighbours after
-  threshold filtering. This prevents highly-connected hub features from
-  overwhelming the layout and makes the network easier to read. An edge
-  is kept if it falls in the top-k for *either* endpoint.
+  - **`top_k`** limits each node to its `k` most similar neighbours
+    after threshold filtering. This prevents highly-connected hub
+    features from overwhelming the layout and makes the network easier
+    to read. An edge is kept if it falls in the top-k for *either*
+    endpoint.
 
 A warning is printed if the retained edge count exceeds 50 000, as
 Cytoscape becomes slow at that scale.
@@ -582,9 +592,10 @@ ExportCytoscape(
 The node table is built automatically from whatever is present in the
 mmo object — no columns are assumed. It always includes:
 
-- `id` — feature identifier
-- `prevalence` — proportion of samples in which the feature was detected
-- `mean_<group>` — one column per biological group with mean abundance
+  - `id` — feature identifier
+  - `prevalence` — proportion of samples in which the feature was
+    detected
+  - `mean_<group>` — one column per biological group with mean abundance
 
 If `mmo$feature_info` is present, all its columns are appended (m/z, RT,
 IIN group, adduct type, MZmine network cluster ID, etc.). If

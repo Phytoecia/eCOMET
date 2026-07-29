@@ -1,8 +1,8 @@
-# Switch the group column in the mmo object
+# Switch the group column in the `mmo`
 
-This function switches the group column in the metadata of the mmo
-object to a new specified column. The new group column must exist in the
-metadata file.
+This function switches the group column in the metadata of the `mmo` to
+a new specified column. The new group column must exist in the metadata
+file.
 
 ## Usage
 
@@ -12,17 +12,17 @@ SwitchGroup(mmo, new_group_col)
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo`
 
-  The mmo object
-
-- new_group_col:
-
-  The name of the new group column in the metadata file
+  - new\_group\_col:
+    
+    The name of the new group column in the metadata file
 
 ## Value
 
-The mmo object with the updated group column
+The `mmo` with the updated group column
 
 ## Examples
 

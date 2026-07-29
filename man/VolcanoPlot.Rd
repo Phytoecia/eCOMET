@@ -18,7 +18,7 @@ VolcanoPlot(
 )
 }
 \arguments{
-\item{mmo}{The mmo object with pairwise comparison matrix}
+\item{mmo}{The \code{mmo} with pairwise comparison matrix}
 
 \item{comp}{The comparison to visualize, e.g., 'group1_vs_group2}
 
@@ -42,7 +42,7 @@ VolcanoPlot(
 A list containing the volcano plot and the data used to generate it
 }
 \description{
-This function generates a volcano plot using data from mmo$pairwise (PairwiseComp(mmo, 'group1', 'group2') should be precended),
+This function generates a volcano plot using data from \code{mmo$pairwise} (\code{PairwiseComp(mmo, 'group1', 'group2')} should be specified),
 highlighting upregulated and downregulated features based on log2 fold change and adjusted p-value
 }
 \examples{

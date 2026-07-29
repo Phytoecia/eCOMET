@@ -19,28 +19,28 @@ ScreenFeaturePhenotypeCorrelation(
 
 ## Arguments
 
-- mmo:
+  - mmo:
+    
+    The `mmo` with feature data and metadata
 
-  The mmo object with feature data and metadata
+  - phenotype:
+    
+    The name of the phenotype in the metadata
 
-- phenotype:
+  - groups:
+    
+    A vector of group names from the metadata containing phenotype data
 
-  The name of the phenotype in the metadata
+  - model:
+    
+    The type of regression model to use. Options are 'lmm' for linear
+    mixed model, 'lm' for simple linear regression, or 'pearson',
+    'spearman', 'kendall' for correlation (default: 'lm')
 
-- groups:
-
-  A vector of group names from the metadata containing phenotype data
-
-- model:
-
-  The type of regression model to use. Options are 'lmm' for linear
-  mixed model, 'lm' for simple linear regression, or 'pearson',
-  'spearman', 'kendall' for correlation (default: 'lm')
-
-- normalization:
-
-  The normalization method to use for feature data. Options are 'None',
-  'Log', 'Meancentered', or 'Z' (default: 'Z')
+  - normalization:
+    
+    The normalization method to use for feature data. Options are
+    'None', 'Log', 'Meancentered', or 'Z' (default: 'Z')
 
 ## Value
 

@@ -21,37 +21,37 @@ PlotFoldchangeResistanceQuad(
 
 ## Arguments
 
-- performance_regression:
+  - performance\_regression:
+    
+    The regression results data frame containing effect size, fold
+    change, and tag. The output from GetPerformanceFeatureRegression,
+    GetPerformanceFeatureLMM, or GetPerformanceFeatureCorrelation.
 
-  The regression results data frame containing effect size, fold change,
-  and tag. The output from GetPerformanceFeatureRegression,
-  GetPerformanceFeatureLMM, or GetPerformanceFeatureCorrelation.
+  - fold\_change:
+    
+    The name of the fold change column in the performance\_regression
+    dataframe
 
-- fold_change:
+  - color:
+    
+    A vector of colors for the points in the plot
 
-  The name of the fold change column in the performance_regression
-  dataframe
+  - output\_dir:
+    
+    The output file path for the quadrant plot
 
-- color:
+  - save\_output:
+    
+    A logical value indicating whether to save the output plot (default:
+    TRUE)
 
-  A vector of colors for the points in the plot
+  - width:
+    
+    The width of the output plot in inches (default: 6)
 
-- output_dir:
-
-  The output file path for the quadrant plot
-
-- save_output:
-
-  A logical value indicating whether to save the output plot (default:
-  TRUE)
-
-- width:
-
-  The width of the output plot in inches (default: 6)
-
-- height:
-
-  The height of the output plot in inches (default: 6)
+  - height:
+    
+    The height of the output plot in inches (default: 6)
 
 ## Value
 

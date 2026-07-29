@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{filter_mgf_to_mmo}
 \alias{filter_mgf_to_mmo}
-\title{Filter an MGF file to keep only spectra for features present in mmo$feature_data$id}
+\title{Filter an MGF file to keep only spectra for features present in \code{mmo$feature_data$id}}
 \usage{
 filter_mgf_to_mmo(
   mmo,
@@ -13,7 +13,7 @@ filter_mgf_to_mmo(
 )
 }
 \arguments{
-\item{mmo}{An ecomet \code{mmo} object containing a required \code{feature_data}
+\item{mmo}{An eCOMET \code{mmo} containing a required \code{feature_data}
 table with an \code{id} column (\code{mmo$feature_data$id}).}
 
 \item{mgf_path}{Character. Path to the input \code{.mgf} file.}
@@ -41,8 +41,8 @@ Invisibly returns a list with:
 \description{
 Create a new \code{.mgf} file that contains only spectra (ION blocks) whose
 \code{FEATURE_ID} occurs in \code{mmo$feature_data$id}. This is useful for keeping
-your spectral library in sync with the features currently stored in an \code{mmo}
-object (e.g., after subsetting, filtering, or rebuilding an \code{mmo}).
+your spectral library in sync with the features currently stored in a \code{mmo}
+(e.g., after subsetting, filtering, or rebuilding a \code{mmo}).
 }
 \details{
 Each spectrum in an MGF is represented by a \code{BEGIN IONS ... END IONS} block.

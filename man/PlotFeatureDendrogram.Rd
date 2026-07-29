@@ -22,7 +22,7 @@ PlotFeatureDendrogram(
 \arguments{
 \item{tree}{Output list from \code{FeatureDendrogram()}.}
 
-\item{mmo}{mmo object. Used for \code{mmo$sirius_annot} when
+\item{mmo}{\code{mmo}. Used for \code{mmo$sirius_annot} when
 \code{color_by} is not \code{NULL}.}
 
 \item{color_by}{Column name in \code{mmo$sirius_annot} to use for tip point

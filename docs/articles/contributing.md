@@ -7,80 +7,25 @@ The package grows most usefully when the people using it in real
 workflows contribute ideas, report problems, and share new methods. This
 page explains how to do that.
 
-------------------------------------------------------------------------
-
 ### Design philosophy
 
 Before contributing, it helps to understand what eCOMET is trying to be:
 
-- **The `mmo` object is the center of everything.** Every function
-  should accept an `mmo` object as its primary input and either return a
-  modified `mmo` or a plot/data.frame. This keeps workflows composable
-  and readable.
-- **Ecology first.** Unlike biomedical metabolomics tools, eCOMET is
-  designed for comparative analyses across species, habitats, and
-  treatments. New functions should be motivated by ecological or
-  evolutionary questions, not just cheminformatics.
-- **Reproducibility over interactivity.** Functions should work in
-  scripts, vignettes, and automated pipelines — not just interactively
-  in RStudio.
-- **ggplot2 for visualization.** All new plot functions should return a
-  `ggplot`/`ggtree` object so users can layer modifications with `+`
-  without rewriting the function.
+  - **The `mmo`, the S3 Class Object, is the center of everything in the
+    eCOMET package** All contributed functions should work with an `mmo`
+    as its primary input and either return a modified `mmo` or a
+    plot/data.frame or list. This keeps workflows composable and
+    readable.
+  - **Reproducibility over interactivity.** Functions should work in
+    scripts, vignettes, and automated pipelines — not just interactively
+    in RStudio.
+  - **ggplot2 for visualization.** We designed eCOMET around ggplot so
+    that users could use ggplot conventions to keep modifying plots
+    after they are produced by eCOMET functions. New plot functions
+    should return a `ggplot`/`ggtree` object so users can layer
+    modifications with `+` without rewriting the function.
 
-------------------------------------------------------------------------
-
-### Ways to contribute
-
-#### Report a bug
-
-If something produces an error, a warning that shouldn’t be there, or a
-result that looks wrong:
-
-1.  Go to the [eCOMET GitHub Issues
-    page](https://github.com/Phytoecia/eCOMET/issues)
-2.  Click **New Issue** and select **Bug Report**
-3.  Include:
-    - The function name and the arguments you passed
-    - A minimal reproducible example — ideally using the built-in demo
-      data
-      (`system.file("extdata/tutorials/treatment_based", package = "ecomet")`)
-    - The full error message or unexpected output
-    - Your R version (`R.version.string`) and eCOMET version
-      (`packageVersion("ecomet")`)
-
-#### Request a new feature
-
-If you have a workflow step that eCOMET doesn’t support yet — a new
-diversity metric, a visualization, a different output format — open a
-feature request:
-
-1.  Go to the [eCOMET GitHub Issues
-    page](https://github.com/Phytoecia/eCOMET/issues)
-2.  Click **New Issue** and select **Feature Request**
-3.  Describe:
-    - The ecological or analytical question the feature addresses
-    - What inputs you would expect (ideally from the `mmo` object)
-    - What the output should look like
-    - Whether you have a reference or existing implementation you are
-      aware of
-
-Even if you cannot write the code yourself, a well-described feature
-request is valuable and may be picked up by another contributor.
-
-#### Contribute code
-
-1.  [Fork the repository](https://github.com/Phytoecia/eCOMET/fork) on
-    GitHub
-2.  Create a new branch for your change:
-    `git checkout -b my-new-feature`
-3.  Make your changes (see conventions below)
-4.  Push to your fork and open a **Pull Request** against the `main`
-    branch
-5.  In the PR description, explain what the function does and link any
-    relevant Issue
-
-------------------------------------------------------------------------
+-----
 
 ### Conventions for new functions
 
@@ -96,22 +41,24 @@ MyNewFunction <- function(mmo, ..., group_col = NULL) {
 }
 ```
 
-- Functions that add new results to the dataset should store them inside
-  the `mmo` object and return the updated `mmo`
-- Functions that produce a plot should return a `ggplot` or `ggtree`
-  object — never call [`print()`](https://rdrr.io/r/base/print.html) or
-  open a graphics device inside the function
-- Functions that produce a summary table should return a plain
-  `data.frame`
+  - Functions that add new results to the dataset should store them
+    inside the `mmo` object and return the updated `mmo`.
+  - Functions that produce a plot should return a `ggplot` or `ggtree`
+    object — never call `print()` or open a graphics device inside the
+    function. You can however save the plot as an output.
+  - Functions that produce a summary table should return a plain
+    `data.frame`.
 
 #### Plot functions
 
-- Use `ggplot2` (or `ggtree` for tree layouts) as the base
-- Accept a `palette` argument using
-  [`colorspace::qualitative_hcl()`](https://colorspace.R-Forge.R-project.org/reference/hcl_palettes.html)
-  for color scales
-- Return the plot object so users can modify it with `+`
-- Default to showing group-level information derived from `mmo$metadata`
+  - Use `ggplot2` (or `ggtree` for tree layouts) as the base.
+  - Accept a `palette` argument using `colorspace::qualitative_hcl()`
+    for color scales.
+  - Return the plot object so users can modify it with `+`.
+  - Default to showing group-level information derived from
+    `mmo$metadata`.
+
+<!-- end list -->
 
 ``` r
 # Good — user can keep layering
@@ -141,15 +88,15 @@ run in under a few seconds using only built-in demo data.
 
 #### Dependencies
 
-- Before adding a new package dependency, check whether the
-  functionality already exists in a package eCOMET already imports (see
-  `DESCRIPTION`)
-- Heavy or specialized packages (e.g. those requiring system libraries
-  or Bioconductor) should go in `Suggests`, not `Imports`, and be loaded
-  with `.require_pkg("pkgname")` inside the function so they are only
-  required when actually called
+  - Before adding a new package dependency, check whether the
+    functionality already exists in a package eCOMET already imports
+    (see `DESCRIPTION`).
+  - Heavy or specialized packages (e.g. those requiring system libraries
+    or Bioconductor) should go in `Suggests`, not `Imports`, and be
+    loaded with `.require_pkg("pkgname")` inside the function so they
+    are only required when actually called.
 
-------------------------------------------------------------------------
+-----
 
 ### Sharing a complete new workflow
 
@@ -161,15 +108,15 @@ as a tutorial vignette.
 Vignettes live in `vignettes/` and are built into the website. A good
 tutorial vignette:
 
-- Loads data using `system.file("extdata/...", package = "ecomet")` so
-  it is portable
-- Walks through a complete, realistic analysis from raw data to
-  interpretation
-- Explains the ecological motivation for each step, not just the code
-- Uses demo data small enough to be bundled in the package (target \< 5
-  MB total per tutorial)
+  - Loads data using `system.file("extdata/...", package = "ecomet")` so
+    it is portable.
+  - Walks through a complete, realistic analysis from raw data to
+    interpretation.
+  - Explains the ecological motivation for each step, not just the code.
+  - Uses demo data small enough to be bundled in the package (target \<
+    5 MB total per tutorial).
 
-------------------------------------------------------------------------
+-----
 
 ### Questions
 
