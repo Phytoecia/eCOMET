@@ -2361,10 +2361,19 @@ GetGroupMeans <- function(mmo, normalization = 'None', filter_id = FALSE, id_lis
   # Extract numeric matrix (features x samples) — avoids 49M-row pivot_longer
   mat      <- as.matrix(feature_data[, -(1:2), drop = FALSE])
   id_col   <- feature_data$id
-  groups   <- levels(as.factor(metadata$group))
+
+  # Only groups that actually have samples, in factor-level order. Matches the
+  # columns the previous group_by()/pivot_wider() implementation produced:
+  # dplyr drops unused factor levels, so an empty level must not become a column.
+  present  <- unique(metadata$group[metadata$sample %in% colnames(mat)])
+  groups   <- if (is.factor(metadata$group)) {
+    levels(metadata$group)[levels(metadata$group) %in% as.character(present)]
+  } else {
+    sort(unique(as.character(present)))
+  }
 
   means_list <- lapply(groups, function(g) {
-    samps <- metadata$sample[metadata$group == g]
+    samps <- metadata$sample[as.character(metadata$group) == g]
     samps <- intersect(samps, colnames(mat))
     if (length(samps) == 0L) return(rep(NA_real_, nrow(mat)))
     rowMeans(mat[, samps, drop = FALSE], na.rm = TRUE)
@@ -2373,6 +2382,10 @@ GetGroupMeans <- function(mmo, normalization = 'None', filter_id = FALSE, id_lis
 
   result <- data.frame(id = id_col, as.data.frame(means_list, check.names = FALSE),
                        stringsAsFactors = FALSE, check.names = FALSE)
+  # Rows are returned sorted by feature id, as group_by(group, id) did, so that
+  # heatmap row order and exported tables stay identical to earlier releases.
+  result <- result[order(result$id), , drop = FALSE]
+  rownames(result) <- NULL
   return(result)
 }
 
@@ -3077,6 +3090,16 @@ GenerateHeatmapInputs <- function(mmo, filter_id = FALSE, id_list = NULL,
   if (!is.null(distance)){
     # Reorder similarity matrix to match FC_matrix row order
     sim_matrix <- sim_matrix[rownames(FC_matrix), rownames(FC_matrix)]
+    # A heatmap needs a dense distance matrix, so this cannot stay sparse.
+    # Stop before allocating tens of gigabytes rather than exhausting memory.
+    n_keep <- nrow(sim_matrix)
+    if (n_keep > 10000L) {
+      stop("GenerateHeatmapInputs: clustering ", n_keep, " features requires a dense ",
+           n_keep, " x ", n_keep, " distance matrix (about ",
+           format(round(n_keep^2 * 8 / 2^30, 1), nsmall = 1), " GB).\n",
+           "Use filter_id = TRUE with id_list to select fewer features, or pass ",
+           "distance = NULL to skip chemical clustering.", call. = FALSE)
+    }
     # Convert similarity to distance (1 - S) for heatmap clustering
     dist_matrix <- as.dist(1 - as.matrix(sim_matrix))
   } else{
@@ -3729,6 +3752,21 @@ ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'l
   samp_order <- intersect(colnames(feature)[-(1:2)], phenotype_df$sample)
   feat_mat   <- as.matrix(feature[, samp_order, drop = FALSE])
   y          <- phenotype_df$phenotype[match(samp_order, phenotype_df$sample)]
+
+  # Samples with no phenotype value carry no information for any feature.
+  # cor.test() and lm() drop them per feature; dropping them once up front is
+  # equivalent and keeps them out of the matrix product below, which has no
+  # na.rm and would otherwise turn every feature's covariance into NA.
+  pheno_ok <- !is.na(y)
+  if (!any(pheno_ok)) {
+    stop("No samples have a non-missing '", phenotype, "' value in the selected groups.", call. = FALSE)
+  }
+  if (!all(pheno_ok)) {
+    message(sum(!pheno_ok), " sample(s) dropped: no '", phenotype, "' value recorded.")
+    feat_mat   <- feat_mat[, pheno_ok, drop = FALSE]
+    samp_order <- samp_order[pheno_ok]
+    y          <- y[pheno_ok]
+  }
   n_feat     <- nrow(feat_mat)
   n          <- length(y)
 
@@ -3736,27 +3774,56 @@ ScreenFeaturePhenotypeCorrelation <- function(mmo, phenotype, groups, model = 'l
   coeff_vec <- numeric(n_feat)
   pval_vec  <- numeric(n_feat)
 
-  if (model %in% c('pearson', 'lm', 'spearman')) {
-    # Vectorised correlation across all features at once
-    X <- if (model == 'spearman') {
-      t(apply(feat_mat, 1L, rank, na.last = "keep"))
-    } else {
-      feat_mat
-    }
-    y_use <- if (model == 'spearman') rank(y, na.last = "keep") else y
-
-    y_c    <- y_use - mean(y_use, na.rm = TRUE)
+  if (model %in% c('pearson', 'lm')) {
+    # Vectorised correlation across all features at once. Features carrying a
+    # missing value are handled one at a time below, because the pairwise
+    # deletion they need changes both n and sd(y) for that feature alone.
+    X      <- feat_mat
+    y_use  <- y
+    y_c    <- y_use - mean(y_use)
     X_c    <- sweep(X, 1L, rowMeans(X, na.rm = TRUE), `-`)
     n_obs  <- rowSums(!is.na(X))
     cov_xy <- as.numeric(X_c %*% y_c) / pmax(n_obs - 1L, 1L)
     sd_x   <- sqrt(rowSums(X_c^2L, na.rm = TRUE) / pmax(n_obs - 1L, 1L))
-    sd_y   <- sd(y_use, na.rm = TRUE)
+    sd_y   <- sd(y_use)
     r      <- cov_xy / (sd_x * sd_y)
-    r[!is.finite(r)] <- 0
+    # A zero-variance feature gives 0/0. cor.test() reports NA for those, so
+    # keep NA rather than reporting a correlation of exactly zero, which would
+    # be indistinguishable from a real result.
+    r[is.nan(r)] <- NA_real_
 
     coeff_vec <- if (model == 'lm') r * sd_y / pmax(sd_x, .Machine$double.eps) else r
     t_stat    <- r * sqrt(pmax(n - 2L, 1L) / pmax(1 - r^2, .Machine$double.eps))
     pval_vec  <- 2 * pt(-abs(t_stat), df = pmax(n - 2L, 1L))
+
+    incomplete <- which(n_obs < n)
+    for (i in incomplete) {
+      xi <- feat_mat[i, ]
+      ok <- !is.na(xi)
+      if (sum(ok) < 3L || stats::sd(xi[ok]) == 0) {
+        coeff_vec[i] <- NA_real_; pval_vec[i] <- NA_real_; next
+      }
+      res <- stats::cor.test(y[ok], xi[ok], method = "pearson")
+      coeff_vec[i] <- if (model == 'lm') {
+        unname(res$estimate) * stats::sd(y[ok]) / stats::sd(xi[ok])
+      } else unname(res$estimate)
+      pval_vec[i] <- res$p.value
+    }
+
+  } else if (model == 'spearman') {
+    # cor.test() gives the exact (AS 89) p-value for small samples; the normal
+    # approximation used by a vectorised rank correlation disagrees with it
+    # enough to flip significance calls, so go through cor.test() per feature.
+    for (i in seq_len(n_feat)) {
+      xi <- feat_mat[i, ]
+      ok <- !is.na(xi)
+      if (sum(ok) < 3L || stats::sd(xi[ok]) == 0) {
+        coeff_vec[i] <- NA_real_; pval_vec[i] <- NA_real_; next
+      }
+      res <- suppressWarnings(stats::cor.test(y[ok], xi[ok], method = "spearman"))
+      coeff_vec[i] <- unname(res$estimate)
+      pval_vec[i]  <- res$p.value
+    }
 
   } else if (model %in% c('lmm', 'kendall')) {
     # Per-feature loop with pre-allocated vectors (no rbind)
@@ -3810,20 +3877,52 @@ GetPerformanceFeatureRegression <- function(mmo, phenotype, groups, DAM.list, co
   samp_order <- intersect(colnames(feature)[-(1:2)], phenotype.df$sample)
   feat_mat   <- as.matrix(feature[, samp_order, drop = FALSE])
   y          <- phenotype.df$performance[match(samp_order, phenotype.df$sample)]
+
+  # Drop samples with no phenotype value before the matrix product below, which
+  # has no na.rm and would otherwise propagate one missing value into every
+  # feature's covariance. lm() discards these rows per feature anyway.
+  pheno_ok <- !is.na(y)
+  if (!any(pheno_ok)) {
+    stop("No samples have a non-missing '", phenotype, "' value in the selected groups.", call. = FALSE)
+  }
+  if (!all(pheno_ok)) {
+    message(sum(!pheno_ok), " sample(s) dropped: no '", phenotype, "' value recorded.")
+    feat_mat   <- feat_mat[, pheno_ok, drop = FALSE]
+    samp_order <- samp_order[pheno_ok]
+    y          <- y[pheno_ok]
+  }
   n_feat     <- nrow(feat_mat)
   n          <- length(y)
 
   # Vectorised simple linear regression via Pearson correlation
-  y_c      <- y - mean(y, na.rm = TRUE)
+  y_c      <- y - mean(y)
   X_c      <- sweep(feat_mat, 1L, rowMeans(feat_mat, na.rm = TRUE), `-`)
   n_obs    <- rowSums(!is.na(feat_mat))
   cov_xy   <- as.numeric(X_c %*% y_c) / pmax(n_obs - 1L, 1L)
   var_x    <- rowSums(X_c^2L, na.rm = TRUE) / pmax(n_obs - 1L, 1L)
   eff_size <- cov_xy / pmax(var_x, .Machine$double.eps)   # lm slope = cov/var_x
-  r        <- cov_xy / (sqrt(var_x) * sd(y, na.rm = TRUE))
+  r        <- cov_xy / (sqrt(var_x) * sd(y))
   t_stat   <- r * sqrt(pmax(n - 2L, 1L) / pmax(1 - r^2, .Machine$double.eps))
   p_value  <- 2 * pt(-abs(t_stat), df = pmax(n - 2L, 1L))
-  p_value[!is.finite(t_stat)] <- 1
+  # A zero-variance feature has no slope to report; keep NA in both columns
+  # rather than pairing an NA estimate with a confident-looking p of 1.
+  degenerate <- is.nan(r) | is.na(r)
+  p_value[is.nan(t_stat)] <- NA_real_
+  eff_size[degenerate] <- NA_real_
+  p_value[degenerate]  <- NA_real_
+
+  # Features carrying a missing value need pairwise deletion, which changes
+  # both n and sd(y) for that feature alone; handle those one at a time.
+  for (i in which(n_obs < n)) {
+    xi <- feat_mat[i, ]
+    ok <- !is.na(xi)
+    if (sum(ok) < 3L || stats::sd(xi[ok]) == 0) {
+      eff_size[i] <- NA_real_; p_value[i] <- NA_real_; next
+    }
+    res <- stats::cor.test(y[ok], xi[ok], method = "pearson")
+    eff_size[i] <- unname(res$estimate) * stats::sd(y[ok]) / stats::sd(xi[ok])
+    p_value[i]  <- res$p.value
+  }
 
   # DAM tags — vectorial lookup across all lists
   tags <- rep("else", n_feat)
@@ -3933,6 +4032,20 @@ GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, c
   samp_order <- intersect(colnames(feature)[-(1:2)], phenotype.df$sample)
   feat_mat   <- as.matrix(feature[, samp_order, drop = FALSE])
   y          <- phenotype.df$performance[match(samp_order, phenotype.df$sample)]
+
+  # Drop samples with no phenotype value before the matrix product below, which
+  # has no na.rm and would otherwise propagate one missing value into every
+  # feature's covariance. cor.test() discards these pairs per feature anyway.
+  pheno_ok <- !is.na(y)
+  if (!any(pheno_ok)) {
+    stop("No samples have a non-missing '", phenotype, "' value in the selected groups.", call. = FALSE)
+  }
+  if (!all(pheno_ok)) {
+    message(sum(!pheno_ok), " sample(s) dropped: no '", phenotype, "' value recorded.")
+    feat_mat   <- feat_mat[, pheno_ok, drop = FALSE]
+    samp_order <- samp_order[pheno_ok]
+    y          <- y[pheno_ok]
+  }
   n_feat     <- nrow(feat_mat)
   n          <- length(y)
 
@@ -3940,31 +4053,42 @@ GetPerformanceFeatureCorrelation <- function(mmo, phenotype, groups, DAM.list, c
   eff_size_vec <- numeric(n_feat)
   p_value_vec  <- numeric(n_feat)
 
-  if (cor_method %in% c('pearson', 'spearman')) {
-    X <- if (cor_method == 'spearman') {
-      t(apply(feat_mat, 1L, rank, na.last = "keep"))
-    } else {
-      feat_mat
-    }
-    y_use  <- if (cor_method == 'spearman') rank(y, na.last = "keep") else y
-    y_c    <- y_use - mean(y_use, na.rm = TRUE)
+  if (cor_method == 'pearson') {
+    X      <- feat_mat
+    y_c    <- y - mean(y)
     X_c    <- sweep(X, 1L, rowMeans(X, na.rm = TRUE), `-`)
     n_obs  <- rowSums(!is.na(X))
     cov_xy <- as.numeric(X_c %*% y_c) / pmax(n_obs - 1L, 1L)
     sd_x   <- sqrt(rowSums(X_c^2L, na.rm = TRUE) / pmax(n_obs - 1L, 1L))
-    sd_y   <- sd(y_use, na.rm = TRUE)
+    sd_y   <- sd(y)
     r      <- cov_xy / (sd_x * sd_y)
-    r[!is.finite(r)] <- 0
+    # A zero-variance feature gives 0/0; cor.test() reports NA for those.
+    r[is.nan(r)] <- NA_real_
     t_stat       <- r * sqrt(pmax(n - 2L, 1L) / pmax(1 - r^2, .Machine$double.eps))
     eff_size_vec <- r
     p_value_vec  <- 2 * pt(-abs(t_stat), df = pmax(n - 2L, 1L))
-    p_value_vec[!is.finite(t_stat)] <- 1
+
+    # Features carrying a missing value need pairwise deletion, which changes
+    # both n and sd(y) for that feature alone; handle those one at a time.
+    for (i in which(n_obs < n)) {
+      xi <- feat_mat[i, ]; ok <- !is.na(xi)
+      if (sum(ok) < 3L || stats::sd(xi[ok]) == 0) {
+        eff_size_vec[i] <- NA_real_; p_value_vec[i] <- NA_real_; next
+      }
+      res <- stats::cor.test(y[ok], xi[ok], method = "pearson")
+      eff_size_vec[i] <- unname(res$estimate); p_value_vec[i] <- res$p.value
+    }
   } else {
-    # kendall: pre-allocated loop (no rbind)
+    # spearman and kendall: cor.test() supplies the exact small-sample p-value,
+    # which a rank-correlation t approximation does not reproduce.
     for (i in seq_len(n_feat)) {
-      res             <- cor.test(y, feat_mat[i, ], method = 'kendall')
-      eff_size_vec[i] <- res[[4]]
-      p_value_vec[i]  <- res[[3]]
+      xi <- feat_mat[i, ]; ok <- !is.na(xi)
+      if (sum(ok) < 3L || stats::sd(xi[ok]) == 0) {
+        eff_size_vec[i] <- NA_real_; p_value_vec[i] <- NA_real_; next
+      }
+      res             <- suppressWarnings(stats::cor.test(y[ok], xi[ok], method = cor_method))
+      eff_size_vec[i] <- unname(res$estimate)
+      p_value_vec[i]  <- res$p.value
     }
   }
 
@@ -4535,13 +4659,6 @@ GetFaithPD_derep <- function(feature, metadata, distance_matrix, threshold = 0){
 }
 
 
-#' GetFaithPD (similarity-based)
-#'
-#' Calculates Faith's phylogenetic diversity using a pairwise feature
-#' \strong{similarity} matrix from \code{GetSimMat()}. Converts to distance
-#' internally (\code{1 - sim}) before clustering, which requires materializing
-#' a full dense matrix; a size guard stops execution if n > 10,000 features.
-#'
 # sparse_single_phylo: builds a phylo tree from a sparse OR dense similarity
 # matrix using the MST = single-linkage equivalence. Avoids O(n^2)
 # densification — only explicit (non-zero) similarity edges are loaded into
@@ -4621,6 +4738,14 @@ sparse_single_phylo <- function(S, M = 1) {
 }
 
 
+#' GetFaithPD (similarity-based)
+#'
+#' Calculates Faith's phylogenetic diversity using a pairwise feature
+#' \strong{similarity} matrix from \code{GetSimMat()}. Converts to distance
+#' internally (\code{1 - sim}) before clustering, which requires materializing
+#' a full dense matrix; above 10,000 features it switches to a minimum spanning
+#' tree, which stays sparse but uses single-linkage rather than average-linkage.
+#'
 #' @param feature Feature table with columns: id, feature, then sample columns
 #' @param metadata Metadata table with sample and group columns
 #' @param sim_matrix Feature similarity matrix (dense or sparse dgCMatrix)
@@ -4628,11 +4753,18 @@ sparse_single_phylo <- function(S, M = 1) {
 #' @param use_mst Logical; if TRUE, always use MST/single-linkage tree (works
 #'   on sparse matrices of any size). If FALSE (default), average-linkage is
 #'   used for n <= 10,000 and MST is used automatically (with a warning) for
-#'   larger matrices. Use fastcluster package for faster average-linkage if
-#'   installed.
+#'   larger matrices.
+#' @param use_fastcluster Logical; if TRUE, build the average-linkage tree with
+#'   fastcluster::hclust() instead of stats::hclust(). Both are valid UPGMA
+#'   implementations, but they break ties between equal distances differently.
+#'   Chemical similarity scores are usually reported to three decimals, so ties
+#'   are common and the two engines can return different trees. The default
+#'   FALSE keeps results identical to earlier releases and to machines that do
+#'   not have fastcluster installed.
 #' @export
 #' @return A data frame with sample, group, PD, SR, and value columns.
-GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0, use_mst = FALSE) {
+GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0, use_mst = FALSE,
+                       use_fastcluster = FALSE) {
   .require_pkg("picante")
   .require_pkg("ape")
   n <- nrow(sim_matrix)
@@ -4641,10 +4773,9 @@ GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0, use_mst = F
   # Tree building: average-linkage for small n, MST for large n or on request
   # ------------------------------------------------------------------
   if (!use_mst && n <= 10000L) {
-    # Dense average linkage (UPGMA). fastcluster is a C-backend drop-in
-    # that is ~10x faster than stats::hclust on the same dist object.
     dist_mat <- as.dist(1 - as.matrix(sim_matrix))
-    hc <- if (requireNamespace("fastcluster", quietly = TRUE)) {
+    hc <- if (isTRUE(use_fastcluster)) {
+      .require_pkg("fastcluster")
       fastcluster::hclust(dist_mat, method = "average")
     } else {
       stats::hclust(dist_mat, method = "average")
@@ -5104,7 +5235,8 @@ GetAlphaDiversity <- function(
     n_perm = 200,
     ci = 0.95,
     seed = NULL,
-    use_mst = FALSE
+    use_mst = FALSE,
+    use_fastcluster = FALSE
 ) {
   output <- match.arg(output)
   pool_method <- match.arg(pool_method)
@@ -5170,7 +5302,8 @@ GetAlphaDiversity <- function(
         metadata = metadata_local,
         sim_matrix = distance_local,
         threshold = threshold,
-        use_mst = use_mst
+        use_mst = use_mst,
+        use_fastcluster = use_fastcluster
       )
     } else {
       stop("mode should be 'weighted', 'unweighted', 'richness', or 'faith'")
@@ -5720,8 +5853,9 @@ GetBetaDiversity_derep <- function(mmo, method = 'Gen.Uni', normalization = 'Non
 #' }
 #'
 #' @inheritParams GetBetaDiversity_derep
+#' @inheritParams GetFaithPD
 #' @export
-GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = NULL, filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, scale_dissim = TRUE, use_mst = FALSE){
+GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = NULL, filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, scale_dissim = TRUE, use_mst = FALSE, use_fastcluster = FALSE){
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
   }
@@ -5739,9 +5873,9 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   if (method == 'Gen.Uni') {
     n_feat <- nrow(sim_mat)
     if (!use_mst && n_feat <= 10000L) {
-      # Dense average linkage (UPGMA); fastcluster is a C-backend drop-in
       dist_s <- as.dist(1 - as.matrix(scaled_similarity))
-      hc_s <- if (requireNamespace("fastcluster", quietly = TRUE)) {
+      hc_s <- if (isTRUE(use_fastcluster)) {
+        .require_pkg("fastcluster")
         fastcluster::hclust(dist_s, method = "average")
       } else {
         stats::hclust(dist_s, method = "average")
@@ -5807,7 +5941,9 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   } else if (method == 'CSCS') {
     # With similarity storage, CSS = scaled_similarity directly (no 1-D conversion)
     CSS <- scaled_similarity
-    if (!all(diag(as.matrix(CSS)) == 1)) print("Warning Diag not equal to 1")
+    # Matrix::diag() reads the diagonal without expanding a sparse matrix to
+    # dense, which as.matrix() would do purely to check n values.
+    if (!all(Matrix::diag(CSS) == 1)) message("Warning: similarity diagonal is not all 1")
     q.feature <- GetNormFeature(mmo, normalization = normalization) |> filter(.data$id %in% colnames(CSS))
     q.feature <- q.feature[match(colnames(CSS), q.feature$id), ]
     q.mat <- as.matrix(q.feature[, -(1:2), drop = FALSE])

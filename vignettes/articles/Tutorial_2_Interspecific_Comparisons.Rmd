@@ -553,18 +553,20 @@ This is an important teaching moment. Strong species-level clustering under Bray
 
 # 6. Add structural relationships among features
 
-Feature-overlap metrics become limited when most compounds are unique to one species. Two species may appear completely dissimilar even if they produce related compounds from the same biosynthetic pathways. To address that limitation, we next add chemical distance information derived from DREAMS so that similarity can be evaluated among compounds, not just among exact matching features.
+Feature-overlap metrics become limited when most compounds are unique to one species. Two species may appear completely dissimilar even if they produce related compounds from the same biosynthetic pathways. To address that limitation, we next add chemical similarity information derived from DREAMS so that similarity can be evaluated among compounds, not just among exact matching features.
 
 We introduce feature-based molecular networking and compound dendrograms that group mz-features into structurally similar groups on a tree.
 
 ```{r}
-# Add Dreams distance
-mmo <- AddChemDist(mmo, dreams_dir = demo_dreams)
+# Add Dreams similarity
+mmo <- AddChemSim(mmo, dreams_dir = demo_dreams)
 
-mmo$dreams.dissim[1:10,1:10]
+mmo$dreams.sim[1:10,1:10]
 ```
 
-This matrix stores pairwise chemical dissimilarity among features. Once this information is available, later analyses can distinguish between features that are unrelated and features that are distinct but still structurally similar.
+This matrix stores pairwise chemical similarity among features, on a 0–1 scale where 1 means identical. Downstream functions convert it to a distance internally as `1 - similarity`. Once this information is available, later analyses can distinguish between features that are unrelated and features that are distinct but still structurally similar.
+
+Storing similarity rather than distance also matters for large studies. An unmeasured feature pair has similarity 0, which a sparse matrix can leave out entirely, whereas the same pair has distance 1, which must be stored. Above 10,000 features `AddChemSim()` therefore switches to sparse storage automatically.
 
 # 7. Recalculate beta diversity using chemical distances
 

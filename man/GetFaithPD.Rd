@@ -2,23 +2,46 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{GetFaithPD}
 \alias{GetFaithPD}
-\title{GetFaithPD}
+\title{GetFaithPD (similarity-based)}
 \usage{
-GetFaithPD(feature, metadata, distance_matrix, threshold = 0)
+GetFaithPD(
+  feature,
+  metadata,
+  sim_matrix,
+  threshold = 0,
+  use_mst = FALSE,
+  use_fastcluster = FALSE
+)
 }
 \arguments{
 \item{feature}{Feature table with columns: id, feature, then sample columns}
 
 \item{metadata}{Metadata table with sample and group columns}
 
-\item{distance_matrix}{Feature distance matrix}
+\item{sim_matrix}{Feature similarity matrix (dense or sparse dgCMatrix)}
 
 \item{threshold}{Numeric; detection threshold for presence (default: 0)}
+
+\item{use_mst}{Logical; if TRUE, always use MST/single-linkage tree (works
+on sparse matrices of any size). If FALSE (default), average-linkage is
+used for n <= 10,000 and MST is used automatically (with a warning) for
+larger matrices.}
+
+\item{use_fastcluster}{Logical; if TRUE, build the average-linkage tree with
+fastcluster::hclust() instead of stats::hclust(). Both are valid UPGMA
+implementations, but they break ties between equal distances differently.
+Chemical similarity scores are usually reported to three decimals, so ties
+are common and the two engines can return different trees. The default
+FALSE keeps results identical to earlier releases and to machines that do
+not have fastcluster installed.}
 }
 \value{
-A data frame containing the Faith's phylogenetic diversity for each group in the metadata, with columns for group and PD.
+A data frame with sample, group, PD, SR, and value columns.
 }
 \description{
-This function calculates the Faith's phylogenetic diversity for a given mmo object and distance metric,
-to calculate chemically-informed richness
+Calculates Faith's phylogenetic diversity using a pairwise feature
+\strong{similarity} matrix from \code{GetSimMat()}. Converts to distance
+internally (\code{1 - sim}) before clustering, which requires materializing
+a full dense matrix; above 10,000 features it switches to a minimum spanning
+tree, which stays sparse but uses single-linkage rather than average-linkage.
 }

@@ -34,6 +34,8 @@ reference:
     contents:
       - GetMZmineFeature
       - AddSiriusAnnot
+      - AddChemSim
+      - AddCustomSim
       - AddChemDist
       - AddCustomDist
       - AddCustomAnnot
@@ -130,6 +132,7 @@ reference:
   - title: "Utilities"
     desc: "Helper functions for data access, formatting, and internal calculations."
     contents:
+      - GetSimMat
       - GetDistanceMat
       - GetNormFeature
       - FeatureToID
@@ -138,6 +141,20 @@ reference:
       - anova_tukey_dunnett
       - write_anova
       - permanova_stat
+
+  - title: "Dissimilarity-based versions (superseded)"
+    desc: >
+      Retained versions of the diversity and dendrogram functions that read the
+      older `.dissim` slots written by `AddChemDist()`. The functions without the
+      `_derep` suffix read the `.sim` slots written by `AddChemSim()` and are the
+      recommended entry points.
+    contents:
+      - GetAlphaDiversity_derep
+      - GetBetaDiversity_derep
+      - GetFaithPD_derep
+      - GetFunctionalHillNumber_derep
+      - FeatureDendrogram_derep
+      - GenerateHeatmapInputs_derep
 
 articles:
   - title: "Tutorials"

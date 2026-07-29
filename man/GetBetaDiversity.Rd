@@ -2,7 +2,7 @@
 % Please edit documentation in R/250813_eCOMET_build_V3.R
 \name{GetBetaDiversity}
 \alias{GetBetaDiversity}
-\title{GetBetaDiversity}
+\title{GetBetaDiversity (similarity-based)}
 \usage{
 GetBetaDiversity(
   mmo,
@@ -13,11 +13,13 @@ GetBetaDiversity(
   id_list = NULL,
   filter_group = FALSE,
   group_list = NULL,
-  scale_dissim = TRUE
+  scale_dissim = TRUE,
+  use_mst = FALSE,
+  use_fastcluster = FALSE
 )
 }
 \arguments{
-\item{mmo}{The mmo object containing feature data and metadata}
+\item{mmo}{The \code{mmo} containing feature data and metadata}
 
 \item{method}{Beta diversity method: 'Gen.Uni', 'bray', 'jaccard', or 'CSCS' (default: 'Gen.Uni')}
 
@@ -37,59 +39,29 @@ Required for 'Gen.Uni' and 'CSCS'; ignored for 'bray' and 'jaccard'.}
 \item{group_list}{A list of groups to filter the feature data by, if filter_group is TRUE (default: NULL)}
 
 \item{scale_dissim}{Boolean; whether to scale the feature distance matrix to between 0,1 (default: TRUE)}
-}
-\value{
-For 'bray', 'jaccard', 'CSCS': a symmetric sample-by-sample distance matrix (matrix).
-For 'Gen.Uni': a named list with three distance matrices named \code{d_0} (presence/absence),
-\code{d_0.5} (balanced), and \code{d_1} (fully abundance-weighted).
+
+\item{use_mst}{Logical; if TRUE, always use MST/single-linkage tree (works
+on sparse matrices of any size). If FALSE (default), average-linkage is
+used for n <= 10,000 and MST is used automatically (with a warning) for
+larger matrices.}
+
+\item{use_fastcluster}{Logical; if TRUE, build the average-linkage tree with
+fastcluster::hclust() instead of stats::hclust(). Both are valid UPGMA
+implementations, but they break ties between equal distances differently.
+Chemical similarity scores are usually reported to three decimals, so ties
+are common and the two engines can return different trees. The default
+FALSE keeps results identical to earlier releases and to machines that do
+not have fastcluster installed.}
 }
 \description{
-Calculate beta diversity (sample-to-sample dissimilarity) for an mmo object.
-Four methods are supported, differing in how they handle feature abundance and
-structural relationships among compounds:
-}
-\details{
+Identical to \code{GetBetaDiversity_derep()} but retrieves pairwise
+\strong{similarity} matrices via \code{GetSimMat()} (.sim slots).
+Key differences from the _derep version:
 \itemize{
-\item 'bray'    : Bray-Curtis dissimilarity. Feature-overlap only; no compound
-distance matrix required. Abundance sensitivity is controlled
-via \code{normalization}: use \code{'None'} for raw abundances,
-\code{'Log'} to compress dynamic range, or \code{'PA'} to reduce
-to presence/absence.
-\item 'jaccard' : Jaccard dissimilarity. Presence/absence only by definition.
-The \code{normalization} argument is ignored; PA data are always
-used internally. A warning is issued if a non-PA normalization
-is supplied.
-\item 'CSCS'    : Chemical Structural and Compositional Similarity. Incorporates
-pairwise compound distances so that samples sharing structurally
-related (but not identical) features can still be considered
-similar. Requires \code{distance}. Abundance sensitivity is
-controlled via \code{normalization} (same options as bray).
-\item 'Gen.Uni' : Generalized UniFrac. Partitions beta diversity across branches
-of a compound dendrogram. Requires \code{distance}. Returns a
-named list of three distance matrices, one per abundance-weighting
-level (\code{d_0}, \code{d_0.5}, \code{d_1}). Choose the one
-appropriate for your analysis (see Details).
+\item CSCS: uses the similarity matrix directly as CSS (no \code{1 - D}
+conversion needed), because \code{CSS = S} when similarities are stored.
+\item Gen.Uni: converts \code{S -> D} internally (\code{1 - S}) only for
+the \code{hclust()} call; guarded by a size check (n > 10,000 errors).
+\item bray / jaccard: unchanged (no distance matrix used).
 }
-
-\strong{Choosing an abundance-weighting level for Gen.Uni:}
-\itemize{
-\item \code{d_0}   -- presence/absence only; equivalent to unweighted UniFrac.
-Use when detection (not intensity) is the signal of interest.
-\item \code{d_0.5} -- balanced weighting. Moderates the
-influence of highly abundant features without ignoring abundance.
-\item \code{d_1}   -- fully abundance-weighted. Dominant features drive the distance.
-Use when peak intensity is a reliable biological signal.
-}
-Access a specific matrix with e.g. \code{result[["d_0.5"]]}.
-}
-\examples{
-\dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
-beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
- normalization = 'None', distance = 'dreams', filter_id = FALSE)
-# Access a specific weighting level:
-d_balanced <- beta_diversity[["d_0.5"]]
-beta_diversity <- GetBetaDiversity(mmo, method = 'bray',
- normalization = 'Z', filter_id = TRUE, id_list = Glucosinolates,
- filter_group = TRUE, group_list = c('Control', 'Treatment1'))
-\dontshow{\}) # examplesIf}
 }
