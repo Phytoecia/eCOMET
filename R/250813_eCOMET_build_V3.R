@@ -4569,17 +4569,16 @@ GetFunctionalHillNumber <- function(
   functional_hill_number <- c()
   if (q == 1) {
     mask <- relative_proportions > 0
-    Plog <- ifelse(mask, ratio * log(ratio), 0)
-    # Dp = 1 - Sp  (valid because sum(p) = 1, so J%*%p = 1)
+    Plog <- ifelse(mask, ratio * log(relative_proportions), 0)
     DP   <- 1 - SP
-    vals <- 2 * colSums(Plog * DP)
+    vals <- 2 * colSums(Plog * DP) - log(raoQ)
     functional_hill_number <- exp(-vals)
   } else {
-    Pq  <- ratio^q
+    Pq  <- relative_proportions^q            
+    Pq[relative_proportions == 0] <- 0       
     SPq <- scaled_similarity %*% Pq
-    # Dpq = colSums(Pq)*1 - Spq  (general: Pq does not sum to 1, so J%*%Pq != 1)
-    DPq <- sweep(SPq, 2, colSums(Pq), function(sp, cs) cs - sp)
-    vals <- colSums(Pq * DPq)
+    DPq <- sweep(SPq, 2, colSums(Pq), function(sp, cs) cs - sp)   
+    vals <- colSums(Pq * DPq) / raoQ^q       
     functional_hill_number <- vals^(1 / (1 - q))
   }
   # A sample with no signal has proportions summing to 0, so its Rao Q and
