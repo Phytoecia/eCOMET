@@ -4556,8 +4556,11 @@ GetFunctionalHillNumber <- function(
   relative_proportions <- relative_proportions[rownames(scaled_similarity), , drop = FALSE]
 
   # Rao Q via similarity: p'Dp = 1 - p'Sp (exact identity when sum(p)=1, D=1-S).
-  # No as.matrix() call here — sparse S passes directly into %*% without densification.
-  SP   <- scaled_similarity %*% relative_proportions
+  # S stays sparse and goes into %*% as is — never densify it (n x n).
+  # The product is n_features x n_samples and is dense either way (%*% returns a
+  # dgeMatrix), so as.matrix() here costs nothing and keeps every downstream
+  # colSums/sweep in base semantics.
+  SP   <- as.matrix(scaled_similarity %*% relative_proportions)
   raoQ <- 1 - colSums(relative_proportions * SP)
   # raoQ holds one value per SAMPLE, while relative_proportions is
   # features x samples. `relative_proportions / raoQ` would recycle raoQ down
@@ -4576,7 +4579,7 @@ GetFunctionalHillNumber <- function(
   } else {
     Pq  <- relative_proportions^q            
     Pq[relative_proportions == 0] <- 0       
-    SPq <- scaled_similarity %*% Pq
+    SPq <- as.matrix(scaled_similarity %*% Pq)
     DPq <- sweep(SPq, 2, colSums(Pq), function(sp, cs) cs - sp)   
     vals <- colSums(Pq * DPq) / raoQ^q       
     functional_hill_number <- vals^(1 / (1 - q))
@@ -5899,7 +5902,7 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
   # Build tree only for Gen.Uni
   if (method == 'Gen.Uni') {
     n_feat <- nrow(sim_mat)
-    if (!use_mst && n_feat <= 10000L) {
+    if (!use_mst) {
       dist_s <- as.dist(1 - as.matrix(scaled_similarity))
       hc_s <- if (isTRUE(use_fastcluster)) {
         .require_pkg("fastcluster")
@@ -5908,19 +5911,15 @@ GetBetaDiversity <- function(mmo, method = 'Gen.Uni', normalization = 'None', di
         stats::hclust(dist_s, method = "average")
       }
       compound_tree <- ape::as.phylo(hc_s)
-    } else {
-      if (n_feat > 10000L && !use_mst) {
-        warning(
-          "GetBetaDiversity(Gen.Uni): n = ", n_feat, " features is too large for ",
-          "average-linkage clustering.\n",
-          "Automatically switching to minimum spanning tree (single-linkage). ",
-          "Results are valid but may differ from smaller datasets.\n",
-          "To avoid this: use filter_mmo() to reduce feature count below 10,000.",
-          call. = FALSE
+      if (n_feat > 10000L) {
+        message(
+          "GetBetaDiversity(Gen.Uni): n = ", n_feat, " features might be too large for ",
+          "average-linkage clustering. Results are valid but may differ from smaller datasets.\n",
+          "To avoid this: use filter_mmo() to reduce feature count below 10,000, or set use_mst = TRUE."
         )
-      } else {
-        message("GetBetaDiversity(Gen.Uni): using minimum spanning tree (single-linkage) tree (use_mst = TRUE).")
       }
+    } else {
+      message("GetBetaDiversity(Gen.Uni): using minimum spanning tree (single-linkage) tree (use_mst = TRUE).")
       compound_tree <- sparse_single_phylo(scaled_similarity, M = 1)
     }
   }
