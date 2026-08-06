@@ -4802,7 +4802,7 @@ GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0, use_mst = F
   # ------------------------------------------------------------------
   # Tree building: average-linkage for small n, MST for large n or on request
   # ------------------------------------------------------------------
-  if (!use_mst && n <= 10000L) {
+  if (!use_mst) {
     dist_mat <- as.dist(1 - as.matrix(sim_matrix))
     hc <- if (isTRUE(use_fastcluster)) {
       .require_pkg("fastcluster")
@@ -4811,19 +4811,19 @@ GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0, use_mst = F
       stats::hclust(dist_mat, method = "average")
     }
     tree <- ape::as.phylo(hc)
-  } else {
-    if (n > 10000L && !use_mst) {
-      warning(
+    if (n > 10000L) {
+      message(
         "GetFaithPD: n = ", n, " features is too large for average-linkage clustering.\n",
         "Automatically switching to minimum spanning tree (single-linkage). ",
         "Results are valid but may differ from smaller datasets.\n",
         "To avoid this: use filter_mmo() to reduce feature count below 10,000.",
         call. = FALSE
       )
-    } else {
-      message("GetFaithPD: using minimum spanning tree (single-linkage) tree (use_mst = TRUE).")
     }
+  } else {
+    message("GetFaithPD: using minimum spanning tree (single-linkage) tree (use_mst = TRUE).")
     tree <- sparse_single_phylo(sim_matrix, M = 1)
+    
   }
 
   ids <- feature$id
