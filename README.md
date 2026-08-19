@@ -47,6 +47,6 @@ pak::pak("phytoecia/eCOMET")
 
 ## References
 
-  - Paper (preprint) :
+  - Paper (preprint) : <https://www.biorxiv.org/content/10.64898/2026.06.02.729701v1>
   - Webpage : <https://phytoecia.github.io/eCOMET/>
   - Q\&A Chatbot : <https://ecomet-chatbot.web.app/>
