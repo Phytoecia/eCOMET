@@ -22,3 +22,13 @@ A data frame containing the Faith's phylogenetic diversity for each group in the
 This function calculates the Faith's phylogenetic diversity for a given \code{mmo} and distance metric,
 to calculate chemically-informed richness
 }
+\section{Lifecycle}{
+
+\code{GetFaithPD_derep()} is deprecated. It reads the dissimilarity (\code{.dissim}) slots written
+by \code{\link[=AddChemDist]{AddChemDist()}} / \code{\link[=AddCustomDist]{AddCustomDist()}}, the storage layout that
+\code{\link[=AddChemSim]{AddChemSim()}} and the \code{.sim} slots replaced. Use \code{\link[=GetFaithPD]{GetFaithPD()}} instead;
+corrections made after the change in storage were applied there, so the two
+can return different numbers. Calling this function raises a deprecation
+warning; silence it with \code{options(lifecycle_verbosity = "quiet")}.
+}
+

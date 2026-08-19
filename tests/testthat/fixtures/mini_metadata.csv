@@ -1,0 +1,10 @@
+﻿sample,group,mass,sl,le_rgr,mass_missing
+con_1.mzML,ctrl,47,,,47
+con_2.mzML,ctrl,46.5,,,
+con_3.mzML,ctrl,49.2,,,49.2
+sl1_1.mzML,sl1,53.5,5.29,,53.5
+sl1_2.mzML,sl1,48.5,5.09,,48.5
+sl1_3.mzML,sl1,52.1,1.27,,52.1
+le1_1.mzML,le1,47.7,,26,47.7
+le1_2.mzML,le1,52.4,,10.5,52.4
+le1_3.mzML,le1,52,,22,52

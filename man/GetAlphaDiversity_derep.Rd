@@ -99,3 +99,13 @@ Output modes control how samples are handled:
 
 NOTE: For outputs 3 and 4, pooling is performed by summing feature intensities across samples.
 }
+\section{Lifecycle}{
+
+\code{GetAlphaDiversity_derep()} is deprecated. It reads the dissimilarity (\code{.dissim}) slots written
+by \code{\link[=AddChemDist]{AddChemDist()}} / \code{\link[=AddCustomDist]{AddCustomDist()}}, the storage layout that
+\code{\link[=AddChemSim]{AddChemSim()}} and the \code{.sim} slots replaced. Use \code{\link[=GetAlphaDiversity]{GetAlphaDiversity()}} instead;
+corrections made after the change in storage were applied there, so the two
+can return different numbers. Calling this function raises a deprecation
+warning; silence it with \code{options(lifecycle_verbosity = "quiet")}.
+}
+

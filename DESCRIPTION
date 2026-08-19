@@ -44,7 +44,9 @@ Imports:
   RColorBrewer,
   picante,
   colorspace,
-  cld
+  cld,
+  lifecycle,
+  methods
 Suggests:
     testthat (>= 3.0.0),
     knitr,
@@ -55,9 +57,11 @@ Suggests:
     pheatmap,
     stringr,
     igraph,
-    fastcluster
+    fastcluster,
+    withr
 Remotes:
     pmartinezarbizu/pairwiseAdonis/pairwiseAdonis
 URL: https://phytoecia.github.io/eCOMET/
 VignetteBuilder: knitr
 Config/roxygen2/version: 8.0.0
+Config/testthat/edition: 3

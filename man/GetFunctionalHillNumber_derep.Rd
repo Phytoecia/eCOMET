@@ -35,3 +35,13 @@ A data frame containing the functional Hill number for each group in the metadat
 This function calculates the functional Hill number for a given \code{mmo}, normalization method, and distance metric.
 See https://nph.onlinelibrary.wiley.com/doi/full/10.1111/nph.18685 for details of the functional Hill number calculation.
 }
+\section{Lifecycle}{
+
+\code{GetFunctionalHillNumber_derep()} is deprecated. It reads the dissimilarity (\code{.dissim}) slots written
+by \code{\link[=AddChemDist]{AddChemDist()}} / \code{\link[=AddCustomDist]{AddCustomDist()}}, the storage layout that
+\code{\link[=AddChemSim]{AddChemSim()}} and the \code{.sim} slots replaced. Use \code{\link[=GetFunctionalHillNumber]{GetFunctionalHillNumber()}} instead;
+corrections made after the change in storage were applied there, so the two
+can return different numbers. Calling this function raises a deprecation
+warning; silence it with \code{options(lifecycle_verbosity = "quiet")}.
+}
+

@@ -2818,7 +2818,8 @@ PCAplot <- function(mmo, color = NULL, outdir = 'PCA', normalization = 'Z', filt
   # If color is NULL, set default colors
   if (is.null(color)) {
     groups <- unique(metadata$group)
-    colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+    # assign to `color`, not `colors`: the palette below is what scale_color_manual() reads
+    color <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
   }
   # Perform PCA on normalized feature data
   feature_data_pca <- feature[, -(1:2)]
@@ -2979,6 +2980,14 @@ PLSDAplot <- function(mmo, color, topk = 10, outdir, normalization = 'Z', filter
 #' - dist_matrix: A distance matrix based on the specified distance metric
 #' - row_label: A vector of row labels for custom-annotated features (See AddCustomAnnot()). If no custom annotation is available, feature IDs are used.
 #' - heatmap_data: A data frame containing the heatmap data with feature IDs and values
+#' @section Lifecycle:
+#' `GenerateHeatmapInputs_derep()` is deprecated. It reads the dissimilarity (`.dissim`) slots written
+#' by [AddChemDist()] / [AddCustomDist()], the storage layout that
+#' [AddChemSim()] and the `.sim` slots replaced. Use [GenerateHeatmapInputs()] instead;
+#' corrections made after the change in storage were applied there, so the two
+#' can return different numbers. Calling this function raises a deprecation
+#' warning; silence it with `options(lifecycle_verbosity = "quiet")`.
+#'
 #' @export
 #' @examplesIf FALSE
 #' # Generate heatmap inputs to visualize fold change values with log normalization and dreams distance
@@ -3018,6 +3027,7 @@ GenerateHeatmapInputs_derep <- function(mmo, filter_id = FALSE, id_list = NULL,
                                 filter_group = FALSE, group_list = NULL,
                                 summarize = 'mean', control_group = 'ctrl',
                                 normalization = 'None', distance = NULL) {
+  lifecycle::deprecate_soft("1.0.2", "GenerateHeatmapInputs_derep()", "GenerateHeatmapInputs()")
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
   }
@@ -4419,6 +4429,14 @@ GetRichness <- function(
 #'        q = 0 treats abundance matrix as a presence absence matrix
 #' @param threshold Numeric; detection threshold for presence (default: 0)
 #' @param scale_dissim Boolean; whether to scale the distance matrix to be between 0 and 1 (default: TRUE)
+#' @section Lifecycle:
+#' `GetFunctionalHillNumber_derep()` is deprecated. It reads the dissimilarity (`.dissim`) slots written
+#' by [AddChemDist()] / [AddCustomDist()], the storage layout that
+#' [AddChemSim()] and the `.sim` slots replaced. Use [GetFunctionalHillNumber()] instead;
+#' corrections made after the change in storage were applied there, so the two
+#' can return different numbers. Calling this function raises a deprecation
+#' warning; silence it with `options(lifecycle_verbosity = "quiet")`.
+#'
 #' @export
 #' @return A data frame containing the functional Hill number for each group in the metadata, with columns for group and hill number.
 GetFunctionalHillNumber_derep <- function(
@@ -4429,6 +4447,7 @@ GetFunctionalHillNumber_derep <- function(
     threshold = 0,
     scale_dissim = TRUE
 ){
+  lifecycle::deprecate_soft("1.0.2", "GetFunctionalHillNumber_derep()", "GetFunctionalHillNumber()")
   # Treat values <= threshold (or NA) as absent
   feature_thr <- feature
   x_thr <- as.matrix(feature_thr[, -(1:2), drop = FALSE])
@@ -4665,12 +4684,21 @@ GetHillNumbers <- function(
 #' @param metadata Metadata table with sample and group columns
 #' @param distance_matrix Feature distance matrix
 #' @param threshold Numeric; detection threshold for presence (default: 0)
+#' @section Lifecycle:
+#' `GetFaithPD_derep()` is deprecated. It reads the dissimilarity (`.dissim`) slots written
+#' by [AddChemDist()] / [AddCustomDist()], the storage layout that
+#' [AddChemSim()] and the `.sim` slots replaced. Use [GetFaithPD()] instead;
+#' corrections made after the change in storage were applied there, so the two
+#' can return different numbers. Calling this function raises a deprecation
+#' warning; silence it with `options(lifecycle_verbosity = "quiet")`.
+#'
 #' @export
 #' @return A data frame containing the Faith's phylogenetic diversity for each group in the metadata, with columns for group and PD.
 # DEPRECATED: superseded by GetFaithPD().
 # GetFaithPD_derep() takes a dissimilarity matrix; GetFaithPD() takes a
 # similarity matrix and adds a size guard before the unavoidable densification.
 GetFaithPD_derep <- function(feature, metadata, distance_matrix, threshold = 0){
+  lifecycle::deprecate_soft("1.0.2", "GetFaithPD_derep()", "GetFaithPD()")
   .require_pkg("picante")
   .require_pkg("ape")
   ids <- feature$id
@@ -4895,6 +4923,14 @@ GetFaithPD <- function(feature, metadata, sim_matrix, threshold = 0, use_mst = F
 #'   For output = 'rarefied_sample': a list with:
 #'   - summary: group-level rarefaction summary (mean, lwr, upr, n_perm_eff)
 #'   - raw: permutation-level values for each group and n_samples
+#' @section Lifecycle:
+#' `GetAlphaDiversity_derep()` is deprecated. It reads the dissimilarity (`.dissim`) slots written
+#' by [AddChemDist()] / [AddCustomDist()], the storage layout that
+#' [AddChemSim()] and the `.sim` slots replaced. Use [GetAlphaDiversity()] instead;
+#' corrections made after the change in storage were applied there, so the two
+#' can return different numbers. Calling this function raises a deprecation
+#' warning; silence it with `options(lifecycle_verbosity = "quiet")`.
+#'
 #' @export
 # DEPRECATED: superseded by GetAlphaDiversity().
 # GetAlphaDiversity_derep() uses GetDistanceMat() (.dissim slots, dissimilarity math).
@@ -4918,6 +4954,7 @@ GetAlphaDiversity_derep <- function(
     ci = 0.95,
     seed = NULL
 ) {
+  lifecycle::deprecate_soft("1.0.2", "GetAlphaDiversity_derep()", "GetAlphaDiversity()")
   output <- match.arg(output)
   pool_method <- match.arg(pool_method)
 
@@ -5246,6 +5283,14 @@ GetAlphaDiversity_derep <- function(
 #' functions (\code{GetFunctionalHillNumber()}, \code{GetFaithPD()}).
 #'
 #' @inheritParams GetAlphaDiversity_derep
+#' @param use_mst Logical; build the compound tree as a minimum spanning tree
+#'   (single linkage) instead of average-linkage clustering. Intended for
+#'   feature counts above 10,000, where the dense distance matrix average
+#'   linkage needs becomes impractical (default: FALSE).
+#' @param use_fastcluster Logical; use \code{fastcluster::hclust()} instead of
+#'   \code{stats::hclust()}. Default FALSE: the two break ties between equal
+#'   distances differently, so the same data can give different diversity
+#'   values depending on whether fastcluster happens to be installed.
 #' @export
 GetAlphaDiversity <- function(
     mmo,
@@ -5762,6 +5807,14 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #' @return For 'bray', 'jaccard', 'CSCS': a symmetric sample-by-sample distance matrix (matrix).
 #'   For 'Gen.Uni': a named list with three distance matrices named \code{d_0} (presence/absence),
 #'   \code{d_0.5} (balanced), and \code{d_1} (fully abundance-weighted).
+#' @section Lifecycle:
+#' `GetBetaDiversity_derep()` is deprecated. It reads the dissimilarity (`.dissim`) slots written
+#' by [AddChemDist()] / [AddCustomDist()], the storage layout that
+#' [AddChemSim()] and the `.sim` slots replaced. Use [GetBetaDiversity()] instead;
+#' corrections made after the change in storage were applied there, so the two
+#' can return different numbers. Calling this function raises a deprecation
+#' warning; silence it with `options(lifecycle_verbosity = "quiet")`.
+#'
 #' @export
 #' @examplesIf FALSE
 #' beta_diversity <- GetBetaDiversity(mmo, method = 'Gen.Uni',
@@ -5777,6 +5830,7 @@ GetSpecializationIndex <- function(mmo, normalization = 'None', filter_group = F
 #   CSCS uses S directly (no 1-D conversion); Gen.Uni converts S->D only
 #   inside hclust (size-guarded for n > 10,000).
 GetBetaDiversity_derep <- function(mmo, method = 'Gen.Uni', normalization = 'None', distance = NULL, filter_id = FALSE, id_list = NULL, filter_group = FALSE, group_list = NULL, scale_dissim = TRUE){
+  lifecycle::deprecate_soft("1.0.2", "GetBetaDiversity_derep()", "GetBetaDiversity()")
   if (filter_id||filter_group){
     mmo <- filter_mmo(mmo, id_list = id_list, group_list = group_list)
   }
@@ -6029,7 +6083,8 @@ NMDSplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color = NULL, 
   # If color is NULL, set default colors
   if (is.null(color)) {
     groups <- unique(metadata$group)
-    colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+    # assign to `color`, not `colors`: the palette below is what scale_color_manual() reads
+    color <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
   }
   # Extract NMDS coordinates
   nmds_coords <- as.data.frame(vegan::scores(nmds, display = "sites"))
@@ -6090,7 +6145,8 @@ PCoAplot <- function(mmo, betadiv, outdir, width = 6, height = 6, color = NULL, 
   # If color is NULL, set default colors
   if (is.null(color)) {
     groups <- unique(metadata$group)
-    colors <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
+    # assign to `color`, not `colors`: the palette below is what scale_color_manual() reads
+    color <- setNames(grDevices::colorRampPalette(RColorBrewer::brewer.pal(12, "Set3"))(length(groups)), groups)
   }
   plot <- ggplot(pcoa_coords, aes(x = .data$PCoA1, y = .data$PCoA2, color = .data$group)) +
     geom_point(size = 3) +
@@ -6352,6 +6408,14 @@ HCplot <- function(
 #'     \item \code{tip_map}   -- data.frame of feature ID -> group assignment
 #'                               (\code{NULL} when \code{ion_identity = "none"})
 #'   }
+#' @section Lifecycle:
+#' `FeatureDendrogram_derep()` is deprecated. It reads the dissimilarity (`.dissim`) slots written
+#' by [AddChemDist()] / [AddCustomDist()], the storage layout that
+#' [AddChemSim()] and the `.sim` slots replaced. Use [FeatureDendrogram()] instead;
+#' corrections made after the change in storage were applied there, so the two
+#' can return different numbers. Calling this function raises a deprecation
+#' warning; silence it with `options(lifecycle_verbosity = "quiet")`.
+#'
 #' @export
 #' @examplesIf FALSE
 #' tree <- FeatureDendrogram(mmo, distance = "dreams")
@@ -6373,6 +6437,7 @@ FeatureDendrogram_derep <- function(
     save_newick       = FALSE,
     outprefix         = "feature_tree"
 ) {
+  lifecycle::deprecate_soft("1.0.2", "FeatureDendrogram_derep()", "FeatureDendrogram()")
   .require_pkg("ape")
   ion_identity <- match.arg(ion_identity)
 

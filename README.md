@@ -5,8 +5,7 @@
 
 <!-- badges: start -->
 
-[![CRAN
-Status](https://www.r-pkg.org/badges/version/ecomet)](https://CRAN.R-project.org/package=ecomet)
+[![R-CMD-check](https://github.com/Phytoecia/eCOMET/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Phytoecia/eCOMET/actions/workflows/R-CMD-check.yaml)
 [![License:
 AGPL-3](https://img.shields.io/badge/License-AGPL--3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 [![GitHub

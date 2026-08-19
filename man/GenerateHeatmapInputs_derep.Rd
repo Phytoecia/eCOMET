@@ -48,6 +48,16 @@ A list containing the following elements:
 This function generates heatmap inputs from the \code{mmo}, including fold change or mean values,
 distance matrix, and row labels for custom-annotated features.
 }
+\section{Lifecycle}{
+
+\code{GenerateHeatmapInputs_derep()} is deprecated. It reads the dissimilarity (\code{.dissim}) slots written
+by \code{\link[=AddChemDist]{AddChemDist()}} / \code{\link[=AddCustomDist]{AddCustomDist()}}, the storage layout that
+\code{\link[=AddChemSim]{AddChemSim()}} and the \code{.sim} slots replaced. Use \code{\link[=GenerateHeatmapInputs]{GenerateHeatmapInputs()}} instead;
+corrections made after the change in storage were applied there, so the two
+can return different numbers. Calling this function raises a deprecation
+warning; silence it with \code{options(lifecycle_verbosity = "quiet")}.
+}
+
 \examples{
 \dontshow{if (FALSE) withAutoprint(\{ # examplesIf}
 # Generate heatmap inputs to visualize fold change values with log normalization and dreams distance

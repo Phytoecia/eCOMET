@@ -13,3 +13,7 @@
 ^how_to_update_build_the_website\.Rmd$
 ^index\.md$
 ^tutorial$
+^data-raw$
+^\.claude$
+^260729_sparse_matrix_test$
+^images$

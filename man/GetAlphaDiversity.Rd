@@ -71,6 +71,16 @@ Required for \code{mode = "weighted"} and \code{mode = "faith"}; ignored otherwi
 \item{ci}{Numeric; confidence level (default: 0.95)}
 
 \item{seed}{Optional integer seed for reproducibility (default: NULL)}
+
+\item{use_mst}{Logical; build the compound tree as a minimum spanning tree
+(single linkage) instead of average-linkage clustering. Intended for
+feature counts above 10,000, where the dense distance matrix average
+linkage needs becomes impractical (default: FALSE).}
+
+\item{use_fastcluster}{Logical; use \code{fastcluster::hclust()} instead of
+\code{stats::hclust()}. Default FALSE: the two break ties between equal
+distances differently, so the same data can give different diversity
+values depending on whether fastcluster happens to be installed.}
 }
 \description{
 Identical to \code{GetAlphaDiversity_derep()} but uses \code{GetSimMat()}
